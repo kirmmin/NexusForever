@@ -2,22 +2,23 @@
 using NexusForever.Shared.Network;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.PathContent.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerPathEpisodeProgress)]
-    public class ServerPathEpisodeProgress : IWritable
+    [Message(GameMessageOpcode.ServerPathEpisodeInit)]
+    public class ServerPathEpisodeInit : IWritable
     {
         public class Mission : IWritable
         {
-            public uint MissionId { get; set; }
+            public ushort MissionId { get; set; }
             public bool Completed { get; set; }
             public uint Userdata { get; set; }
             public uint Statedata { get; set; }
 
             public void Write(GamePacketWriter writer)
             {
-                writer.Write(MissionId, 15);
+                writer.Write(MissionId, 15u);
                 writer.Write(Completed);
                 writer.Write(Userdata);
                 writer.Write(Statedata);
@@ -29,8 +30,8 @@ namespace NexusForever.WorldServer.Network.Message.Model
 
         public void Write(GamePacketWriter writer)
         {
-            writer.Write(EpisodeId, 14);
-            writer.Write(Missions.Count, 16);
+            writer.Write(EpisodeId, 14u);
+            writer.Write(Missions.Count, 16u);
             Missions.ForEach(e => e.Write(writer));
         }
     }

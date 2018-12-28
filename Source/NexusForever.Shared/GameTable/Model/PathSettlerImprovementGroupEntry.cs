@@ -13,10 +13,8 @@ namespace NexusForever.Shared.GameTable.Model
         public uint DurationPerBundleMs;
         public uint MaxBundleCount;
         public uint PathSettlerImprovementGroupIdOutpostRequired;
-        public uint PathSettlerImprovementIdTier00;
-        public uint PathSettlerImprovementIdTier01;
-        public uint PathSettlerImprovementIdTier02;
-        public uint PathSettlerImprovementIdTier03;
+        [GameTableFieldArray(4u)]
+        public uint[] PathSettlerImprovementTiers;
         public uint WorldLocation2IdDisplayPoint;
     }
 }

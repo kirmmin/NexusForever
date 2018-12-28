@@ -2,6 +2,7 @@
 using NexusForever.Shared.Network;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.PathContent.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
@@ -10,7 +11,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
     {
         public class Mission : IWritable
         {
-            public uint MissionId { get; set; }
+            public ushort MissionId { get; set; }
             public bool Completed { get; set; }
             public uint Userdata { get; set; } // % of mission progress
             public uint Statedata { get; set; } // 
@@ -19,11 +20,11 @@ namespace NexusForever.WorldServer.Network.Message.Model
 
             public void Write(GamePacketWriter writer)
             {
-                writer.Write(MissionId, 15);
+                writer.Write(MissionId, 15u);
                 writer.Write(Completed);
                 writer.Write(Userdata);
                 writer.Write(Statedata);
-                writer.Write(Reason, 3);
+                writer.Write(Reason, 3u);
                 writer.Write(Giver);
             }
         }

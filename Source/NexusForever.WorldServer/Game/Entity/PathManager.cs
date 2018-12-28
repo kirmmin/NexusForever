@@ -7,6 +7,8 @@ using NexusForever.Database.Character.Model;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.PathContent.Static;
+using NexusForever.WorldServer.Game.Prerequisite;
 using NexusForever.WorldServer.Network.Message.Model;
 using NLog;
 
@@ -219,16 +221,13 @@ namespace NexusForever.WorldServer.Game.Entity
                 if (pathRewardEntry.PathRewardFlags > 0)
                     continue;
 
-                if (pathRewardEntry.PathRewardTypeEnum != 0)
+                if ((PathRewardType)pathRewardEntry.PathRewardTypeEnum != PathRewardType.Level)
                     continue;
 
                 if (pathRewardEntry.Item2Id == 0 && pathRewardEntry.Spell4Id == 0 && pathRewardEntry.CharacterTitleId == 0)
                     continue;
 
-                if (pathRewardEntry.PrerequisiteId == 18 && player.Faction1 != Faction.Dominion)
-                    continue;
-
-                if (pathRewardEntry.PrerequisiteId == 19 && player.Faction1 != Faction.Exile)
+                if (!PrerequisiteManager.Instance.Meets(player, pathRewardEntry.PrerequisiteId))
                     continue;
 
                 GrantPathReward(pathRewardEntry);
@@ -236,6 +235,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
             GetPathEntry(path).LevelRewarded = (byte)level;
             player.CastSpell(53234, new Spell.SpellParameters());
+            player.AchievementManager.CheckAchievements(player, Achievement.Static.AchievementType.PathLevel, level);
         }
 
         /// <summary>
@@ -254,7 +254,7 @@ namespace NexusForever.WorldServer.Game.Entity
             if (pathRewardEntry.Spell4Id > 0)
             {
                 Spell4Entry spell4Entry = GameTableManager.Instance.Spell4.GetEntry(pathRewardEntry.Spell4Id);
-                player.SpellManager.AddSpell(spell4Entry.Spell4BaseIdBaseSpell);
+                player.SpellManager.AddSpell(spell4Entry.Spell4BaseIdBaseSpell, (byte)spell4Entry.TierIndex);
             }
 
             if (pathRewardEntry.CharacterTitleId > 0)
@@ -270,6 +270,14 @@ namespace NexusForever.WorldServer.Game.Entity
                     mask |= (PathUnlockedMask)(1 << (int)entry.Path);
 
             return mask;
+        }
+
+        /// <summary>
+        /// Returns Level of currently Active <see cref="Path"/>
+        /// </summary>
+        public uint GetActivePathLevel()
+        {
+            return GetCurrentLevel(player.Path);
         }
 
         /// <summary>

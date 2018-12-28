@@ -58,5 +58,19 @@ namespace NexusForever.WorldServer.Game.Prerequisite
                     return false;
             }
         }
+        
+        [PrerequisiteCheck(PrerequisiteType.BaseFaction)]
+        private static bool PrerequisiteCheckBaseFaction(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        {
+            switch (comparison)
+            {
+                case PrerequisiteComparison.NotEqual:
+                    return player.Faction1 != (Faction)value;
+                case PrerequisiteComparison.Equal:
+                    return player.Faction1 == (Faction)value;
+                default:
+                    return false;
+            }
+        }
     }
 }

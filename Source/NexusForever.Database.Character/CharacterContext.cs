@@ -22,6 +22,7 @@ namespace NexusForever.Database.Character
         public DbSet<CharacterMailModel> CharacterMail { get; set; }
         public DbSet<CharacterMailAttachmentModel> CharacterMailAttachment { get; set; }
         public DbSet<CharacterPathModel> CharacterPath { get; set; }
+        public DbSet<CharacterPathEpisodeModel> CharacterPathEpisode { get; set; }
         public DbSet<CharacterPetCustomisationModel> CharacterPetCustomisation { get; set; }
         public DbSet<CharacterPetFlairModel> CharacterPetFlair { get; set; }
         public DbSet<CharacterQuestModel> CharacterQuest { get; set; }
@@ -809,6 +810,77 @@ namespace NexusForever.Database.Character
                     .WithMany(p => p.Path)
                     .HasForeignKey(d => d.Id)
                     .HasConstraintName("FK__character_path_id__character_id");
+            });
+
+            modelBuilder.Entity<CharacterPathEpisodeModel>(entity =>
+            {
+                entity.ToTable("character_path_episode");
+
+                entity.HasKey(e => new { e.Id, e.EpisodeId })
+                    .HasName("PRIMARY");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("bigint(20) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.EpisodeId)
+                    .HasColumnName("episodeId")
+                    .HasColumnType("int(10) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.RewardReceived)
+                    .HasColumnName("rewardReceived")
+                    .HasColumnType("tinyint(3) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.HasOne(d => d.Character)
+                    .WithMany(p => p.PathEpisode)
+                    .HasForeignKey(d => d.Id)
+                    .HasConstraintName("FK__character_path_episode_id__character_id");
+            });
+
+            modelBuilder.Entity<CharacterPathMissionModel>(entity =>
+            {
+                entity.ToTable("character_path_mission");
+
+                entity.HasKey(e => new { e.Id, e.EpisodeId, e.MissionId })
+                    .HasName("PRIMARY");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("bigint(20) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.EpisodeId)
+                    .HasColumnName("episodeId")
+                    .HasColumnType("int(10) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.MissionId)
+                    .HasColumnName("missionId")
+                    .HasColumnType("int(10) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.Progress)
+                    .HasColumnName("progress")
+                    .HasColumnType("int(10) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.Complete)
+                    .HasColumnName("complete")
+                    .HasColumnType("tinyint(3) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.Unlocked)
+                    .HasColumnName("unlocked")
+                    .HasColumnType("tinyint(3) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.HasOne(d => d.CharacterPathEpisode)
+                    .WithMany(p => p.PathMission)
+                    .HasForeignKey(d => new { d.Id, d.EpisodeId })
+                    .HasConstraintName("FK__character_path_mission_id__character_path_episode_id");
             });
 
             modelBuilder.Entity<CharacterPetCustomisationModel>(entity =>

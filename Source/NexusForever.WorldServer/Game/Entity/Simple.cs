@@ -4,6 +4,7 @@ using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
+using System;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -11,10 +12,36 @@ namespace NexusForever.WorldServer.Game.Entity
     public class Simple : UnitEntity
     {
         public byte QuestChecklistIdx { get; private set; }
+        public uint ImprovementGroupId { get; private set; }
 
         public Simple()
             : base(EntityType.Simple)
         {
+        }
+
+        public Simple(Creature2Entry creature)
+            : base (EntityType.Simple)
+        {
+            if (creature == null)
+                throw new ArgumentNullException(nameof(creature));
+
+            CreatureId = creature.Id;
+            Faction1 = (Faction)creature.FactionId;
+            Faction2 = (Faction)creature.FactionId;
+        }
+
+        public Simple(uint creatureId, uint groupId, uint displayInfo)
+            : base (EntityType.Simple)
+        {
+            CreatureId = creatureId;
+            ImprovementGroupId = groupId;
+
+            Creature2Entry entry = GameTableManager.Instance.Creature2.GetEntry(creatureId);
+            Creature2DisplayGroupEntryEntry displayGroupEntry = GameTableManager.Instance.Creature2DisplayGroupEntry.GetEntry(entry.Creature2DisplayGroupId);
+            DisplayInfo = displayInfo > 0 ? displayInfo : displayGroupEntry.Creature2DisplayInfoId;
+
+            Faction1 = (Faction)entry.FactionId;
+            Faction2 = (Faction)entry.FactionId;
         }
 
         public override void Initialise(EntityModel model)

@@ -9,6 +9,7 @@ using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Quest.Static;
 using NexusForever.WorldServer.Game;
+using NexusForever.WorldServer.Game.PathContent;
 using NLog;
 
 namespace NexusForever.WorldServer.Network.Message.Handler
@@ -93,6 +94,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
 
             switch (entityInteraction.Event)
             {
+                case 30: // Settler Improvement
+                    WorldEntity entity = session.Player.GetVisible<WorldEntity>(entityInteraction.Guid);
+                    if (entity != null)
+                        GlobalPathContentManager.Instance.OnEntityInteract(session.Player, entity, entityInteraction.Event);
+                    break;
                 case 37: // Quest NPC
                 {
                     session.EnqueueMessageEncrypted(new Server0357
@@ -134,6 +140,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 case 85: // "ContractBoardOpen"
                 case 86: // "BarberOpen"
                 case 87: // "MasterCraftsmanOpen"
+                case 88: // "Fortune"
                 default:
                     log.Warn($"Received unhandled interaction event {entityInteraction.Event} from Entity {entityInteraction.Guid}");
                     break;

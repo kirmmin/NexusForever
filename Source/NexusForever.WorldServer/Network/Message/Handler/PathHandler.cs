@@ -1,5 +1,6 @@
 ﻿using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.PathContent;
 using NexusForever.WorldServer.Network.Message.Model;
 using NLog;
 
@@ -37,6 +38,18 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             bool HasEnoughTokens = true;
             if (HasEnoughTokens)
                 player.PathManager.UnlockPath(clientPathUnlock.Path);
+        }
+
+        [MessageHandler(GameMessageOpcode.ClientSettlerBuildImprovement)]
+        public static void HandleSettlerBuildImprovement(WorldSession session, ClientSettlerBuildImprovement buildImprovement)
+        {
+            GlobalPathContentManager.Instance.HandleSettlerBuildImprovement(session.Player, buildImprovement);
+        }
+
+        [MessageHandler(GameMessageOpcode.ClientExplorerPlaceSignal)]
+        public static void HandleExplorerPlaceSignal(WorldSession session, ClientExplorerPlaceSignal placeSignal)
+        {
+            GlobalPathContentManager.Instance.HandleExplorerPlaceSignal(session.Player, placeSignal);
         }
     }
 }
