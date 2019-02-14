@@ -5,16 +5,18 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientPlayerInfoRequest)]
-    public class ClientPlayerInfoRequest : IReadable
+    [Message(GameMessageOpcode.ClientContactsRequestDelete)]
+    public class ClientContactsRequestDelete : IReadable
     {
+        public TargetPlayerIdentity PlayerIdentity { get; private set; } = new TargetPlayerIdentity();
         public ContactType Type { get; private set; }
-        public TargetPlayerIdentity Identity { get; } = new TargetPlayerIdentity();
+        public byte Unknown1 { get; private set; }
 
         public void Read(GamePacketReader reader)
         {
+            PlayerIdentity.Read(reader);
             Type = (ContactType)reader.ReadByte(4u);
-            Identity.Read(reader);
+            Unknown1 = reader.ReadByte(4u);
         }
     }
 }
