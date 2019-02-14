@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using NexusForever.Database.Character.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
 
@@ -25,7 +26,7 @@ namespace NexusForever.WorldServer.Game.CharacterCache
             Race        = (Race)model.Race;
             Class       = (Class)model.Class;
             Path        = (Path)model.ActivePath;
-            Level       = model.Level;
+            Level       = (uint)model.Stat.SingleOrDefault(e => e.Stat == 10).Value;
             Faction1    = (Faction)model.FactionId;
             Faction2    = (Faction)model.FactionId;
             LastOnline  = model.LastOnline;

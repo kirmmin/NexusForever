@@ -5,6 +5,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20200401223152_Contacts.cs" />
+    <Compile Remove="Migrations\20200401223152_Contacts.Designer.cs" />
+    <Compile Remove="Migrations\20200402003440_Contacts.cs" />
+    <Compile Remove="Migrations\20200402003440_Contacts.Designer.cs" />
+    <Compile Remove="Migrations\20200402003616_Contacts.cs" />
+    <Compile Remove="Migrations\20200402003616_Contacts.Designer.cs" />
+    <Compile Remove="Migrations\20200402040643_Contacts.cs" />
+    <Compile Remove="Migrations\20200402040643_Contacts.Designer.cs" />
+    <Compile Remove="Migrations\20200402044528_Contacts.cs" />
+    <Compile Remove="Migrations\20200402044528_Contacts.Designer.cs" />
+    <Compile Remove="Migrations\20200402135541_Contacts.cs" />
+    <Compile Remove="Migrations\20200402135541_Contacts.Designer.cs" />
+    <Compile Remove="Migrations\20200402141817_Contacts.cs" />
+    <Compile Remove="Migrations\20200402141817_Contacts.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\NexusForever.Database\NexusForever.Database.csproj" />
   </ItemGroup>
 

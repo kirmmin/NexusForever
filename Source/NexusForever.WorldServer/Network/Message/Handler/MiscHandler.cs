@@ -1,7 +1,11 @@
 using System;
+using NexusForever.Database.Character;
+using NexusForever.Database.Character.Model;
 using NexusForever.Shared.Network;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.CharacterCache;
+using NexusForever.WorldServer.Game.Contact.Static;
+using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
 
@@ -27,10 +31,9 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             ICharacter character = CharacterManager.Instance.GetCharacterInfo(request.Identity.CharacterId);
             if (character == null)
                 throw new InvalidPacketValueException();
-
-            session.EnqueueMessageEncrypted(new ServerPlayerInfoFullResponse
-            {
-                BaseData = new ServerPlayerInfoFullResponse.Base
+            
+            if (request.Type == ContactType.Ignore) // Ignored user data request
+                session.EnqueueMessageEncrypted(new ServerPlayerInfoBasicResponse
                 {
                     ResultCode = 0,
                     Identity = new TargetPlayerIdentity
@@ -39,16 +42,29 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         CharacterId = character.CharacterId
                     },
                     Name = character.Name,
-                    Faction = character.Faction1
-                },
-                IsClassPathSet = true,
-                Path = character.Path,
-                Class = character.Class,
-                Level = character.Level,
-                IsLastLoggedOnInDaysSet = true,
-                LastLoggedInDays = character.GetOnlineStatus()
-            });
-            
+                    Faction = character.Faction1,
+                });
+            else
+                session.EnqueueMessageEncrypted(new ServerPlayerInfoFullResponse
+                {
+                    BaseData = new ServerPlayerInfoBasicResponse
+                    {
+                        ResultCode = 0,
+                        Identity = new TargetPlayerIdentity
+                        {
+                            RealmId = WorldServer.RealmId,
+                            CharacterId = character.CharacterId
+                        },
+                        Name = character.Name,
+                        Faction = character.Faction1
+                    },
+                    IsClassPathSet = true,
+                    Path = character.Path,
+                    Class = character.Class,
+                    Level = character.Level,
+                    IsLastLoggedOnInDaysSet = true,
+                    LastLoggedInDays = character.GetOnlineStatus()
+                });
         }
 
         [MessageHandler(GameMessageOpcode.ClientToggleWeapons)]

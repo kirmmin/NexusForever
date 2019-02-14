@@ -16,6 +16,7 @@ using NexusForever.Shared.GameTable.Static;
 using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Achievement;
 using NexusForever.WorldServer.Game.CharacterCache;
+using NexusForever.WorldServer.Game.Contact;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
@@ -135,10 +136,11 @@ namespace NexusForever.WorldServer.Game.Entity
         public ZoneMapManager ZoneMapManager { get; }
         public QuestManager QuestManager { get; }
         public CharacterAchievementManager AchievementManager { get; }
+        public ContactManager ContactManager { get; }
 
         public VendorInfo SelectedVendorInfo { get; set; } // TODO unset this when too far away from vendor
 
-        private UpdateTimer saveTimer = new UpdateTimer(SaveDuration);
+        private readonly UpdateTimer saveTimer = new UpdateTimer(SaveDuration);
         private PlayerSaveMask saveMask;
 
         private LogoutManager logoutManager;
@@ -181,6 +183,7 @@ namespace NexusForever.WorldServer.Game.Entity
             ZoneMapManager          = new ZoneMapManager(this, model);
             QuestManager            = new QuestManager(this, model);
             AchievementManager      = new CharacterAchievementManager(this, model);
+            ContactManager          = new ContactManager(this, model);
 
             Session.EntitlementManager.OnNewCharacter(model);
 
@@ -361,6 +364,8 @@ namespace NexusForever.WorldServer.Game.Entity
             SendInGameTime();
             PathManager.SendInitialPackets();
             BuybackManager.Instance.SendBuybackItems(this);
+
+            ContactManager.OnLogin();
 
             Session.EnqueueMessageEncrypted(new ServerHousingNeighbors());
             Session.EnqueueMessageEncrypted(new Server00F1());
@@ -577,6 +582,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public void CleanUp()
         {
+            ContactManager.OnLogout();
             CharacterManager.Instance.DeregisterPlayer(this);
             CleanupManager.Track(Session.Account);
 
@@ -811,6 +817,8 @@ namespace NexusForever.WorldServer.Game.Entity
             entity.Property(p => p.TimePlayedLevel).IsModified = true;
             model.TimePlayedTotal = (uint)TimePlayedTotal;
             entity.Property(p => p.TimePlayedTotal).IsModified = true;
+            model.LastOnline = DateTime.UtcNow;
+            entity.Property(p => p.LastOnline).IsModified = true;
 
             foreach (StatValue stat in stats.Values)
                 stat.SaveCharacter(CharacterId, context);
@@ -828,6 +836,7 @@ namespace NexusForever.WorldServer.Game.Entity
             ZoneMapManager.Save(context);
             QuestManager.Save(context);
             AchievementManager.Save(context);
+            ContactManager.Save(context);
 
             Session.EntitlementManager.Save(context);
         }
