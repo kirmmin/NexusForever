@@ -19,6 +19,7 @@ using NexusForever.WorldServer.Game.Contact;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Movement;
 using NexusForever.WorldServer.Game.Entity.Network;
+using NexusForever.WorldServer.Game.Guild;
 using NexusForever.WorldServer.Game.Housing;
 using NexusForever.WorldServer.Game.Map;
 using NexusForever.WorldServer.Game.Prerequisite;
@@ -80,6 +81,7 @@ namespace NexusForever.WorldServer
             FactionManager.Instance.Initialise();
             GlobalMovementManager.Instance.Initialise();
             GlobalContactManager.Instance.Initialise();
+            GlobalGuildManager.Instance.Initialise();
 
             AssetManager.Instance.Initialise();
             PrerequisiteManager.Instance.Initialise();
@@ -106,6 +108,7 @@ namespace NexusForever.WorldServer
                 BuybackManager.Instance.Update(lastTick);
                 GlobalQuestManager.Instance.Update(lastTick);                
                 CommandManager.Instance.Update(lastTick);
+                GlobalGuildManager.Instance.Update(lastTick);
 
                 // process commands after everything else in the tick has processed
                 GlobalContactManager.Instance.Update(lastTick);
