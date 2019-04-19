@@ -266,7 +266,9 @@ namespace NexusForever.Shared.GameTable
         [GameData("Item2.tbl")]
         public GameTable<Item2Entry> Item { get; private set; }
 
+        [GameData]
         public GameTable<Item2CategoryEntry> Item2Category { get; private set; }
+
         public GameTable<Item2FamilyEntry> Item2Family { get; private set; }
 
         [GameData("Item2Type.tbl")]
@@ -295,7 +297,9 @@ namespace NexusForever.Shared.GameTable
         [GameData]
         public GameTable<ItemSpecialEntry> ItemSpecial { get; private set; }
 
+        [GameData]
         public GameTable<ItemStatEntry> ItemStat { get; private set; }
+
         public GameTable<LanguageEntry> Language { get; private set; }
         public GameTable<LevelDifferentialAttributeEntry> LevelDifferentialAttribute { get; private set; }
         
@@ -603,6 +607,8 @@ namespace NexusForever.Shared.GameTable
         public GameTable<TutorialAnchorEntry> TutorialAnchor { get; private set; }
         public GameTable<TutorialLayoutEntry> TutorialLayout { get; private set; }
         public GameTable<TutorialPageEntry> TutorialPage { get; private set; }
+
+        [GameData]
         public GameTable<UnitProperty2Entry> UnitProperty2 { get; private set; }
 
         [GameData]

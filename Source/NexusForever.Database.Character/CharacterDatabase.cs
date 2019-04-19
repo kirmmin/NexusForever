@@ -201,5 +201,12 @@ namespace NexusForever.Database.Character
                 .Select(g => g.Max(s => s.Id))
                 .ToList()[0];
         }
+
+        public List<PropertyBaseModel> GetProperties(uint type)
+        {
+            using var context = new CharacterContext(config);
+                
+            return context.PropertyBase.Where(p => p.Type == type).ToList();
+        }
     }
 }
