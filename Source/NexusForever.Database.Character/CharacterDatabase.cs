@@ -262,5 +262,12 @@ namespace NexusForever.Database.Character
                 .Where(c => c.ContactId == characterId && c.Accepted == 0 && contactTypes.Contains(c.Type))
                 .ToListAsync();
         }
+
+        public List<PropertyBaseModel> GetProperties(uint type)
+        {
+            using var context = new CharacterContext(config);
+                
+            return context.PropertyBase.Where(p => p.Type == type).ToList();
+        }
     }
 }

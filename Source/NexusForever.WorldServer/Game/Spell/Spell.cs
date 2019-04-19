@@ -72,9 +72,12 @@ namespace NexusForever.WorldServer.Game.Spell
                 return;
             }
 
-            if (caster is Player player)
-                if (parameters.SpellInfo.GlobalCooldown != null)
-                    player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
+            if (parameters.UserInitiatedSpellCast) // Skip following checks and logic if this was not cast directly by the entity
+            {
+                if (caster is Player player)
+                    if (parameters.SpellInfo.GlobalCooldown != null)
+                        player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
+            }
 
             SendSpellStart();
 
@@ -107,6 +110,9 @@ namespace NexusForever.WorldServer.Game.Spell
 
                 if (parameters.CharacterSpell?.MaxAbilityCharges > 0 && parameters.CharacterSpell?.AbilityCharges == 0)
                     return CastResult.SpellNoCharges;
+                    
+                if (parameters.SpellInfo.Entry.PrerequisiteIdCasterCast > 0 && !PrerequisiteManager.Instance.Meets(player, parameters.SpellInfo.Entry.PrerequisiteIdCasterCast))
+                    return CastResult.PrereqCasterCast;
             }
 
             return CastResult.Ok;
@@ -226,6 +232,13 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             foreach (Spell4EffectsEntry spell4EffectsEntry in parameters.SpellInfo.Effects)
             {
+                if (caster is Player player)
+                {
+                    // Ensure caster can apply this effect
+                    if (spell4EffectsEntry.PrerequisiteIdCasterApply > 0 && !PrerequisiteManager.Instance.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply))
+                        continue;
+                }
+                
                 // select targets for effect
                 List<SpellTargetInfo> effectTargets = targets
                     .Where(t => (t.Flags & (SpellEffectTargetFlags)spell4EffectsEntry.TargetFlags) != 0)
