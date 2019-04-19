@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Numerics;
 using NexusForever.Shared;
@@ -19,6 +20,34 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             // TODO: calculate damage
             info.AddDamage((DamageType)info.Entry.DamageType, 1337);
+        }
+
+        [SpellEffectHandler(SpellEffectType.UnitPropertyModifier)]
+        private void HandleEffectPropertyModifier(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+            if (!(target is Player player))
+                return;
+
+            PropertyModifier modifier = null;
+
+            if (info.Entry.DataBits01 == 1) // Adjust value by percent
+                modifier = new PropertyModifier(ModifierType.AdjustPercent, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) * BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03));
+
+            if (info.Entry.DataBits01 == 2) // Override current value (mainly used by debuffs, and NPC buffs)
+                modifier = new PropertyModifier(ModifierType.SetValue, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02));
+
+            if (info.Entry.DataBits01 == 3) // Adjust current value
+            {
+                if (info.Entry.DataBits03 > 0u)
+                    modifier = new PropertyModifier(ModifierType.AdjustValue, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) * BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03));
+                else
+                    modifier = new PropertyModifier(ModifierType.SetBase, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02)); // 0 = Set Base
+            }
+
+            if (info.Entry.DataBits01 == 4) // Adjust current value per stack
+                modifier = new PropertyModifier(ModifierType.AdjustValueStack, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) + BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03), 0); // TODO: Increase stack count as necessary
+
+            player.AddSpellModifierProperty((Property)info.Entry.DataBits00, parameters.SpellInfo.Entry.Id, modifier);
         }
 
         [SpellEffectHandler(SpellEffectType.Proxy)]
@@ -74,8 +103,29 @@ namespace NexusForever.WorldServer.Game.Spell
 
             player.Map.EnqueueAdd(mount, player.Position);
 
-            // FIXME: also cast 52539,Riding License - Riding Skill 1 - SWC - Tier 1,34464
-            // FIXME: also cast 80530,Mount Sprint  - Tier 2,36122
+            // FIXME: also cast 52539,Riding License - Riding Skill 1 - SWC - Tier 1,34464 -- upon further investigation, this appeared to only trigger for characters who were created earlier in the game's lifetime.
+
+            // TODO: There are other Riding Skills which need to be added when the player has them as known effects.
+            uint mountSpeedSpell4Id = 0;
+            switch (mount.MountType)
+            {
+                case PetType.GroundMount: // Cast 80530, Mount Sprint  - Tier 2, 36122
+                    mountSpeedSpell4Id = 80530;
+                    break;
+                case PetType.HoverBoard: // Cast 80531, Hoverboard Sprint  - Tier 2, 36122
+                    mountSpeedSpell4Id = 80531;
+                    break;
+                default:
+                    mountSpeedSpell4Id = 80530;
+                    break;
+
+            }
+            player.CastSpell(mountSpeedSpell4Id, new SpellParameters
+            {
+                ParentSpellInfo = parameters.SpellInfo,
+                RootSpellInfo = parameters.RootSpellInfo,
+                UserInitiatedSpellCast = false
+            });
         }
 
         [SpellEffectHandler(SpellEffectType.Teleport)]

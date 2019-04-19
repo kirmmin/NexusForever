@@ -254,5 +254,12 @@ namespace NexusForever.Database.Character
                 .Include(g => g.GuildData)
                 .ToList();
         }
+        
+        public List<PropertyBaseModel> GetProperties(uint type)
+        {
+            using var context = new CharacterContext(config);
+                
+            return context.PropertyBase.Where(p => p.Type == type).ToList();
+        }
     }
 }

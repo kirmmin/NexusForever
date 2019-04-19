@@ -46,7 +46,7 @@ namespace NexusForever.WorldServer.Game.Entity
             characterId = owner?.CharacterId ?? 0ul;
             player      = owner;
 
-            foreach ((InventoryLocation location, uint defaultCapacity) in AssetManager.InventoryLocationCapacities)
+            foreach ((InventoryLocation location, uint defaultCapacity) in AssetManager.Instance.InventoryLocationCapacities)
                 bags.Add(location, new Bag(location, defaultCapacity));
 
             foreach (var itemModel in model.Item.Select(i => i).OrderBy(i => i.Location).ToList())
@@ -63,7 +63,7 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             characterId = owner;
 
-            foreach ((InventoryLocation location, uint defaultCapacity) in AssetManager.InventoryLocationCapacities)
+            foreach ((InventoryLocation location, uint defaultCapacity) in AssetManager.Instance.InventoryLocationCapacities)
                 bags.Add(location, new Bag(location, defaultCapacity));
 
             foreach (uint itemId in creationEntry.ItemIds.Where(i => i != 0u))
@@ -817,8 +817,12 @@ namespace NexusForever.WorldServer.Game.Entity
             bag.AddItem(item);
 
             if (player != null && bag.Location == InventoryLocation.Equipped)
+            {
                 if (IsVisualItem((EquippedItem)item.BagIndex))
                     VisualUpdate(item);
+
+                ApplyProperties(item);
+            }
 
             if (resizeBags && IsEquippedBagLocation(item.Location, item.BagIndex))
                 GetBag(InventoryLocation.Inventory).Resize((int)item.Entry.MaxStackCount);
@@ -840,8 +844,12 @@ namespace NexusForever.WorldServer.Game.Entity
             bag.RemoveItem(item);
 
             if (player != null && bag.Location == InventoryLocation.Equipped)
+            {
                 if (IsVisualItem((EquippedItem)item.PreviousBagIndex)) // Using previous bag index because the item will've already been moved
                     VisualUpdate(item);
+
+                RemoveProperties(item);
+            }
 
             if (resizeBags && IsEquippedBagLocation(item.PreviousLocation, item.PreviousBagIndex) && IsEquippableBag(item.Entry))
             {
@@ -1010,6 +1018,22 @@ namespace NexusForever.WorldServer.Game.Entity
         public bool IsEquippableBag(Item2Entry item2Entry)
         {
             return item2Entry.Item2FamilyId == 5 && item2Entry.Item2CategoryId == 88 && item2Entry.Item2TypeId == 134;
+        }
+        
+        private void ApplyProperties(Item item)
+        {
+            Item2TypeEntry itemTypeEntry = GameTableManager.Instance.ItemType.GetEntry(item.Entry.Item2TypeId);
+
+            foreach (KeyValuePair<Property, float> property in item.InnateProperties)
+                player.AddItemProperty(property.Key, (ItemSlot)itemTypeEntry.ItemSlotId, property.Value);
+        }
+
+        private void RemoveProperties(Item item)
+        {
+            Item2TypeEntry itemTypeEntry = GameTableManager.Instance.ItemType.GetEntry(item.Entry.Item2TypeId);
+
+            foreach (KeyValuePair<Property, float> property in item.InnateProperties)
+                player.RemoveItemProperty(property.Key, (ItemSlot)itemTypeEntry.ItemSlotId);
         }
 
         private Bag GetBag(InventoryLocation location)
