@@ -4,6 +4,7 @@ using System.Linq;
 using NexusForever.Shared;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.Prerequisite;
 using NexusForever.WorldServer.Game.Spell.Event;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -19,6 +20,7 @@ namespace NexusForever.WorldServer.Game.Spell
         public uint CastingId { get; }
         public bool IsCasting => status == SpellStatus.Casting;
         public bool IsFinished => status == SpellStatus.Finished;
+        public uint Spell4Id => parameters.SpellInfo.Entry.Id;
 
         private readonly UnitEntity caster;
         private readonly SpellParameters parameters;
@@ -43,14 +45,18 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             events.Update(lastTick);
 
-            if (status == SpellStatus.Executing && !events.HasPendingEvent)
+            if ((status == SpellStatus.Executing && !events.HasPendingEvent && !parameters.ForceCancelOnly) ||
+                status == SpellStatus.Finishing)
             {
                 // spell effects have finished executing
                 status = SpellStatus.Finished;
                 log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has finished.");
 
+                foreach (SpellTargetInfo target in targets)
+                    target.Entity?.RemoveSpellProperties(Spell4Id);
+
                 // TODO: add a timer to count down on the Effect before sending the finish - sending the finish will e.g. wear off the buff
-                //SendSpellFinish();
+                SendSpellFinish();
             }
         }
 
@@ -73,9 +79,12 @@ namespace NexusForever.WorldServer.Game.Spell
                 return;
             }
 
-            if (caster is Player player)
-                if (parameters.SpellInfo.GlobalCooldown != null)
-                    player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
+            if (parameters.UserInitiatedSpellCast) // Skip following checks and logic if this was not cast directly by the entity
+            {
+                if (caster is Player player)
+                    if (parameters.SpellInfo.GlobalCooldown != null)
+                        player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
+            }
 
             SendSpellStart();
 
@@ -101,12 +110,14 @@ namespace NexusForever.WorldServer.Game.Spell
                     return CastResult.SpellCooldown;
 
                 // this isn't entirely correct, research GlobalCooldownEnum
-                if (parameters.SpellInfo.Entry.GlobalCooldownEnum == 0
-                    && player.SpellManager.GetGlobalSpellCooldown() > 0d)
-                    return CastResult.SpellGlobalCooldown;
+                if (parameters.SpellInfo.Entry.GlobalCooldownEnum == 0 && player.SpellManager.GetGlobalSpellCooldown() > 0d && parameters.UserInitiatedSpellCast)
+                        return CastResult.SpellGlobalCooldown;
 
                 if (parameters.CharacterSpell?.MaxAbilityCharges > 0 && parameters.CharacterSpell?.AbilityCharges == 0)
                     return CastResult.SpellNoCharges;
+                    
+                if (parameters.SpellInfo.Entry.PrerequisiteIdCasterCast > 0 && !PrerequisiteManager.Instance.Meets(player, parameters.SpellInfo.Entry.PrerequisiteIdCasterCast))
+                    return CastResult.PrereqCasterCast;
             }
 
             return CastResult.Ok;
@@ -212,6 +223,13 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             foreach (Spell4EffectsEntry spell4EffectsEntry in parameters.SpellInfo.Effects)
             {
+                if (caster is Player player)
+                {
+                    // Ensure caster can apply this effect
+                    if (spell4EffectsEntry.PrerequisiteIdCasterApply > 0 && !PrerequisiteManager.Instance.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply))
+                        continue;
+                }
+                
                 // select targets for effect
                 List<SpellTargetInfo> effectTargets = targets
                     .Where(t => (t.Flags & (SpellEffectTargetFlags)spell4EffectsEntry.TargetFlags) != 0)
@@ -232,7 +250,19 @@ namespace NexusForever.WorldServer.Game.Spell
                         handler.Invoke(this, effectTarget.Entity, info);
                     }
                 }
+
+                if (spell4EffectsEntry.DurationTime == 0u && ((SpellEffectFlags)spell4EffectsEntry.Flags & SpellEffectFlags.CancelOnly) != 0)
+                    parameters.ForceCancelOnly = true;
             }
+        }
+
+        public void Finish()
+        {
+            if (status == SpellStatus.Finished)
+                return;
+
+            events.CancelEvents();
+            status = SpellStatus.Finishing;
         }
 
         public bool IsMovingInterrupted()
