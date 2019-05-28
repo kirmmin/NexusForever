@@ -1,8 +1,10 @@
 using System.Linq;
 using System.Numerics;
 using NexusForever.Shared;
+using NexusForever.Shared.Game.Events;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
+using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell.Static;
@@ -81,13 +83,35 @@ namespace NexusForever.WorldServer.Game.Spell
         [SpellEffectHandler(SpellEffectType.Teleport)]
         private void HandleEffectTeleport(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
+            // Handle NPC teleporting?
+
+            if (!(target is Player player))
+                return;
+
+            // Assuming that this is Recall to Transmat
+            if (info.Entry.DataBits00 == 0)
+            {
+                if (player.BindPoint == 0) // Must have bindpoint set
+                    return;
+
+                Location bindPointLocation = AssetManager.Instance.GetBindPoint(player.BindPoint);
+                Vector3 offset = new Vector3(2f, 1.5f, 2f); // TODO: Should use new Vector3(0f, 1.5f, 0f); when map props are being used
+
+                if (player.CanTeleport()) {
+                    player.Rotation = bindPointLocation.Rotation;
+                    player.TeleportTo(bindPointLocation.World, Vector3.Add(bindPointLocation.Position, offset));
+                }
+                return;
+            }
+
             WorldLocation2Entry locationEntry = GameTableManager.Instance.WorldLocation2.GetEntry(info.Entry.DataBits00);
             if (locationEntry == null)
                 return;
 
-            if (target is Player player)
-                if (player.CanTeleport())
-                    player.TeleportTo((ushort)locationEntry.WorldId, locationEntry.Position0, locationEntry.Position1, locationEntry.Position2);
+            if (player.CanTeleport()) {
+                player.Rotation = new Quaternion(locationEntry.Facing0, locationEntry.Facing1, locationEntry.Facing2, locationEntry.Facing3).ToEulerDegrees();
+                player.TeleportTo((ushort)locationEntry.WorldId, locationEntry.Position0, locationEntry.Position1, locationEntry.Position2);
+            }
         }
 
         [SpellEffectHandler(SpellEffectType.FullScreenEffect)]
