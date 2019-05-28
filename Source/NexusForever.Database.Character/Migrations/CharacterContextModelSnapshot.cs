@@ -654,6 +654,12 @@ namespace NexusForever.Database.Character.Migrations
                         .HasDefaultValue((byte)0)
                         .HasColumnName("activeSpec");
 
+                    b.Property<ushort>("BindPoint")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("bindPoint")
+                        .HasColumnType("smallint(5) unsigned")
+                        .HasDefaultValueSql("'0'");
+
                     b.Property<byte>("Class")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint(3) unsigned")
