@@ -43,6 +43,11 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             events.Update(lastTick);
 
+            // Prevent Mounts from Ending instantly
+            // TODO: Reference this spell to Mount Entity and finish spell when Mount is removed?
+            if (parameters.SpellInfo.BaseInfo.Entry.Spell4SpellTypesIdSpellType == 30) // This also happens with the Mount Unlock items. Investigate further.
+                return;
+
             if (status == SpellStatus.Executing && !events.HasPendingEvent)
             {
                 // spell effects have finished executing
@@ -50,7 +55,7 @@ namespace NexusForever.WorldServer.Game.Spell
                 log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has finished.");
 
                 // TODO: add a timer to count down on the Effect before sending the finish - sending the finish will e.g. wear off the buff
-                //SendSpellFinish();
+                SendSpellFinish();
             }
         }
 
@@ -73,19 +78,32 @@ namespace NexusForever.WorldServer.Game.Spell
                 return;
             }
 
-            if (parameters.UserInitiatedSpellCast) // Skip following checks and logic if this was not cast directly by the entity
-            {
-                if (caster is Player player)
-                    if (parameters.SpellInfo.GlobalCooldown != null)
-                        player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
-            }
+            if (caster is Player player)
+                if (parameters.SpellInfo.GlobalCooldown != null && parameters.UserInitiatedSpellCast) // Using UserInitiatedSpellCast to prevent proxies affecting the GCD
+                    player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
 
             SendSpellStart();
 
-            // enqueue spell to be executed after cast time
-            events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.CastTime / 1000d, Execute));
-            status = SpellStatus.Casting;
+            if (parameters.SpellInfo.BaseInfo.Entry.CastMethod == 1) // Handle channeling
+            {
+                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelInitialDelay / 1000d, Execute)); // Execute after initial delay
+                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelMaxTime / 1000d, () => { events.CancelEvents(); })); // End Spell Cast
 
+                uint numberOfPulses = (parameters.SpellInfo.Entry.ChannelMaxTime - parameters.SpellInfo.Entry.ChannelInitialDelay) / parameters.SpellInfo.Entry.ChannelPulseTime; // Calculate number of "ticks" in this spell cast
+                
+                // Add ticks at each pulse
+                for (int i = 1; i <= numberOfPulses; i++)
+                    events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelPulseTime * i / 1000d, () =>
+                    {
+                        SelectTargets();
+                        ExecuteEffects();
+                    }));
+            }
+            else
+                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.CastTime / 1000d, Execute)); // enqueue spell to be executed after cast time
+
+            status = SpellStatus.Casting;
+            
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started casting.");
         }
 
@@ -235,6 +253,10 @@ namespace NexusForever.WorldServer.Game.Spell
                         handler.Invoke(this, effectTarget.Entity, info);
                     }
                 }
+
+                // Add durations for each effect so that when the Effect timer runs out, the Spell can Finish.
+                if (spell4EffectsEntry.DurationTime > 0)
+                    events.EnqueueEvent(new SpellEvent(spell4EffectsEntry.DurationTime / 1000d, () => { /* placeholder for duration */ }));
             }
         }
 
