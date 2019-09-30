@@ -87,5 +87,22 @@ namespace NexusForever.WorldServer.Game.Spell
 
             saveMask = UnlockedSpellSaveMask.None;
         }
+
+        public void Cast(Player player)
+        {
+            if(player.HasSpell(Info.GetSpellInfo(Tier).Entry.Id, out Spell spell))
+            {
+                if (!spell.IsFinished)
+                {
+                    spell.Cast();
+                    return;
+                }
+            }
+
+            player.CastSpell(new SpellParameters
+            {
+                SpellInfo = Info.GetSpellInfo(Tier)
+            });
+        }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NexusForever.Shared;
+using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Prerequisite;
@@ -19,10 +20,17 @@ namespace NexusForever.WorldServer.Game.Spell
         public uint CastingId { get; }
         public bool IsCasting => status == SpellStatus.Casting;
         public bool IsFinished => status == SpellStatus.Finished;
+        public bool IsFailed => status == SpellStatus.Failed;
+        public bool IsWaiting => status == SpellStatus.Waiting;
+        public uint Spell4Id => parameters.SpellInfo.Entry.Id;
+        public bool HasThresholdToCast => thresholdSpells.Count > 0;
+        public CastMethod CastMethod { get; }
 
         private readonly UnitEntity caster;
         private readonly SpellParameters parameters;
         private SpellStatus status;
+
+        private readonly List<Spell> thresholdSpells = new List<Spell>();
 
         private readonly List<SpellTargetInfo> targets = new List<SpellTargetInfo>();
 
@@ -34,6 +42,7 @@ namespace NexusForever.WorldServer.Game.Spell
             this.parameters = parameters;
             CastingId       = GlobalSpellManager.Instance.NextCastingId;
             status          = SpellStatus.Initiating;
+            CastMethod      = (CastMethod)parameters.SpellInfo.BaseInfo.Entry.CastMethod;
 
             if (parameters.RootSpellInfo == null)
                 parameters.RootSpellInfo = parameters.SpellInfo;
@@ -48,7 +57,23 @@ namespace NexusForever.WorldServer.Game.Spell
             if (parameters.SpellInfo.BaseInfo.Entry.Spell4SpellTypesIdSpellType == 30) // This also happens with the Mount Unlock items. Investigate further.
                 return;
 
-            if (status == SpellStatus.Executing && !events.HasPendingEvent)
+            if (status == SpellStatus.Executing && HasThresholdToCast)
+                status = SpellStatus.Waiting;
+
+            if (status == SpellStatus.Waiting && HasThresholdToCast)
+            {
+                thresholdSpells.ForEach(s => s.Update(lastTick));
+
+                foreach (Spell thresholdSpell in thresholdSpells.ToList())
+                    if (thresholdSpell.IsFinished)
+                        thresholdSpells.Remove(thresholdSpell);
+
+                if (thresholdSpells.Count == 0)
+                    SetCooldown();
+            }
+
+            if ((status == SpellStatus.Executing && !events.HasPendingEvent) || 
+                (status == SpellStatus.Waiting && !HasThresholdToCast))
             {
                 // spell effects have finished executing
                 status = SpellStatus.Finished;
@@ -56,6 +81,13 @@ namespace NexusForever.WorldServer.Game.Spell
 
                 // TODO: add a timer to count down on the Effect before sending the finish - sending the finish will e.g. wear off the buff
                 SendSpellFinish();
+
+                if (caster is Player player)
+                    if (parameters.ThresholdValue > 0 && parameters.ThresholdMaxValue > 0 && parameters.ThresholdValue == parameters.ThresholdMaxValue)
+                        player.Session.EnqueueMessageEncrypted(new ServerSpellThresholdClear
+                        {
+                            Spell4Id = parameters.ParentSpellInfo?.Entry.Id ?? 0u
+                        });
             }
         }
 
@@ -64,6 +96,14 @@ namespace NexusForever.WorldServer.Game.Spell
         /// </summary>
         public void Cast()
         {
+            /** Existing Spell **/
+            if (status == SpellStatus.Waiting)
+            {
+                HandleThresholdCast();
+                return;
+            }
+
+            /** New Spell **/
             if (status != SpellStatus.Initiating)
                 throw new InvalidOperationException();
 
@@ -75,34 +115,20 @@ namespace NexusForever.WorldServer.Game.Spell
                 log.Trace($"Spell {parameters.SpellInfo.Entry.Id} failed to cast {result}.");
 
                 SendSpellCastResult(result);
+                status = SpellStatus.Failed;
                 return;
             }
 
+            InitialiseThresholdSpells();
+
             if (caster is Player player)
                 if (parameters.SpellInfo.GlobalCooldown != null && parameters.UserInitiatedSpellCast) // Using UserInitiatedSpellCast to prevent proxies affecting the GCD
-                    player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
-
-            SendSpellStart();
-
-            if (parameters.SpellInfo.BaseInfo.Entry.CastMethod == 1) // Handle channeling
-            {
-                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelInitialDelay / 1000d, Execute)); // Execute after initial delay
-                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelMaxTime / 1000d, () => { events.CancelEvents(); })); // End Spell Cast
-
-                uint numberOfPulses = (parameters.SpellInfo.Entry.ChannelMaxTime - parameters.SpellInfo.Entry.ChannelInitialDelay) / parameters.SpellInfo.Entry.ChannelPulseTime; // Calculate number of "ticks" in this spell cast
-                
-                // Add ticks at each pulse
-                for (int i = 1; i <= numberOfPulses; i++)
-                    events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelPulseTime * i / 1000d, () =>
-                    {
-                        SelectTargets();
-                        ExecuteEffects();
-                    }));
-            }
-            else
-                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.CastTime / 1000d, Execute)); // enqueue spell to be executed after cast time
+                    player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);    
 
             status = SpellStatus.Casting;
+            SendSpellStart();
+
+            InitialiseCastMethod();
             
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started casting.");
         }
@@ -172,13 +198,102 @@ namespace NexusForever.WorldServer.Game.Spell
             return CastResult.Ok;
         }
 
+        private void InitialiseThresholdSpells()
+        {
+            if (parameters.SpellInfo.Thresholds.Count == 0)
+                return;
+
+            foreach (Spell4ThresholdsEntry thresholdsEntry in parameters.SpellInfo.Thresholds)
+            {
+                Spell4Entry spell4Entry = GameTableManager.Spell4.GetEntry(thresholdsEntry.Spell4IdToCast);
+                if (spell4Entry == null)
+                    throw new ArgumentOutOfRangeException();
+
+                SpellBaseInfo spellBaseInfo = GlobalSpellManager.GetSpellBaseInfo(spell4Entry.Spell4BaseIdBaseSpell);
+                if (spellBaseInfo == null)
+                    throw new ArgumentOutOfRangeException();
+
+                SpellInfo spellInfo = spellBaseInfo.GetSpellInfo((byte)spell4Entry.TierIndex);
+                if (spellInfo == null)
+                    throw new ArgumentOutOfRangeException();
+
+                Spell childSpell = new Spell(caster, new SpellParameters
+                {
+                    SpellInfo = spellInfo,
+                    ParentSpellInfo = parameters.SpellInfo,
+                    RootSpellInfo = parameters.RootSpellInfo,
+                    ThresholdValue = thresholdsEntry.OrderIndex + 1,
+                    ThresholdMaxValue = (uint)parameters.SpellInfo.Thresholds.Count
+                });
+                thresholdSpells.Add(childSpell);
+
+                log.Trace($"Added Child Spell {childSpell.Spell4Id} with casting ID {childSpell.CastingId} to parent casting ID {CastingId}");
+            }
+
+            // If ThresholdTime exceeded before spell completion, finish this spell cast immediately
+            events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.CastTime / 1000d + parameters.SpellInfo.Entry.ThresholdTime / 1000d, Finish));
+        }
+
+        private void InitialiseCastMethod()
+        {
+            switch (CastMethod)
+            {
+                case CastMethod.Channeled:
+                case CastMethod.ChanneledField:
+                    events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelInitialDelay / 1000d, Execute)); // Execute after initial delay
+                    events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelMaxTime / 1000d, Finish)); // End Spell Cast
+
+                    uint numberOfPulses = (parameters.SpellInfo.Entry.ChannelMaxTime - parameters.SpellInfo.Entry.ChannelInitialDelay) / parameters.SpellInfo.Entry.ChannelPulseTime; // Calculate number of "ticks" in this spell cast
+
+                    // Add ticks at each pulse
+                    for (int i = 1; i <= numberOfPulses; i++)
+                        events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelPulseTime * i / 1000d, () =>
+                        {
+                            SelectTargets();
+                            ExecuteEffects();
+                        }));
+                    break;
+                case CastMethod.Normal:
+                case CastMethod.RapidTap:
+                default:
+                    events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.CastTime / 1000d, Execute)); // enqueue spell to be executed after cast time
+                    break;
+            }
+        }
+
+        private void HandleThresholdCast()
+        {
+            if (status != SpellStatus.Waiting)
+                throw new InvalidOperationException();
+
+            if (thresholdSpells.Count == 0)
+                throw new InvalidOperationException();
+
+            CastResult result = CheckCast();
+            CastResult childResult = thresholdSpells[0].CheckCast();
+            if (result != CastResult.Ok || childResult != CastResult.Ok)
+            {
+                SendSpellCastResult(result);
+                return;
+            }
+
+            thresholdSpells[0].Cast();
+        }
+
         /// <summary>
         /// Cancel cast with supplied <see cref="CastResult"/>.
         /// </summary>
         public void CancelCast(CastResult result)
         {
-            if (status != SpellStatus.Casting)
+            if (status != SpellStatus.Casting && !HasThresholdToCast)
                 throw new InvalidOperationException();
+
+            if (HasThresholdToCast)
+                if (thresholdSpells[0].IsCasting)
+                {
+                    thresholdSpells[0].CancelCast(result);
+                    return;
+                }
 
             if (caster is Player player && !player.IsLoading)
             {
@@ -201,14 +316,45 @@ namespace NexusForever.WorldServer.Game.Spell
             status = SpellStatus.Executing;
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started executing.");
 
-            if (caster is Player player)
-                if (parameters.SpellInfo.Entry.SpellCoolDown != 0u)
-                    player.SpellManager.SetSpellCooldown(parameters.SpellInfo.Entry.Id, parameters.SpellInfo.Entry.SpellCoolDown / 1000d);
+            if (!HasThresholdToCast)
+                SetCooldown();
 
             SelectTargets();
             ExecuteEffects();
 
             SendSpellGo();
+
+            if (caster is Player player && !player.IsLoading)
+            {
+                // TODO: Confirm whether RapidTap spells cancel others out, and figure out slight bug in this logic where the spells don't cancel properly
+                //if (CastMethod == CastMethod.RapidTap && parameters.ParentSpellInfo == null)
+                //    if (player.HasSpell(CastMethod, out Spell pendingRapidTap))
+                //        if (pendingRapidTap.Spell4Id != Spell4Id)
+                //            pendingRapidTap.FinishInstantly();
+
+                if (parameters.SpellInfo.Entry.ThresholdTime > 0)
+                    player.Session.EnqueueMessageEncrypted(new ServerSpellThresholdStart
+                    {
+                        Spell4Id = parameters.SpellInfo.Entry.Id,
+                        RootSpell4Id = parameters.RootSpellInfo?.Entry.Id ?? 0,
+                        ParentSpell4Id = parameters.ParentSpellInfo?.Entry.Id ?? 0,
+                        CastingId = CastingId
+                    });
+
+                if (parameters.ThresholdValue > 0)
+                    player.Session.EnqueueMessageEncrypted(new ServerSpellThresholdUpdate
+                    {
+                        Spell4Id = parameters.ParentSpellInfo?.Entry.Id ?? 0u,
+                        Value = (byte)parameters.ThresholdValue
+                    });
+            }
+        }
+
+        private void SetCooldown()
+        {
+            if (caster is Player player)
+                if (parameters.SpellInfo.Entry.SpellCoolDown != 0u)
+                    player.SpellManager.SetSpellCooldown(parameters.SpellInfo.Entry.Id, parameters.SpellInfo.Entry.SpellCoolDown / 1000d);
         }
 
         private void SelectTargets()
@@ -264,6 +410,23 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             // TODO: implement correctly
             return parameters.SpellInfo.Entry.CastTime > 0;
+        }
+
+        public void Finish()
+        {
+            if (status == SpellStatus.Executing || status == SpellStatus.Waiting)
+                SetCooldown();
+
+            foreach (Spell thresholdSpell in thresholdSpells.ToList())
+            {
+                if (thresholdSpell.IsCasting && !thresholdSpell.IsFinished)
+                    thresholdSpell.CancelCast(CastResult.SpellCancelled);
+
+                thresholdSpells.Remove(thresholdSpell);
+            }
+
+            events.CancelEvents();
+            status = SpellStatus.Executing;
         }
 
         private void SendSpellCastResult(CastResult castResult)

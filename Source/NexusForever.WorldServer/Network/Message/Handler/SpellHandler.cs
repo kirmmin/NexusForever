@@ -21,19 +21,15 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             if (item == null)
                 throw new InvalidPacketValueException();
 
-            UnlockedSpell spell = session.Player.SpellManager.GetSpell(item.Id);
-            if (spell == null)
+            UnlockedSpell unlockedSpell = session.Player.SpellManager.GetSpell(item.Id);
+            if (unlockedSpell == null)
                 throw new InvalidPacketValueException();
 
             // true is button pressed, false is sent on release
             if (!castSpell.ButtonPressed)
                 return;
 
-            byte tier = session.Player.SpellManager.GetSpellTier(spell.Info.Entry.Id);
-            session.Player.CastSpell(new SpellParameters
-            {
-                SpellInfo = spell.Info.GetSpellInfo(tier)
-            });
+            unlockedSpell.Cast(session.Player);
         }
 
         [MessageHandler(GameMessageOpcode.ClientSpellStopCast)]
