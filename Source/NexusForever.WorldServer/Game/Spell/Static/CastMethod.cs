@@ -6,16 +6,16 @@ namespace NexusForever.WorldServer.Game.Spell.Static
 {
     public enum CastMethod
     {
-        Normal = 0,
-        Channeled = 1,
-        PressHold = 2,
-        ChanneledField = 3,
-        UNUSED04 = 4,
-        ClientSideInteraction = 5,
-        RapidTap = 6,
-        ChargeRelease = 7,
-        Multiphase = 8,
-        Transactional = 9,
-        Aura = 10
+        Normal                = 0x0000,
+        Channeled             = 0x0001,
+        PressHold             = 0x0002,
+        ChanneledField        = 0x0003,
+        UNUSED04              = 0x0004,
+        ClientSideInteraction = 0x0005,
+        RapidTap              = 0x0006,
+        ChargeRelease         = 0x0007,
+        Multiphase            = 0x0008,
+        Transactional         = 0x0009,
+        Aura                  = 0x000A
     }
 }

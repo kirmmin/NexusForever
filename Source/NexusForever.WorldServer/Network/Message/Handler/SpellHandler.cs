@@ -26,10 +26,10 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 throw new InvalidPacketValueException();
 
             // true is button pressed, false is sent on release
-            if (!castSpell.ButtonPressed)
+            if (!castSpell.ButtonPressed && (CastMethod)unlockedSpell.Info.Entry.CastMethod != CastMethod.ChargeRelease)
                 return;
 
-            unlockedSpell.Cast(session.Player);
+            unlockedSpell.Cast(session.Player, castSpell.ButtonPressed);
         }
 
         [MessageHandler(GameMessageOpcode.ClientSpellStopCast)]

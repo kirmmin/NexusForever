@@ -227,11 +227,12 @@ namespace NexusForever.Shared.Network.Message
         ClientCancelEffect              = 0x0802,
         ServerCooldown                  = 0x0804,
         Server0810                      = 0x0810,
-        Server0811                      = 0x0811, // spell related: broadcast parts of 0x07FF?
+        ServerSpellBuffRemoved          = 0x0811, // spell related: broadcast parts of 0x07FF?
         Server0813                      = 0x0813,
         ServerSpellThresholdClear       = 0x0814,
         ServerSpellThresholdStart       = 0x0816,
         ServerSpellThresholdUpdate      = 0x0817, 
+        Server0818                      = 0x0818, // Fires BuffAdded & BuffUpdated LUA events
         ClientStorefrontPurchaseAccount = 0x0828,
         ClientStorefrontPurchaseCharacter = 0x082A,
         ClientStorefrontRequestCatalog  = 0x082D,

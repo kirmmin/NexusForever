@@ -131,5 +131,14 @@ namespace NexusForever.WorldServer.Game.Entity
 
             return spell != null;
         }
+
+        public bool IsCasting()
+        {
+            for (int i = 0; i < pendingSpells.Count; i++)
+                if (pendingSpells[i].IsCasting)
+                    return true;
+
+            return false;
+        }
     }
 }

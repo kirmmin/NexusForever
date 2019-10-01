@@ -4,17 +4,17 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.Server0811)]
-    public class Server0811 : IWritable
+    [Message(GameMessageOpcode.ServerSpellBuffRemoved)]
+    public class ServerSpellBuffRemoved : IWritable
     {
         public uint CastingId { get; set; }
-        public List<uint> CasterId { get; set; } = new List<uint>();
+        public List<uint> SpellTargets { get; set; } = new List<uint>();
 
         public void Write(GamePacketWriter writer)
         {
             writer.Write(CastingId);
-            writer.Write(CasterId.Count, 32u);
-            CasterId.ForEach(c => writer.Write(c));
+            writer.Write(SpellTargets.Count, 32u);
+            SpellTargets.ForEach(c => writer.Write(c));
         }
     }
 }
