@@ -51,21 +51,19 @@ namespace NexusForever.WorldServer.Game.Spell
 
                 targets.ForEach(t => t.Effects.Clear());
             })); // Execute after initial delay
-            events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelMaxTime / 1000d, Finish)); // End Spell Cast
 
-            uint numberOfPulses = parameters.SpellInfo.Entry.ChannelMaxTime / parameters.SpellInfo.Entry.ChannelPulseTime; // Calculate number of "ticks" in this spell cast
+            uint numberOfPulses = (uint)MathF.Floor(parameters.SpellInfo.Entry.ChannelMaxTime / parameters.SpellInfo.Entry.ChannelPulseTime); // Calculate number of "ticks" in this spell cast
 
             // Add ticks at each pulse
             for (int i = 1; i <= numberOfPulses; i++)
-            {
-                double delay = parameters.SpellInfo.Entry.ChannelInitialDelay + parameters.SpellInfo.Entry.ChannelPulseTime * i;
-                events.EnqueueEvent(new SpellEvent(delay / 1000d, () =>
+                events.EnqueueEvent(new SpellEvent((parameters.SpellInfo.Entry.ChannelInitialDelay + (parameters.SpellInfo.Entry.ChannelPulseTime * i)) / 1000d, () =>
                 {
                     Execute();
 
                     targets.ForEach(t => t.Effects.Clear());
                 }));
-            }
+
+            events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelMaxTime / 1000d, Finish)); // End Spell Cast
         }
 
         [CastMethodHandler(CastMethod.ChargeRelease)]

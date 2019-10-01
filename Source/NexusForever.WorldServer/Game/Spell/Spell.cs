@@ -367,7 +367,16 @@ namespace NexusForever.WorldServer.Game.Spell
             targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Caster, caster));
             foreach (TelegraphDamageEntry telegraphDamageEntry in parameters.SpellInfo.Telegraphs)
             {
-                var telegraph = new Telegraph(telegraphDamageEntry, caster, caster.Position, caster.Rotation);
+                Telegraph telegraph = null;
+                if (parameters.PrimaryTargetId > 0)
+                {
+                    UnitEntity primaryTargetEntity = caster.GetVisible<UnitEntity>(parameters.PrimaryTargetId);
+                    if (primaryTargetEntity != null)
+                        telegraph = new Telegraph(telegraphDamageEntry, caster, primaryTargetEntity.Position, primaryTargetEntity.Rotation);
+                }
+                else
+                    telegraph = new Telegraph(telegraphDamageEntry, caster, caster.Position, caster.Rotation);
+
                 foreach (UnitEntity entity in telegraph.GetTargets())
                     targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Telegraph, entity));
             }
@@ -466,7 +475,7 @@ namespace NexusForever.WorldServer.Game.Spell
             {
                 CastingId            = CastingId,
                 CasterId             = caster.Guid,
-                PrimaryTargetId      = caster.Guid,
+                PrimaryTargetId      = parameters.PrimaryTargetId > 0 ? parameters.PrimaryTargetId : caster.Guid,
                 Spell4Id             = parameters.SpellInfo.Entry.Id,
                 RootSpell4Id         = parameters.RootSpellInfo?.Entry.Id ?? 0,
                 ParentSpell4Id       = parameters.ParentSpellInfo?.Entry.Id ?? 0,
@@ -477,10 +486,11 @@ namespace NexusForever.WorldServer.Game.Spell
                 TelegraphPositionData = new List<TelegraphPosition>()
             };
 
-            List<UnitEntity> unitsCasting = new List<UnitEntity>
-            {
-                caster
-            };
+            List<UnitEntity> unitsCasting = new List<UnitEntity>();
+            if (parameters.PrimaryTargetId > 0)
+                unitsCasting.Add(caster.GetVisible<UnitEntity>(parameters.PrimaryTargetId));
+            else
+                unitsCasting.Add(caster);
 
             foreach (UnitEntity unit in unitsCasting)
                 spellStart.InitialPositionData.Add(new InitialPosition
@@ -494,7 +504,7 @@ namespace NexusForever.WorldServer.Game.Spell
             foreach (UnitEntity unit in unitsCasting)
                 foreach (TelegraphDamageEntry telegraph in parameters.SpellInfo.Telegraphs)
                     spellStart.TelegraphPositionData.Add(new TelegraphPosition
-            {
+                    {
                         TelegraphId = (ushort)telegraph.Id,
                         AttachedUnitId = unit.Guid,
                         TargetFlags = (byte)telegraph.TargetTypeFlags,
