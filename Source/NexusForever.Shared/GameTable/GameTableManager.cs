@@ -551,6 +551,8 @@ namespace NexusForever.Shared.GameTable
 
         [GameData]
         public GameTable<SpellLevelEntry> SpellLevel { get; private set; }
+
+        [GameData]
         public GameTable<SpellPhaseEntry> SpellPhase { get; private set; }
 
         [GameData]
