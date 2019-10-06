@@ -326,7 +326,7 @@ namespace NexusForever.WorldServer.Game.Spell
                             AdjustedDamage     = targetEffectInfo.Damage.AdjustedDamage,
                             OverkillAmount     = targetEffectInfo.Damage.OverkillAmount,
                             KilledTarget       = targetEffectInfo.Damage.KilledTarget,
-                            CombatResult       = CombatResult.Hit,
+                            CombatResult       = targetEffectInfo.Damage.CombatResult,
                             DamageType         = targetEffectInfo.Damage.DamageType
                         };
                     }

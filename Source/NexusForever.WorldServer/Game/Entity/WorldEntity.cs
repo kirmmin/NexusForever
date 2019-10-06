@@ -2,12 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using NexusForever.Shared.GameTable;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Database.World.Model;
+using NexusForever.WorldServer.Game.Combat;
 using NexusForever.WorldServer.Game.Entity.Movement;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Map;
+using NexusForever.WorldServer.Game.Spell;
+using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
 using EntityModel = NexusForever.WorldServer.Database.World.Model.Entity;
@@ -104,6 +108,9 @@ namespace NexusForever.WorldServer.Game.Entity
         protected readonly Dictionary<Stat, StatValue> stats = new Dictionary<Stat, StatValue>();
 
         private readonly Dictionary<ItemSlot, ItemVisual> itemVisuals = new Dictionary<ItemSlot, ItemVisual>();
+
+        private float assaultRatingToPowerFormula = GameTableManager.GameFormula.GetEntry(1266).Datafloat0;
+        private float supportRatingToPowerFormula = GameTableManager.GameFormula.GetEntry(1266).Datafloat01;
 
         /// <summary>
         /// Create a new <see cref="WorldEntity"/> with supplied <see cref="EntityType"/>.
@@ -445,6 +452,21 @@ namespace NexusForever.WorldServer.Game.Entity
                     break;
             }
         }
+        
+        /// Returns the calculated Assault Power for this entity
+        /// </summary>
+        public uint GetAssaultPower()
+        {
+            return (uint)Math.Round((float)GetPropertyValue(Property.AssaultRating) * assaultRatingToPowerFormula);
+        }
+
+        /// <summary>
+        /// Returns the calculated Support Power for this entity
+        /// </summary>
+        public uint GetSupportPower()
+        {
+            return (uint)Math.Round((float)GetPropertyValue(Property.SupportRating) * supportRatingToPowerFormula);
+        }
 
         /// <summary>
         /// Return the <see cref="float"/> value of the supplied <see cref="Stat"/>.
@@ -464,7 +486,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Return the <see cref="uint"/> value of the supplied <see cref="Stat"/>.
         /// </summary>
-        protected uint? GetStatInteger(Stat stat)
+        public uint? GetStatInteger(Stat stat)
         {
             StatAttribute attribute = EntityManager.Instance.GetStatAttribute(stat);
             if (attribute?.Type != StatType.Integer)
@@ -624,6 +646,40 @@ namespace NexusForever.WorldServer.Game.Entity
                     continue;
 
                 player.Session.EnqueueMessageEncrypted(message);
+            }
+        }
+
+        public void DealDamage(WorldEntity victim, SpellTargetInfo.SpellTargetEffectInfo.DamageDescription damageDescription, DamageType damageType, uint damage)
+        {
+            if (damage < 0)
+                return;
+
+            if (victim == null || !victim.IsAlive)
+                return;
+
+            damageDescription.DamageType = damageType;
+            damageDescription.CombatResult = CombatResult.Avoid;
+            damageDescription.RawDamage = damage;
+
+            uint victimHealth = victim.GetStatInteger(Stat.Health).Value;
+
+            damage = DamageCalculator.GetBaseDamage(damage);
+            damage = DamageCalculator.GetDamageAfterArmorMitigation(victim, damageType, damage);
+
+            bool crit = false;
+            (damage, crit) = DamageCalculator.GetCrit(damage, GetPropertyValue(Property.BaseCritChance).Value + GetPropertyValue(Property.RatingCritChanceIncrease).Value);
+            if (crit)
+                damageDescription.CombatResult = CombatResult.Critical;
+
+            uint shieldedAmount = DamageCalculator.GetShieldAmount(damage, victim);
+            damage -= shieldedAmount;
+            damageDescription.ShieldAbsorbAmount = shieldedAmount;
+
+            damageDescription.AdjustedDamage = damage;
+
+            if (victim is Player)
+            {
+
             }
         }
     }

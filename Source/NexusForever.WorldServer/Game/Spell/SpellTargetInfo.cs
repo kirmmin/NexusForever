@@ -19,11 +19,12 @@ namespace NexusForever.WorldServer.Game.Spell
                 public uint AdjustedDamage { get; set; }
                 public uint OverkillAmount { get; set; }
                 public bool KilledTarget { get; set; }
+                public CombatResult CombatResult { get; set; }
             }
 
             public uint EffectId { get; }
             public Spell4EffectsEntry Entry { get; }
-            public DamageDescription Damage { get; private set; }
+            public DamageDescription Damage { get; private set; } = new DamageDescription();
 
             public SpellTargetEffectInfo(uint effectId, Spell4EffectsEntry entry)
             {
