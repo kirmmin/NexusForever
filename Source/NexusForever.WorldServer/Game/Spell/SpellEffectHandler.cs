@@ -6,6 +6,7 @@ using NexusForever.Shared.Game.Events;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.Shared.Network;
+using NexusForever.WorldServer.Game.Combat;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell.Event;
@@ -21,8 +22,14 @@ namespace NexusForever.WorldServer.Game.Spell
         [SpellEffectHandler(SpellEffectType.Damage)]
         private void HandleEffectDamage(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
-            // TODO: calculate damage
-            info.AddDamage((DamageType)info.Entry.DamageType, 1337);
+            uint damage = 0;
+            damage += DamageCalculator.Instance.GetBaseDamageForSpell(caster, info.Entry.ParameterType00, info.Entry.ParameterValue00);
+            damage += DamageCalculator.Instance.GetBaseDamageForSpell(caster, info.Entry.ParameterType01, info.Entry.ParameterValue01);
+            damage += DamageCalculator.Instance.GetBaseDamageForSpell(caster, info.Entry.ParameterType02, info.Entry.ParameterValue02);
+            damage += DamageCalculator.Instance.GetBaseDamageForSpell(caster, info.Entry.ParameterType03, info.Entry.ParameterValue03);
+
+            DamageCalculator.Instance.CalculateDamage(caster, target, this, ref info, (DamageType)info.Entry.DamageType, damage);
+            // TODO: Deal damage
         }
 
         [SpellEffectHandler(SpellEffectType.UnitPropertyModifier)]

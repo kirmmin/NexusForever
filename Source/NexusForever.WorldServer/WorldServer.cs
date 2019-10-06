@@ -16,6 +16,7 @@ using NexusForever.WorldServer.Game;
 using NexusForever.WorldServer.Game.Achievement;
 using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Cinematic;
+using NexusForever.WorldServer.Game.Combat;
 using NexusForever.WorldServer.Game.Contact;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Movement;
@@ -102,6 +103,7 @@ namespace NexusForever.WorldServer
             ScriptManager.Instance.Initialise();
             MessageManager.Instance.Initialise();
             SocialManager.Instance.Initialise();
+            DamageCalculator.Instance.Initialise();
             NetworkManager<WorldSession>.Instance.Initialise(ConfigurationManager<WorldServerConfiguration>.Instance.Config.Network);
             WorldManager.Instance.Initialise(lastTick =>
             {

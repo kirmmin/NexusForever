@@ -9,6 +9,7 @@ using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.CSI;
+using NexusForever.WorldServer.Game.Combat;
 using NexusForever.WorldServer.Game.Entity.Movement;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Static;
@@ -17,6 +18,7 @@ using NexusForever.WorldServer.Game.Prerequisite;
 using NexusForever.WorldServer.Game.Reputation;
 using NexusForever.WorldServer.Game.Reputation.Static;
 using NexusForever.WorldServer.Game.Spell;
+using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
@@ -167,6 +169,7 @@ namespace NexusForever.WorldServer.Game.Entity
             get => (float)(GetStatInteger(Stat.InterruptArmor) ?? 0f);
             set => SetStat(Stat.InterruptArmor, (uint)value);
         }
+        public bool IsAlive => GetStatInteger(Stat.Health) > 0u;
 
         public uint Level
         {
@@ -658,7 +661,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Return the <see cref="uint"/> value of the supplied <see cref="Stat"/>.
         /// </summary>
-        protected uint? GetStatInteger(Stat stat)
+        public uint? GetStatInteger(Stat stat)
         {
             StatAttribute attribute = EntityManager.Instance.GetStatAttribute(stat);
             if (attribute?.Type != StatType.Integer)
