@@ -1,8 +1,12 @@
+using System.Linq;
+using System.Numerics;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.Map;
+using NexusForever.WorldServer.Network.Message.Model;
 using EntityModel = NexusForever.WorldServer.Database.World.Model.Entity;
 
 namespace NexusForever.WorldServer.Game.Entity
@@ -15,6 +19,23 @@ namespace NexusForever.WorldServer.Game.Entity
         public Simple()
             : base(EntityType.Simple)
         {
+        }
+
+        public Simple(Creature2Entry entry, ulong propId, ushort plugId)
+            : base(EntityType.Simple)
+        {
+            CreatureId = entry.Id;
+            DecorPropId = propId;
+            DecorPlugId = plugId;
+            QuestChecklistIdx = 255;
+            Faction1 = (Faction)entry.FactionId;
+            Faction2 = (Faction)entry.FactionId;
+
+            Creature2DisplayGroupEntryEntry displayGroupEntry = GameTableManager.Instance.Creature2DisplayGroupEntry.Entries.FirstOrDefault(i => i.Creature2DisplayGroupId == entry.Creature2DisplayGroupId);
+            if (displayGroupEntry != null)
+                DisplayInfo = displayGroupEntry.Creature2DisplayInfoId;
+
+            CreateFlags |= EntityCreateFlag.SpawnAnimation;
         }
 
         public override void Initialise(EntityModel model)
@@ -30,6 +51,23 @@ namespace NexusForever.WorldServer.Game.Entity
                 CreatureId        = CreatureId,
                 QuestChecklistIdx = QuestChecklistIdx
             };
+        }
+
+        public override ServerEntityCreate BuildCreatePacket()
+        {
+            ServerEntityCreate entityCreate = base.BuildCreatePacket();
+
+            if (DecorPlugId > 0 || DecorPropId > 0)
+            {
+                entityCreate.WorldPlacementData = new ServerEntityCreate.WorldPlacement
+                {
+                    Type = 1,
+                    ActivePropId = DecorPropId,
+                    SocketId = DecorPlugId
+                };
+            }   
+
+            return entityCreate;
         }
 
         public override void OnActivate(Player activator)

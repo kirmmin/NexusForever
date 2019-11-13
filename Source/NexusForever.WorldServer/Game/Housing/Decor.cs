@@ -5,6 +5,7 @@ using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Database;
 using NexusForever.WorldServer.Database.Character.Model;
+using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Housing.Static;
 
 namespace NexusForever.WorldServer.Game.Housing
@@ -14,6 +15,7 @@ namespace NexusForever.WorldServer.Game.Housing
         public ulong Id { get; }
         public ulong DecorId { get; }
         public HousingDecorInfoEntry Entry { get; }
+        public WorldEntity ActivateEntity { get; private set; }
 
         public DecorType Type
         {
@@ -239,6 +241,21 @@ namespace NexusForever.WorldServer.Game.Housing
         public void Crate()
         {
             Move(DecorType.Crate, Vector3.Zero, Quaternion.Identity, 0f);
+            RemoveActivateEntity();
+        }
+
+        public void SetActivateEntity(WorldEntity entity)
+        {
+            ActivateEntity = entity;
+        }
+
+        public void RemoveActivateEntity()
+        {
+            if (ActivateEntity != null)
+            {
+                ActivateEntity.Map.EnqueueRemove(ActivateEntity);
+                ActivateEntity = null;
+            }
         }
     }
 }

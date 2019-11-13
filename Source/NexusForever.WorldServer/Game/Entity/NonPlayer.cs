@@ -3,6 +3,8 @@ using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Network.Message.Model;
+using System.Linq;
 using EntityModel = NexusForever.WorldServer.Database.World.Model.Entity;
 
 namespace NexusForever.WorldServer.Game.Entity
@@ -15,6 +17,30 @@ namespace NexusForever.WorldServer.Game.Entity
         public NonPlayer()
             : base(EntityType.NonPlayer)
         {
+        }
+
+        public NonPlayer(Creature2Entry entry, ulong propId, ushort plugId)
+            : base(EntityType.NonPlayer)
+        {
+            CreatureId = entry.Id;
+            DecorPropId = propId;
+            DecorPlugId = plugId;
+            Faction1 = (Faction)entry.FactionId;
+            Faction2 = (Faction)entry.FactionId;
+
+            Creature2DisplayGroupEntryEntry displayGroupEntry = GameTableManager.Instance.Creature2DisplayGroupEntry.Entries.FirstOrDefault(i => i.Creature2DisplayGroupId == entry.Creature2DisplayGroupId);
+            if (displayGroupEntry != null)
+                DisplayInfo = displayGroupEntry.Creature2DisplayInfoId;
+
+            Creature2OutfitGroupEntryEntry outfitGroupEntry = GameTableManager.Instance.Creature2OutfitGroupEntry.Entries.FirstOrDefault(i => i.Creature2OutfitGroupId == entry.Creature2OutfitGroupId);
+            if (outfitGroupEntry != null)
+                OutfitInfo = (ushort)outfitGroupEntry.Creature2OutfitInfoId;
+
+            Properties.Add(Property.BaseHealth, new PropertyValue(Property.BaseHealth, 135f, 125f));
+            stats.Add(Stat.Health, new StatValue(Stat.Health, 135));
+            stats.Add(Stat.Level, new StatValue(Stat.Level, 1));
+
+            CreateFlags |= EntityCreateFlag.SpawnAnimation;
         }
 
         public override void Initialise(EntityModel model)
@@ -35,8 +61,24 @@ namespace NexusForever.WorldServer.Game.Entity
             return new NonPlayerEntityModel
             {
                 CreatureId = CreatureId,
-                QuestChecklistIdx = 0
+                QuestChecklistIdx = (byte)(DecorPlugId > 0 ? 255 : 0)
             };
+        }
+
+        public override ServerEntityCreate BuildCreatePacket()
+        {
+            ServerEntityCreate serverEntityCreate = base.BuildCreatePacket();
+
+            if (DecorPropId > 0)
+            {
+                serverEntityCreate.WorldPlacementData = new ServerEntityCreate.WorldPlacement
+                {
+                    Type = 1,
+                    SocketId = DecorPlugId
+                };
+            }
+
+            return serverEntityCreate;
         }
 
         private void CalculateProperties()

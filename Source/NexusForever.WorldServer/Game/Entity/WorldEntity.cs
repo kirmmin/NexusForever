@@ -28,6 +28,8 @@ namespace NexusForever.WorldServer.Game.Entity
         public Faction Faction2 { get; set; }
 
         public ulong ActivePropId { get; private set; }
+        public ulong DecorPropId { get; protected set; }
+        public ushort DecorPlugId { get; protected set; }
 
         public Vector3 LeashPosition { get; protected set; }
         public float LeashRange { get; protected set; } = 15f;
