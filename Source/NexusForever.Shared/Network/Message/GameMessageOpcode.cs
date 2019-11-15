@@ -24,6 +24,7 @@ namespace NexusForever.Shared.Network.Message
         ClientVendorPurchase            = 0x00BE,
         ClientLogoutRequest             = 0x00BF,
         ClientLogoutConfirm             = 0x00C0,
+        ServerDuelCancelWarning         = 0x00C1,
         ClientHousingResidencePrivacyLevel = 0x00C9,
         ServerCostume                   = 0x00D8,
         ServerCostumeList               = 0x00D9,
@@ -33,6 +34,9 @@ namespace NexusForever.Shared.Network.Message
         ServerDatacubeUpdate            = 0x00E1,
         ServerDatacubeVolumeUpdate      = 0x00E2,
         ServerCharacterDeleteResult     = 0x00E6,
+        ClientDuelAccept                = 0x00E8,
+        ClientDuelDecline               = 0x00E9,
+        ClientDuelRequest               = 0x00EC,
         Server00F1                      = 0x00F1, // handler sends 0x00D5 and ClientPlayerMovementSpeedUpdate
         ServerCharacterFlagsUpdated     = 0x00FE,
         Server0104                      = 0x0104, // Galactic Archive
@@ -40,6 +44,7 @@ namespace NexusForever.Shared.Network.Message
         ServerHousingPrivacy            = 0x010E,
         ServerCharacter                 = 0x010F, // single character
         ServerItemAdd                   = 0x0111,
+        ServerDuelLeftArea              = 0x0114,
         ServerCharacterList             = 0x0117,
         ClientMailDelete                = 0x011E,
         ClientMailOpen                  = 0x0122,
@@ -238,10 +243,15 @@ namespace NexusForever.Shared.Network.Message
         Server0854                      = 0x0854, // crafting schematic
         Server0856                      = 0x0856, // tradeskills
         ServerVehiclePassengerAdd       = 0x086F,
+        ServerDuelPrepare               = 0x0893,
+        ServerDuelEnd                   = 0x0894,
+        ServerDuelBegin                 = 0x0895,
+        ServerDuelInvite                = 0x0896,
         ServerUnitEnteredCombat         = 0x089A,
         Server089B                      = 0x089B, // mount related
         Server08B3                      = 0x08B3,
         ServerSetUnitPathType           = 0x08B8,
+        ServerUnitPvpFlags              = 0x08BD,
         ServerVehiclePassengerRemove    = 0x08C7,
         ServerUnitSetChair              = 0x08CF,
         ServerEntityVisualUpdate        = 0x0905,

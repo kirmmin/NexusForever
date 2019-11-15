@@ -20,6 +20,7 @@ using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Map;
+using NexusForever.WorldServer.Game.PVP;
 using NexusForever.WorldServer.Game.Quest.Static;
 using NexusForever.WorldServer.Game.Setting;
 using NexusForever.WorldServer.Game.Setting.Static;
@@ -113,6 +114,10 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public bool IsSitting => currentChairGuid != null;
         private uint? currentChairGuid;
+
+        public PvPFlag PvPFlag { get; private set; }
+        public uint DuelOpponentGuid { get; set; }
+        public bool IsDueling => DuelOpponentGuid > 0;
 
         public WorldSession Session { get; }
         public bool IsLoading { get; private set; } = true;
@@ -281,7 +286,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 Sex      = Sex,
                 Bones    = Bones,
                 Title    = TitleManager.ActiveTitleId,
-                PvPFlag  = PvPFlag.Disabled
+                PvPFlag  = PvPFlag
             };
         }
 
@@ -570,6 +575,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public void CleanUp()
         {
+            DuelManager.Instance.EndDuelsForPlayer(this);
             CleanupManager.Track(Session.Account);
 
             try
@@ -731,6 +737,19 @@ namespace NexusForever.WorldServer.Game.Entity
                 Channel = ChatChannel.System,
                 Text    = text
             });
+        }
+
+        public void SetPvPFlags(PvPFlag pvpFlag)
+        {
+            if (PvPFlag == pvpFlag)
+                return;
+
+            PvPFlag = pvpFlag;
+            EnqueueToVisible(new ServerUnitPvpFlags
+            {
+                UnitId = Guid,
+                PvpFlags = PvPFlag
+            }, true);
         }
 
         public void Save(AuthContext context)

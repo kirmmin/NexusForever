@@ -7,12 +7,16 @@ using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Game.Static;
+using NexusForever.WorldServer.Network.Message.Model;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
     public abstract class UnitEntity : WorldEntity
     {
         private readonly List<Spell.Spell> pendingSpells = new List<Spell.Spell>();
+
+        public bool InCombat { get; private set; }
+        private List<uint> threatTargets = new List<uint>();
 
         protected UnitEntity(EntityType type)
             : base(type)
@@ -111,6 +115,50 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             Spell.Spell spell = pendingSpells.SingleOrDefault(s => s.CastingId == castingId);
             spell?.CancelCast(CastResult.SpellCancelled);
+        }
+
+        public void AddToThreatList(uint unitId)
+        {
+            if (!threatTargets.Contains(unitId))
+            {
+                threatTargets.Add(unitId);
+                OnTargetAddedToThreatList(unitId);
+            }
+        }
+
+        public void RemoveFromThreatList(uint unitId)
+        {
+            if (threatTargets.Contains(unitId))
+            {
+                threatTargets.Remove(unitId);
+                OnTargetRemovedFromThreatList(unitId);
+            }
+        }
+
+        private void OnTargetAddedToThreatList(uint unitId)
+        {
+            if (!InCombat)
+            {
+                InCombat = true;
+                EnqueueToVisible(new ServerUnitEnteredCombat
+                {
+                    UnitId = Guid,
+                    InCombat = true
+                }, true);
+            }
+        }
+
+        private void OnTargetRemovedFromThreatList(uint unitId)
+        {
+            if (InCombat && threatTargets.Count == 0)
+            {
+                InCombat = false;
+                EnqueueToVisible(new ServerUnitEnteredCombat
+                {
+                    UnitId = Guid,
+                    InCombat = false
+                }, true);
+            }
         }
     }
 }
