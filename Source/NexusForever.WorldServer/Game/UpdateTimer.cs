@@ -8,14 +8,14 @@ namespace NexusForever.WorldServer.Game
         public double Time { get; private set; }
         public bool IsTicking { get; private set; }
 
-        private readonly double duration;
+        public readonly double Duration;
 
         /// <summary>
         /// Create a new <see cref="UpdateTimer"/> with supplied starting duration.
         /// </summary>
         public UpdateTimer(double duration, bool start = true)
         {
-            this.duration = duration;
+            this.Duration = duration;
             Time          = duration;
             IsTicking     = start;
         }
@@ -38,7 +38,7 @@ namespace NexusForever.WorldServer.Game
         /// </summary>
         public void Reset(bool start = true)
         {
-            Time = duration;
+            Time = Duration;
             IsTicking = start;
         }
 
