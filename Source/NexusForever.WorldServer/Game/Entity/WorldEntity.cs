@@ -45,6 +45,8 @@ namespace NexusForever.WorldServer.Game.Entity
         public float LeashRange { get; protected set; } = 15f;
         public MovementManager MovementManager { get; private set; }
 
+        public bool IsAlive => Health > 0;
+
         public uint Health
         {
             get => GetStatInteger(Stat.Health) ?? 0u;
@@ -109,8 +111,8 @@ namespace NexusForever.WorldServer.Game.Entity
 
         private readonly Dictionary<ItemSlot, ItemVisual> itemVisuals = new Dictionary<ItemSlot, ItemVisual>();
 
-        private float assaultRatingToPowerFormula = GameTableManager.GameFormula.GetEntry(1266).Datafloat0;
-        private float supportRatingToPowerFormula = GameTableManager.GameFormula.GetEntry(1266).Datafloat01;
+        private float assaultRatingToPowerFormula = GameTableManager.Instance.GameFormula.GetEntry(1266).Datafloat0;
+        private float supportRatingToPowerFormula = GameTableManager.Instance.GameFormula.GetEntry(1266).Datafloat01;
 
         /// <summary>
         /// Create a new <see cref="WorldEntity"/> with supplied <see cref="EntityType"/>.
@@ -658,7 +660,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 return;
 
             damageDescription.DamageType = damageType;
-            damageDescription.CombatResult = CombatResult.Avoid;
+            damageDescription.CombatResult = CombatResult.Hit;
             damageDescription.RawDamage = damage;
 
             uint victimHealth = victim.GetStatInteger(Stat.Health).Value;
@@ -667,7 +669,7 @@ namespace NexusForever.WorldServer.Game.Entity
             damage = DamageCalculator.GetDamageAfterArmorMitigation(victim, damageType, damage);
 
             bool crit = false;
-            (damage, crit) = DamageCalculator.GetCrit(damage, GetPropertyValue(Property.BaseCritChance).Value + GetPropertyValue(Property.RatingCritChanceIncrease).Value);
+            (damage, crit) = DamageCalculator.GetCrit(damage, GetPropertyValue(Property.BaseCritChance) + GetPropertyValue(Property.RatingCritChanceIncrease));
             if (crit)
                 damageDescription.CombatResult = CombatResult.Critical;
 

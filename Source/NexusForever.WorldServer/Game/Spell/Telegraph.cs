@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using NexusForever.Shared;
+using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Map.Search;
@@ -64,48 +65,38 @@ namespace NexusForever.WorldServer.Game.Spell
                     float telegraphLength = TelegraphDamage.Param01;
                     float telegraphHeight = TelegraphDamage.Param02;
 
-                    // Calculate angles and origin used in calculations
-                    var XDegrees = Rotation.X.ToDegrees() < 0f ? Rotation.X.ToDegrees() + 360f : Rotation.X.ToDegrees();
-                    Vector3 PositionWithOffset = new Vector3(Position.X, Position.Y, Position.Z);
-                    if (TelegraphDamage.ZPositionOffset != 0f) // Move the telegraph's origin forward based on ZPositionOffset
-                        PositionWithOffset = GetPointPositionOnPlane(Position.X, Position.Z, XDegrees + 90f, TelegraphDamage.ZPositionOffset * telegraphLength / 2f);
-
+                    float leftAngle = -Rotation.X + MathF.PI / 2;
+                    Vector3 bottomLeft = Position.GetPoint2D(leftAngle, telegraphLength / 2f);
+                    Vector3 bottomRight = Position.GetPoint2D(leftAngle + MathF.PI / 2, telegraphLength / 2f);
+                    Vector3 topRight = bottomRight.GetPoint2D(-Rotation.X - MathF.PI / 4, telegraphLength);
+                    Vector3 topLeft = bottomLeft.GetPoint2D(-Rotation.X - MathF.PI / 4, telegraphLength);
                     List<Vector3> points = new List<Vector3>
                     {
-                        GetPointPositionOnPlane(PositionWithOffset.X, PositionWithOffset.Z, XDegrees, telegraphLength / 2f), // Right
-                        GetPointPositionOnPlane(PositionWithOffset.X, PositionWithOffset.Z, XDegrees + 90f, telegraphLength / 2f), // Front
-                        GetPointPositionOnPlane(PositionWithOffset.X, PositionWithOffset.Z, XDegrees + 180f, telegraphLength / 2f), // Left
-                        GetPointPositionOnPlane(PositionWithOffset.X, PositionWithOffset.Z, XDegrees - 90f, telegraphLength / 2f) // Behind
+                        bottomLeft,
+                        bottomRight,
+                        topRight,
+                        topLeft
                     };
 
                     return PointInPolygon(points.ToArray(), position.X, position.Z) && position.Y <= Position.Y + telegraphHeight && position.Y >= Position.Y - telegraphHeight;
-                }
+                    }
                 case DamageShape.Rectangle:
                 {
                     float telegraphWidth = TelegraphDamage.Param00;
-                    float telegraphLength = TelegraphDamage.Param01;
-                    float telegraphHeight = TelegraphDamage.Param02;
+                    float telegraphHeight = TelegraphDamage.Param01;
+                    float telegraphLength = TelegraphDamage.Param02;
 
-                    // Calculate angle between origin and corners of rectangle
-                    float oppositeSide = telegraphLength / 2f;
-                    float adjacentSide = telegraphWidth / 2f;
-                    float hypotenuse = MathF.Sqrt((oppositeSide * oppositeSide) + (adjacentSide * adjacentSide));
-                    double theta = Math.Atan(oppositeSide / adjacentSide) * (180 / Math.PI);
-                    theta = Math.Acos(adjacentSide / hypotenuse) * (180 / Math.PI);
-                    theta = Math.Asin(oppositeSide / hypotenuse) * (180 / Math.PI);
-
-                    // Calculate angles and origin used in calculations
-                    var XDegrees = Rotation.X.ToDegrees() < 0f ? Rotation.X.ToDegrees() + 360f : Rotation.X.ToDegrees();
-                    Vector3 PositionWithOffset = new Vector3(Position.X, Position.Y, Position.Z);
-                    if (TelegraphDamage.ZPositionOffset != 0f) // Move the telegraph's origin forward based on ZPositionOffset
-                        PositionWithOffset = GetPointPositionOnPlane(Position.X, Position.Z, XDegrees + 90f, TelegraphDamage.ZPositionOffset * telegraphLength / 2f);
-
+                    float leftAngle = -Rotation.X + MathF.PI;
+                    Vector3 bottomLeft = Position.GetPoint2D(leftAngle, telegraphWidth / 2f);
+                    Vector3 bottomRight = Position.GetPoint2D(leftAngle + MathF.PI, telegraphWidth / 2f);
+                    Vector3 topRight = bottomRight.GetPoint2D(-Rotation.X - MathF.PI / 2, telegraphLength);
+                    Vector3 topLeft = bottomLeft.GetPoint2D(-Rotation.X - MathF.PI / 2, telegraphLength);
                     List<Vector3> points = new List<Vector3>
                     {
-                        GetPointPositionOnPlane(PositionWithOffset.X, PositionWithOffset.Z, XDegrees + (float)theta, telegraphLength / 2f), // Top Left
-                        GetPointPositionOnPlane(PositionWithOffset.X, PositionWithOffset.Z, XDegrees + 180f - (float)theta, telegraphLength / 2f), // Top Right
-                        GetPointPositionOnPlane(PositionWithOffset.X, PositionWithOffset.Z, XDegrees - (float)theta, telegraphLength / 2f), // Bottom Left
-                        GetPointPositionOnPlane(PositionWithOffset.X, PositionWithOffset.Z, XDegrees - 180f + (float)theta, telegraphLength / 2f) // Bottom Right
+                        bottomLeft,
+                        bottomRight,
+                        topRight,
+                        topLeft
                     };
 
                     return PointInPolygon(points.ToArray(), position.X, position.Z) && position.Y <= Position.Y + telegraphHeight && position.Y >= Position.Y - telegraphHeight;
@@ -127,25 +118,10 @@ namespace NexusForever.WorldServer.Game.Spell
                     return TelegraphDamage.Param01;
                 case DamageShape.Quadrilateral:
                 case DamageShape.Rectangle:
-                    return TelegraphDamage.Param01 / 2f;
+                    return TelegraphDamage.Param01;
                 default:
                     return 0f;
             }
-        }
-
-        /// <summary>
-        /// Calculate a point for a Telegraph vertes based on coordinates, angle in degrees, and distance
-        /// </summary>
-        private Vector3 GetPointPositionOnPlane(float xCoord, float zCoord, float angleInDegrees, float distance)
-        {
-            Vector3 result = new Vector3
-            {
-                Y = Position.Y
-            };
-            angleInDegrees = angleInDegrees * MathF.PI / -180f;
-            result.X = distance * MathF.Cos(angleInDegrees) + xCoord;
-            result.Z = distance * MathF.Sin(angleInDegrees) + zCoord;
-            return result;
         }
 
         /// <summary>

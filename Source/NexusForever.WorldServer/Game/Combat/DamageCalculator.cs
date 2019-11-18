@@ -33,16 +33,16 @@ namespace NexusForever.WorldServer.Game.Combat
 
         public static uint GetDamageAfterArmorMitigation(WorldEntity victim, DamageType damageType, uint damage)
         {
-            GameFormulaEntry armorFormulaEntry = GameTableManager.GameFormula.GetEntry(1234);
+            GameFormulaEntry armorFormulaEntry = GameTableManager.Instance.GameFormula.GetEntry(1234);
             float maximumArmorMitigation = (float)(armorFormulaEntry.Dataint01 * 0.10);
-            float mitigationPct = (armorFormulaEntry.Datafloat0 / victim.Level * armorFormulaEntry.Datafloat01) * victim.GetPropertyValue(Property.Armor).Value / 100;
+            float mitigationPct = (armorFormulaEntry.Datafloat0 / victim.Level * armorFormulaEntry.Datafloat01) * victim.GetPropertyValue(Property.Armor) / 100;
 
             if (damageType == DamageType.Physical)
-                mitigationPct += victim.GetPropertyValue(Property.DamageMitigationPctOffsetMagic).Value;
+                mitigationPct += victim.GetPropertyValue(Property.DamageMitigationPctOffsetMagic);
             else if (damageType == DamageType.Tech)
-                mitigationPct += victim.GetPropertyValue(Property.DamageMitigationPctOffsetTech).Value;
+                mitigationPct += victim.GetPropertyValue(Property.DamageMitigationPctOffsetTech);
             else if (damageType == DamageType.Magic)
-                mitigationPct += victim.GetPropertyValue(Property.DamageMitigationPctOffsetMagic).Value;
+                mitigationPct += victim.GetPropertyValue(Property.DamageMitigationPctOffsetMagic);
 
             if (mitigationPct > 0f)
                 damage *= (uint)(1f - Math.Clamp(mitigationPct, 0f, maximumArmorMitigation));
@@ -66,7 +66,7 @@ namespace NexusForever.WorldServer.Game.Combat
         public static uint GetShieldAmount(uint damage, WorldEntity victim)
         {
             uint maxShieldAmount = (uint)(damage * 0.625f); //GetPropertyValue(Property.ShieldMitigationMax).Value);
-            uint shieldedAmount = maxShieldAmount >= victim.GetStatInteger(Stat.Shield).Value ? victim.GetStatInteger(Stat.Shield).Value : maxShieldAmount;
+            uint shieldedAmount = maxShieldAmount >= victim.Shield ? victim.Shield: maxShieldAmount;
 
             return shieldedAmount;
         }
