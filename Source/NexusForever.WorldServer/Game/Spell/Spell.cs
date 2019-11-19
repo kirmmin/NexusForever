@@ -19,7 +19,7 @@ namespace NexusForever.WorldServer.Game.Spell
         private static readonly ILogger log = LogManager.GetCurrentClassLogger();
 
         public uint CastingId { get; }
-        public bool IsCasting => status == SpellStatus.Casting || (CastMethod == CastMethod.Channeled && (status == SpellStatus.Casting || status == SpellStatus.Executing));
+        public bool IsCasting => status == SpellStatus.Casting || ((CastMethod == CastMethod.Channeled || CastMethod == CastMethod.ChanneledField) && (status == SpellStatus.Casting || status == SpellStatus.Executing));
         public bool IsFinished => status == SpellStatus.Finished;
         public bool IsFailed => status == SpellStatus.Failed;
         public bool IsWaiting => status == SpellStatus.Waiting;
@@ -378,13 +378,20 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             foreach (Spell4EffectsEntry spell4EffectsEntry in parameters.SpellInfo.Effects)
             {
+                if (CastMethod == CastMethod.Multiphase && currentPhase < 255)
+                {
+                    int phaseMask = 1 << currentPhase;
+                    if (spell4EffectsEntry.PhaseFlags != 1 && (phaseMask & spell4EffectsEntry.PhaseFlags) == 0)
+                        continue;
+                }
+                
                 if (caster is Player player)
                 {
                     // Ensure caster can apply this effect
                     if (spell4EffectsEntry.PrerequisiteIdCasterApply > 0 && !PrerequisiteManager.Instance.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply))
                         continue;
                 }
-                
+
                 // select targets for effect
                 List<SpellTargetInfo> effectTargets = targets
                     .Where(t => (t.Flags & (SpellEffectTargetFlags)spell4EffectsEntry.TargetFlags) != 0)

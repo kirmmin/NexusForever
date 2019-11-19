@@ -45,17 +45,23 @@ namespace NexusForever.WorldServer.Game.Spell
         [CastMethodHandler(CastMethod.ChanneledField)]
         private void ChanneledHandler()
         {
-            events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelInitialDelay / 1000d, Execute)); // Execute after initial delay
+            events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelInitialDelay / 1000d, () => 
+            {
+                Execute();
+
+                targets.ForEach(t => t.Effects.Clear());
+            })); // Execute after initial delay
             events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelMaxTime / 1000d, Finish)); // End Spell Cast
 
             uint numberOfPulses = (parameters.SpellInfo.Entry.ChannelMaxTime - parameters.SpellInfo.Entry.ChannelInitialDelay) / parameters.SpellInfo.Entry.ChannelPulseTime; // Calculate number of "ticks" in this spell cast
 
             // Add ticks at each pulse
             for (int i = 1; i <= numberOfPulses; i++)
-                events.EnqueueEvent(new SpellEvent((parameters.SpellInfo.Entry.ChannelPulseTime * i) / 1000d, () =>
+                events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelPulseTime * (i + 1) / 1000d, () =>
                 {
-                    SelectTargets();
-                    ExecuteEffects();
+                    Execute();
+
+                    targets.ForEach(t => t.Effects.Clear());
                 }));
         }
 
