@@ -10,6 +10,7 @@ using NexusForever.WorldServer.Game.Entity.Movement;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Map;
+using NexusForever.WorldServer.Game.PVP;
 using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -46,6 +47,7 @@ namespace NexusForever.WorldServer.Game.Entity
         public MovementManager MovementManager { get; private set; }
 
         public bool IsAlive => Health > 0;
+        public bool InCombat { get; protected set; }
 
         public uint Health
         {
@@ -53,12 +55,17 @@ namespace NexusForever.WorldServer.Game.Entity
             set
             {
                 SetStat(Stat.Health, Math.Clamp(value, 0u, MaxHealth)); // TODO: Confirm MaxHealth is actually the maximum health would be at.
-                EnqueueToVisible(new ServerUpdateHealth
+                if (this is Player player)
+                    player.Session.EnqueueMessageEncrypted(new ServerUpdateHealth
+                    {
+                        UnitId = Guid,
+                        Health = Health
+                    });
+                EnqueueToVisible(new Server0937
                 {
                     UnitId = Guid,
-                    Health = Health,
-                    Mask = (UpdateHealthMask)4
-                }, true);
+                    Health = Health
+                });
             }
         }
 
@@ -579,6 +586,8 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         private void HandleStatUpdate(double lastTick)
         {
+            if (InCombat)
+                return;
             // TODO: This should probably get moved to a Calculation Library/Manager at some point. There will be different timers on Stat refreshes, but right now the timer is hardcoded to every 0.25s.
             // Probably worth considering an Attribute-grouped Class that allows us to run differentt regeneration methods & calculations for each stat.
 
@@ -663,12 +672,13 @@ namespace NexusForever.WorldServer.Game.Entity
             damageDescription.CombatResult = CombatResult.Hit;
             damageDescription.RawDamage = damage;
 
-            uint victimHealth = victim.GetStatInteger(Stat.Health).Value;
-
             damage = DamageCalculator.GetBaseDamage(damage);
-            damage = DamageCalculator.GetDamageAfterArmorMitigation(victim, damageType, damage);
 
-            bool crit = false;
+            // Damage reduction from armor is only calculated in PvE attacks from enemies
+            if(!(this is Player) && victim is Player)
+                damage = DamageCalculator.GetDamageAfterArmorMitigation(victim, damageType, damage, Level);
+
+            bool crit;
             (damage, crit) = DamageCalculator.GetCrit(damage, GetPropertyValue(Property.BaseCritChance) + GetPropertyValue(Property.RatingCritChanceIncrease));
             if (crit)
                 damageDescription.CombatResult = CombatResult.Critical;
@@ -676,12 +686,23 @@ namespace NexusForever.WorldServer.Game.Entity
             uint shieldedAmount = DamageCalculator.GetShieldAmount(damage, victim);
             damage -= shieldedAmount;
             damageDescription.ShieldAbsorbAmount = shieldedAmount;
-
             damageDescription.AdjustedDamage = damage;
 
-            if (victim is Player)
+            if (victim is Player playerVictim)
             {
+                if (playerVictim.IsDueling && playerVictim.DuelOpponentGuid == Guid)
+                {
+                    if (shieldedAmount > 0)
+                        playerVictim.Shield -= shieldedAmount;
 
+                    if (damage >= playerVictim.Health)
+                    {
+                        playerVictim.Health = 1;
+                        DuelManager.Instance.EndDuelsForPlayer(playerVictim);
+                    }
+                    else
+                        playerVictim.Health -= damage;
+                }
             }
         }
     }

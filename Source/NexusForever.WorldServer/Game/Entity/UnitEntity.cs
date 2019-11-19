@@ -15,7 +15,6 @@ namespace NexusForever.WorldServer.Game.Entity
     {
         private readonly List<Spell.Spell> pendingSpells = new List<Spell.Spell>();
 
-        public bool InCombat { get; private set; }
         private List<uint> threatTargets = new List<uint>();
 
         protected UnitEntity(EntityType type)

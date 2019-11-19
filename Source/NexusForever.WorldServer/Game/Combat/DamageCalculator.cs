@@ -31,11 +31,11 @@ namespace NexusForever.WorldServer.Game.Combat
             return (uint)(damage * (new Random().Next(95, 103) / 100f));
         }
 
-        public static uint GetDamageAfterArmorMitigation(WorldEntity victim, DamageType damageType, uint damage)
+        public static uint GetDamageAfterArmorMitigation(WorldEntity victim, DamageType damageType, uint damage, uint attackerLevel)
         {
             GameFormulaEntry armorFormulaEntry = GameTableManager.Instance.GameFormula.GetEntry(1234);
-            float maximumArmorMitigation = (float)(armorFormulaEntry.Dataint01 * 0.10);
-            float mitigationPct = (armorFormulaEntry.Datafloat0 / victim.Level * armorFormulaEntry.Datafloat01) * victim.GetPropertyValue(Property.Armor) / 100;
+            float maximumArmorMitigation = (float)(armorFormulaEntry.Dataint01 / 100f);
+            float mitigationPct = (armorFormulaEntry.Datafloat0 / attackerLevel * armorFormulaEntry.Datafloat01) * victim.GetPropertyValue(Property.Armor) / 100f;
 
             if (damageType == DamageType.Physical)
                 mitigationPct += victim.GetPropertyValue(Property.DamageMitigationPctOffsetMagic);
@@ -45,7 +45,7 @@ namespace NexusForever.WorldServer.Game.Combat
                 mitigationPct += victim.GetPropertyValue(Property.DamageMitigationPctOffsetMagic);
 
             if (mitigationPct > 0f)
-                damage *= (uint)(1f - Math.Clamp(mitigationPct, 0f, maximumArmorMitigation));
+                damage = (uint)(damage * (1f - Math.Clamp(mitigationPct, 0f, maximumArmorMitigation)));
 
             return damage;
         }
@@ -55,10 +55,12 @@ namespace NexusForever.WorldServer.Game.Combat
             if (critRate > 1f)
                 return (damage, false);
 
+            float baseCritSeverity = 1.5f;
+
             bool crit = false;
             crit = new Random().Next(1, 100) <= critRate * 100f;
             if (crit)
-                damage *= 2;
+                damage = (uint)(damage * baseCritSeverity);
 
             return (damage, crit);
         }
