@@ -6,10 +6,43 @@ namespace NexusForever.WorldServer.Game.Prerequisite
 {
     public sealed partial class PrerequisiteManager
     {
+
+        [PrerequisiteCheck(PrerequisiteType.Class)]
+        private static bool PrerequisiteCheckClass(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        {
+            // 44
+            return true;
+        }
+
         [PrerequisiteCheck(PrerequisiteType.Level)]
         private static bool PrerequisiteCheckLevel(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
         {
             // 24
+            return true;
+        }
+
+        [PrerequisiteCheck(PrerequisiteType.HasSpell4Aura)]
+        private static bool PrerequisiteCheckSpellAuraexists(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        {
+            bool hasSpell = player.HasSpell(value, out Spell.Spell spell);
+            switch (comparison)
+            {
+                case PrerequisiteComparison.Equal:
+                    return hasSpell;
+                case PrerequisiteComparison.NotEqual:
+                    return !hasSpell;
+                default:
+                    return true;
+            }
+        }
+
+        [PrerequisiteCheck(PrerequisiteType.Plane)]
+        private static bool PrerequisiteCheckPlane(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        {
+            // Unknown how this works at this time, but there is a Spell Effect called "ChangePlane". Could be related.
+            // TODO: Investigate further.
+
+            // Returning true by default as many mounts used this
             return true;
         }
 
@@ -27,13 +60,6 @@ namespace NexusForever.WorldServer.Game.Prerequisite
             }
         }
 
-        [PrerequisiteCheck(PrerequisiteType.Class)]
-        private static bool PrerequisiteCheckClass(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
-        {
-            // 44
-            return true;
-        }
-
         [PrerequisiteCheck(PrerequisiteType.SpellKnown)]
         private static bool PrerequisiteCheckSpellKnown(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
         {
@@ -48,24 +74,18 @@ namespace NexusForever.WorldServer.Game.Prerequisite
             }
         }
 
-        [PrerequisiteCheck(PrerequisiteType.Plane)]
-        private static bool PrerequisiteCheckPlane(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        [PrerequisiteCheck(PrerequisiteType.IsStealthed)]
+        private static bool PrerequisiteCheckIsStealthed(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
         {
-            // Unknown how this works at this time, but there is a Spell Effect called "ChangePlane". Could be related.
-            // TODO: Investigate further.
-
-            // Returning true by default as many mounts used this
-            return true;
-        }
-
-        [PrerequisiteCheck(PrerequisiteType.Unknown11)]
-        private static bool PrerequisiteCheckUnknown11(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
-        {
-            // Unknown how this works at this time.
-            // TODO: Investigate further.
-
-            // Returning true by default as many mounts used this
-            return true;
+            switch (comparison)
+            {
+                case PrerequisiteComparison.Equal:
+                    return false;
+                case PrerequisiteComparison.NotEqual:
+                    return true;
+                default:
+                    return true;
+            }
         }
 
         [PrerequisiteCheck(PrerequisiteType.Unhealthy)]
@@ -84,6 +104,16 @@ namespace NexusForever.WorldServer.Game.Prerequisite
                 default:
                     return true;
             }
+        }
+
+        [PrerequisiteCheck(PrerequisiteType.Unknown11)]
+        private static bool PrerequisiteCheckUnknown11(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        {
+            // Unknown how this works at this time.
+            // TODO: Investigate further.
+
+            // Returning true by default as many mounts used this
+            return true;
         }
     }
 }
