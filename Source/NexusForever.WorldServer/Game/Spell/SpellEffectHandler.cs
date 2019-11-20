@@ -60,34 +60,6 @@ namespace NexusForever.WorldServer.Game.Spell
             player.AddSpellModifierProperty((Property)info.Entry.DataBits00, parameters.SpellInfo.Entry.Id, modifier);
         }
 
-        [SpellEffectHandler(SpellEffectType.UnitPropertyModifier)]
-        private void HandleEffectPropertyModifier(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
-        {
-            if (!(target is Player player))
-                return;
-
-            PropertyModifier modifier = null;
-
-            if (info.Entry.DataBits01 == 1) // Adjust value by percent
-                modifier = new PropertyModifier(ModifierType.AdjustPercent, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) * BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03));
-
-            if (info.Entry.DataBits01 == 2) // Override current value (mainly used by debuffs, and NPC buffs)
-                modifier = new PropertyModifier(ModifierType.SetValue, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02));
-
-            if (info.Entry.DataBits01 == 3) // Adjust current value
-            {
-                if (info.Entry.DataBits03 > 0u)
-                    modifier = new PropertyModifier(ModifierType.AdjustValue, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) * BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03));
-                else
-                    modifier = new PropertyModifier(ModifierType.SetBase, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02)); // 0 = Set Base
-            }
-
-            if (info.Entry.DataBits01 == 4) // Adjust current value per stack
-                modifier = new PropertyModifier(ModifierType.AdjustValueStack, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) + BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03), 0); // TODO: Increase stack count as necessary
-
-            player.AddSpellModifierProperty((Property)info.Entry.DataBits00, parameters.SpellInfo.Entry.Id, modifier);
-        }
-
         [SpellEffectHandler(SpellEffectType.Proxy)]
         private void HandleEffectProxy(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
