@@ -214,7 +214,7 @@ namespace NexusForever.WorldServer.Game.Entity
             SetStat(Stat.Shield, 450u);
         }
 
-        protected override void BuildBaseProperties()
+        public override void BuildBaseProperties()
         {
             var baseProperties = AssetManager.Instance.GetCharacterBaseProperties();
             foreach(PropertyValue propertyValue in baseProperties)

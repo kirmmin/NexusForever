@@ -55,17 +55,18 @@ namespace NexusForever.WorldServer.Game.Entity
             set
             {
                 SetStat(Stat.Health, Math.Clamp(value, 0u, MaxHealth)); // TODO: Confirm MaxHealth is actually the maximum health would be at.
-                if (this is Player player)
-                    player.Session.EnqueueMessageEncrypted(new ServerUpdateHealth
-                    {
-                        UnitId = Guid,
-                        Health = Health
-                    });
-                EnqueueToVisible(new Server0937
+                EnqueueToVisible(new ServerEntityHealthUpdate
                 {
                     UnitId = Guid,
                     Health = Health
                 });
+                if (this is Player player)
+                    player.Session.EnqueueMessageEncrypted(new ServerPlayerHealthUpdate
+                    {
+                        UnitId = Guid,
+                        Health = Health,
+                        Mask = (UpdateHealthMask)4
+                    });
             }
         }
 
@@ -90,7 +91,12 @@ namespace NexusForever.WorldServer.Game.Entity
         public uint Level
         {
             get => GetStatInteger(Stat.Level) ?? 1u;
-            set => SetStat(Stat.Level, value);
+            set
+            {
+                SetStat(Stat.Level, value);
+                if (this is Player player)
+                    player.BuildBaseProperties();
+            }
         }
 
         public bool Sheathed
@@ -309,7 +315,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Used on entering world to set the <see cref="WorldEntity"/> base <see cref="PropertyValue"/>
         /// </summary>
-        protected virtual void BuildBaseProperties()
+        public virtual void BuildBaseProperties()
         {
             foreach (Property property in BaseProperties.Keys)
                 BuildPropertyUpdates();
@@ -588,6 +594,7 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             if (InCombat)
                 return;
+                
             // TODO: This should probably get moved to a Calculation Library/Manager at some point. There will be different timers on Stat refreshes, but right now the timer is hardcoded to every 0.25s.
             // Probably worth considering an Attribute-grouped Class that allows us to run differentt regeneration methods & calculations for each stat.
 
