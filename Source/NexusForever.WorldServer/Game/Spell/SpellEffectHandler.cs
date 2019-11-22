@@ -6,6 +6,7 @@ using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Combat;
 using NexusForever.Shared.Network;
+using NexusForever.WorldServer.Game.Combat.Static;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell.Event;
@@ -254,6 +255,89 @@ namespace NexusForever.WorldServer.Game.Spell
 
             var vanityPet = new VanityPet(player, info.Entry.DataBits00);
             player.Map.EnqueueAdd(vanityPet, player.Position);
+        }
+
+        [SpellEffectHandler(SpellEffectType.CCStateSet)]
+        private void HandleEffectCCStateSet(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+            if (parameters.SpellInfo.Entry.Id != 1384 && info.Entry.DataBits00 == 8)
+                target.CastSpell(1384, new SpellParameters
+                {
+                    ParentSpellInfo = parameters.SpellInfo,
+                    RootSpellInfo = parameters.RootSpellInfo,
+                    PrimaryTargetId = target.Guid,
+                    CCDurationOverride = info.Entry.DurationTime,
+                    IsProxy = true
+                });
+
+            target.EnqueueToVisible(new ServerEntityCCStateSet
+            {
+                UnitId = target.Guid,
+                State = (CCState)info.Entry.DataBits00,
+                ServerUniqueEffectId = info.EffectId
+            }, true);
+            target.EnqueueToVisible(new Server07F5
+            {
+                CasterId = target.Guid,
+                CastingId = CastingId,
+                Unknown8 = info.EffectId
+            }, true);
+            target.EnqueueToVisible(new ServerCombatLog
+            {
+                LogType = 1,
+                CCStateData = new ServerCombatLog.CCStateLog
+                {
+                    CCState = (CCState)info.Entry.DataBits00,
+                    BRemoved = false,
+                    InterruptArmorTaken = 1, // TODO: Calculate interrupt armor
+                    Result = 0,
+                    Unknown0 = 0,
+                    CasterId = caster.Guid,
+                    TargetId = target.Guid,
+                    Spell4Id = parameters.SpellInfo.Entry.Id,
+                    CombatResult = 8
+                }
+            }, true);
+
+            double ccDuration = info.Entry.DurationTime;
+            if (parameters.CCDurationOverride > 0)
+                ccDuration = parameters.CCDurationOverride;
+
+            events.EnqueueEvent(new SpellEvent(ccDuration / 1000d, () => 
+            {
+                target.EnqueueToVisible(new ServerEntityCCStateRemove
+                {
+                    UnitId = target.Guid,
+                    State = (CCState)info.Entry.DataBits00,
+                    CastingId = CastingId,
+                    ServerUniqueEffectId = info.EffectId
+                }, true);
+                target.EnqueueToVisible(new ServerCombatLog
+                {
+                    LogType = 1,
+                    CCStateData = new ServerCombatLog.CCStateLog
+                    {
+                        CCState = (CCState)info.Entry.DataBits00,
+                        BRemoved = true,
+                        InterruptArmorTaken = 1, // TODO: Calculate interrupt armor
+                        Result = 10,
+                        Unknown0 = 0,
+                        CasterId = caster.Guid,
+                        TargetId = target.Guid,
+                        Spell4Id = parameters.SpellInfo.Entry.Id,
+                        CombatResult = 8
+                    }
+                }, true);
+            }));
+        }
+
+        [SpellEffectHandler(SpellEffectType.Fluff)]
+        private void HandleEffectFluff(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+            events.EnqueueEvent(new SpellEvent(info.Entry.DurationTime / 1000d, () =>
+            {
+
+            }));
         }
     }
 }
