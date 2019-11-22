@@ -686,7 +686,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 damage = DamageCalculator.GetDamageAfterArmorMitigation(victim, damageType, damage, Level);
 
             bool crit;
-            (damage, crit) = DamageCalculator.GetCrit(damage, GetPropertyValue(Property.BaseCritChance) + GetPropertyValue(Property.RatingCritChanceIncrease));
+            (crit, damage) = DamageCalculator.GetCrit(damage, GetPropertyValue(Property.BaseCritChance) + GetPropertyValue(Property.RatingCritChanceIncrease));
             if (crit)
                 damageDescription.CombatResult = CombatResult.Critical;
 

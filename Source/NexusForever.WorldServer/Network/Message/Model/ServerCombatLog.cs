@@ -1,6 +1,7 @@
 ﻿using NexusForever.Shared.Network;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.Combat.Static;
+using NexusForever.WorldServer.Game.Spell.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
@@ -33,8 +34,45 @@ namespace NexusForever.WorldServer.Network.Message.Model
             }
         }
 
+        public class DamageLog : IWritable
+        {
+            public uint MitigatedDamage { get; set; }
+            public uint RawDamage { get; set; }
+            public uint ShieldAbsorbAmount { get; set; }
+            public uint Absorption { get; set; }
+            public uint Overkill { get; set; }
+            public bool BTargetVulnerable { get; set; }
+            public bool BKilled { get; set; }
+            public bool BPeriodic { get; set; }
+            public DamageType DamageType { get; set; } // 3
+            public byte EffectType { get; set; }
+            public uint CasterId { get; set; }
+            public uint TargetId { get; set; }
+            public uint SpellId { get; set; } // 18
+            public CombatResult CombatResult { get; set; } // 4
+
+            public void Write(GamePacketWriter writer)
+            {
+                writer.Write(MitigatedDamage);
+                writer.Write(RawDamage);
+                writer.Write(ShieldAbsorbAmount);
+                writer.Write(Absorption);
+                writer.Write(Overkill);
+                writer.Write(BTargetVulnerable);
+                writer.Write(BKilled);
+                writer.Write(BPeriodic);
+                writer.Write(DamageType, 3u);
+                writer.Write(EffectType);
+                writer.Write(CasterId);
+                writer.Write(TargetId);
+                writer.Write(SpellId, 18u);
+                writer.Write(CombatResult, 4u);
+            }
+        }
+
         public byte LogType { get; set; }
         public CCStateLog CCStateData { get; set; } = new CCStateLog();
+        public DamageLog DamageData { get; set; } = new DamageLog();
 
         public void Write(GamePacketWriter writer)
         {
@@ -44,6 +82,9 @@ namespace NexusForever.WorldServer.Network.Message.Model
             {
                 case 1:
                     CCStateData.Write(writer);
+                    break;
+                case 7:
+                    DamageData.Write(writer);
                     break;
             }
         }

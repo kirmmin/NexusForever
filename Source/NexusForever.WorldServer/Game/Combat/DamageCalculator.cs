@@ -3,6 +3,7 @@ using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell.Static;
+using NexusForever.WorldServer.Network.Message.Model;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -50,19 +51,18 @@ namespace NexusForever.WorldServer.Game.Combat
             return damage;
         }
 
-        public static (uint, bool) GetCrit(uint damage, float critRate)
+        public static (bool, uint) GetCrit(uint damage, float critRate)
         {
-            if (critRate > 1f)
-                return (damage, false);
-
             float baseCritSeverity = 1.5f;
+            uint newDamage = (uint)(damage * baseCritSeverity);
 
-            bool crit = false;
-            crit = new Random().Next(1, 100) <= critRate * 100f;
-            if (crit)
-                damage = (uint)(damage * baseCritSeverity);
+            if (critRate >= 1f)
+                return (true, newDamage);
 
-            return (damage, crit);
+            if(!(new Random().Next(1, 100) <= critRate * 100f))
+                return (false, damage);
+
+            return (true, newDamage);
         }
 
         public static uint GetShieldAmount(uint damage, WorldEntity victim)
@@ -71,6 +71,19 @@ namespace NexusForever.WorldServer.Game.Combat
             uint shieldedAmount = maxShieldAmount >= victim.Shield ? victim.Shield: maxShieldAmount;
 
             return shieldedAmount;
+        }
+
+        public static uint GetMultiHit(uint damage, float multiHitChance, float multiHitRatio)
+        {
+            uint newDamage = (uint)Math.Floor(damage * multiHitRatio);
+
+            if (multiHitChance >= 1f)
+                return newDamage;
+
+            if(!(new Random().Next(1, 100) <= multiHitChance * 100f))
+                return 0u;
+
+            return newDamage;
         }
     }
 }
