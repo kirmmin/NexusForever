@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Numerics;
 using NexusForever.Shared;
@@ -177,6 +178,13 @@ namespace NexusForever.WorldServer.Game.Spell
 
             var vanityPet = new VanityPet(player, info.Entry.DataBits00);
             player.Map.EnqueueAdd(vanityPet, player.Position);
+        }
+
+        [SpellEffectHandler(SpellEffectType.VitalModifier)]
+        private void HandleEffectVitalModifier(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+            Vital vital = (Vital)info.Entry.DataBits00;
+            target.ModifyVital(vital, info.Entry.DataBits01);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using NexusForever.Shared;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell.Event;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -103,6 +104,31 @@ namespace NexusForever.WorldServer.Game.Spell
                 if (parameters.SpellInfo.Entry.GlobalCooldownEnum == 0
                     && player.SpellManager.GetGlobalSpellCooldown() > 0d)
                     return CastResult.SpellGlobalCooldown;
+
+                for (int i = 0; i < parameters.SpellInfo.Entry.CasterInnateRequirements.Length; i++)
+                {
+                    uint innateRequirement = parameters.SpellInfo.Entry.CasterInnateRequirements[i];
+                    if (innateRequirement == 0)
+                        continue;
+
+                    switch (parameters.SpellInfo.Entry.CasterInnateRequirementEval[i])
+                    {
+                        case 2:
+                            if (caster.GetVitalValue((Vital)innateRequirement) < parameters.SpellInfo.Entry.CasterInnateRequirementValues[i])
+                                return GlobalSpellManager.Instance.GetFailedCastResultForVital((Vital)innateRequirement);
+                            break;
+                    }
+                }
+
+                for (int i = 0; i < parameters.SpellInfo.Entry.InnateCostTypes.Length; i++)
+                {
+                    uint innateCostType = parameters.SpellInfo.Entry.InnateCostTypes[i];
+                    if (innateCostType == 0)
+                        continue;
+
+                    if (caster.GetVitalValue((Vital)innateCostType) < parameters.SpellInfo.Entry.InnateCosts[i])
+                        return GlobalSpellManager.Instance.GetFailedCastResultForVital((Vital)innateCostType);
+                }
             }
 
             return CastResult.Ok;
@@ -182,6 +208,7 @@ namespace NexusForever.WorldServer.Game.Spell
 
             SelectTargets();
             ExecuteEffects();
+            ChargeSpellCost();
 
             SendSpellGo();
         }
@@ -221,6 +248,18 @@ namespace NexusForever.WorldServer.Game.Spell
                         handler.Invoke(this, effectTarget.Entity, info);
                     }
                 }
+            }
+        }
+
+        private void ChargeSpellCost()
+        {
+            for (int i = 0; i < parameters.SpellInfo.Entry.InnateCostTypes.Length; i++)
+            {
+                uint innateCostType = parameters.SpellInfo.Entry.InnateCostTypes[i];
+                if (innateCostType == 0)
+                    continue;
+
+                caster.ModifyVital((Vital)innateCostType, parameters.SpellInfo.Entry.InnateCosts[i] * -1f);
             }
         }
 
