@@ -339,5 +339,12 @@ namespace NexusForever.WorldServer.Game.Spell
 
             }));
         }
+        
+        [SpellEffectHandler(SpellEffectType.VitalModifier)]
+        private void HandleEffectVitalModifier(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+            Vital vital = (Vital)info.Entry.DataBits00;
+            target.ModifyVital(vital, info.Entry.DataBits01);
+        }
     }
 }

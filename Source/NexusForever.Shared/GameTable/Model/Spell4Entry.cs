@@ -13,12 +13,12 @@ namespace NexusForever.Shared.GameTable.Model
         public float TargetMinRange;
         public float TargetMaxRange;
         public float TargetVerticalRange;
-        public uint CasterInnateRequirement0;
-        public uint CasterInnateRequirement1;
-        public uint CasterInnateRequirementValue0;
-        public uint CasterInnateRequirementValue1;
-        public uint CasterInnateRequirementEval0;
-        public uint CasterInnateRequirementEval1;
+        [GameTableFieldArray(2u)]
+        public uint[] CasterInnateRequirements;
+        [GameTableFieldArray(2u)]
+        public uint[] CasterInnateRequirementValues;
+        [GameTableFieldArray(2u)]
+        public uint[] CasterInnateRequirementEval;
         public uint TargetBeginInnateRequirement;
         public uint TargetBeginInnateRequirementValue;
         public uint TargetBeginInnateRequirementEval;

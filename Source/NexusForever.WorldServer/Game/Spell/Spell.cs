@@ -6,6 +6,7 @@ using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Prerequisite;
+using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell.Event;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -180,6 +181,21 @@ namespace NexusForever.WorldServer.Game.Spell
 
                 if (parameters.SpellInfo.Entry.PrerequisiteIdCasterCast > 0 && !PrerequisiteManager.Instance.Meets(player, parameters.SpellInfo.Entry.PrerequisiteIdCasterCast))
                     return CastResult.PrereqCasterCast;
+
+                for (int i = 0; i < parameters.SpellInfo.Entry.CasterInnateRequirements.Length; i++)
+                {
+                    uint innateRequirement = parameters.SpellInfo.Entry.CasterInnateRequirements[i];
+                    if (innateRequirement == 0)
+                        continue;
+
+                    switch (parameters.SpellInfo.Entry.CasterInnateRequirementEval[i])
+                    {
+                        case 2:
+                            if (caster.GetVitalValue((Vital)innateRequirement) < parameters.SpellInfo.Entry.CasterInnateRequirementValues[i])
+                                return CastResult.CasterVitalCostResource1;
+                            break;
+                    }
+                }
             }
 
             return CastResult.Ok;

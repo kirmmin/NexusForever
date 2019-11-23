@@ -204,6 +204,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 stats.Add((Stat)statModel.Stat, new StatValue(statModel));
 
             BuildBaseProperties();
+            BuildVitalPropertyMap();
 
             SetStat(Stat.Sheathed, 1u);
 
@@ -212,6 +213,8 @@ namespace NexusForever.WorldServer.Game.Entity
             // sprint
             SetStat(Stat.Resource0, 500f);
             SetStat(Stat.Shield, 450u);
+
+            BuildVitalPropertyMap();
         }
 
         public override void BuildBaseProperties()
@@ -236,6 +239,41 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             base.BuildBaseProperties();
+        }
+
+        private double medicTickTimer;
+        protected override void HandleOOCRegen(double lastTick)
+        {
+            if (Class == Class.Spellslinger)
+            {
+                float spellPowerRefillRate = 4f;
+                if (Resource4 < GetPropertyValue(Property.ResourceMax4))
+                    Resource4 += (float)(spellPowerRefillRate * lastTick);
+            }
+
+            if (InCombat)
+                return;
+
+            base.HandleOOCRegen(lastTick);
+
+            switch (Class)
+            {
+                case Class.Warrior:
+                    float decayRate = 150f;
+                    if (Resource1 > 0f)
+                        Resource1 -= (float)(decayRate * lastTick);
+                    break;
+                case Class.Medic:
+                    medicTickTimer += lastTick;
+                    if (medicTickTimer > 1d)
+                    {
+                        float refillRate = 4f;
+                        if (Resource1 < GetPropertyValue(Property.ResourceMax1))
+                            Resource1 += refillRate;
+                        medicTickTimer = 0d;
+                    }
+                    break;
+            }
         }
 
         public override void Update(double lastTick)

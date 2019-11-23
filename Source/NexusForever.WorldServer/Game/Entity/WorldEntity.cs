@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using NexusForever.Shared.GameTable;
+using System.Reflection;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Database.World.Model;
 using NexusForever.WorldServer.Game.Combat;
@@ -21,6 +22,7 @@ namespace NexusForever.WorldServer.Game.Entity
 {
     public abstract class WorldEntity : GridEntity
     {
+
         public EntityType Type { get; }
         public EntityCreateFlag CreateFlags { get; set; }
         public Vector3 Rotation { get; set; } = Vector3.Zero;
@@ -88,6 +90,59 @@ namespace NexusForever.WorldServer.Game.Entity
             set => SetBaseProperty(Property.ShieldCapacityMax, value);
         }
 
+        [Vital(Vital.Dash)]
+        public float Dash
+        {
+            get => GetStatFloat(Stat.Dash) ?? 0f;
+            set
+            {
+                // TODO: Validate prior to setting
+                // float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax7).Value);
+                SetStat(Stat.Dash, value);
+            }
+        }
+
+        [Vital(Vital.Resource1)]
+        [Vital(Vital.KineticEnergy)]
+        [Vital(Vital.Volatility)]
+        [Vital(Vital.Actuator)]
+        public float Resource1
+        {
+            get => GetStatFloat(Stat.Resource1) ?? 0u;
+            set
+            {
+                // TODO: Validate prior to setting
+                //float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax1).Value);
+                SetStat(Stat.Resource1, value);
+            }
+        }
+
+        [Vital(Vital.Resource3)]
+        [Vital(Vital.SuitPower)]
+        public float Resource3
+        {
+            get => GetStatFloat(Stat.Resource3) ?? 0f;
+            set
+            {
+                // TODO: Validate prior to setting
+                //float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax3).Value);
+                SetStat(Stat.Resource3, value);
+            }
+        }
+
+        [Vital(Vital.Resource4)]
+        [Vital(Vital.SpellSurge)]
+        public float Resource4
+        {
+            get => GetStatFloat(Stat.Resource4) ?? 0u;
+            set
+            {
+                // TODO: Validate prior to setting
+                //float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax4).Value);
+                SetStat(Stat.Resource4, value);
+            }
+        }
+
         public uint Level
         {
             get => GetStatInteger(Stat.Level) ?? 1u;
@@ -118,11 +173,12 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Initial stab at a timer to regenerate Health & Shield values.
         /// </summary>
-        private UpdateTimer statUpdateTimer = new UpdateTimer(0.25); // TODO: Long-term this should be absorbed into individual timers for each Stat regeneration method
+        private UpdateTimer statUpdateTimer = new UpdateTimer(0.2); // TODO: Long-term this should be absorbed into individual timers for each Stat regeneration method
 
         protected readonly Dictionary<Stat, StatValue> stats = new Dictionary<Stat, StatValue>();
 
         private readonly Dictionary<ItemSlot, ItemVisual> itemVisuals = new Dictionary<ItemSlot, ItemVisual>();
+        private readonly Dictionary<Vital, PropertyInfo> vitalProperties = new Dictionary<Vital, PropertyInfo>();
 
         private float assaultRatingToPowerFormula = GameTableManager.Instance.GameFormula.GetEntry(1266).Datafloat0;
         private float supportRatingToPowerFormula = GameTableManager.Instance.GameFormula.GetEntry(1266).Datafloat01;
@@ -152,6 +208,18 @@ namespace NexusForever.WorldServer.Game.Entity
                 stats.Add((Stat)statModel.Stat, new StatValue(statModel));
 
             BuildBaseProperties();
+            BuildVitalPropertyMap();
+        }
+
+        protected void BuildVitalPropertyMap()
+        {
+            foreach (PropertyInfo property in typeof(WorldEntity).GetProperties())
+            {
+                IEnumerable<VitalAttribute> vitalAttributes = property.GetCustomAttributes<VitalAttribute>();
+
+                foreach (VitalAttribute attribute in vitalAttributes)
+                    vitalProperties.TryAdd(attribute.Vital, property);
+            }
         }
 
         public override void OnAddToMap(BaseMap map, uint guid, Vector3 vector)
@@ -177,7 +245,7 @@ namespace NexusForever.WorldServer.Game.Entity
             statUpdateTimer.Update(lastTick);
             if (statUpdateTimer.HasElapsed)
             {
-                HandleStatUpdate(lastTick);
+                HandleOOCRegen(statUpdateTimer.Duration);
 
                 statUpdateTimer.Reset();
             }
@@ -588,21 +656,35 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         /// <summary>
-        /// Handles regeneration of Stat Values. Used to provide a hook into the Update method, for future implementation.
+        /// Get the current value of the <see cref="Stat"/> mapped to <see cref="Vital"/>.
         /// </summary>
-        private void HandleStatUpdate(double lastTick)
+        public float GetVitalValue(Vital vital)
         {
-            if (InCombat)
+            return EntityManager.Instance.GetVitalGetter(vital)?.Invoke(this) ?? 0f;
+        }
+
+        /// <summary>
+        /// Set the stat value for the provided <see cref="Vital"/>.
+        /// </summary>
+        public void SetVital(Vital vital, float value)
+        {
+            var vitalHandler = EntityManager.Instance.GetVitalSetter(vital);
+            if (vitalHandler == null)
                 return;
                 
-            // TODO: This should probably get moved to a Calculation Library/Manager at some point. There will be different timers on Stat refreshes, but right now the timer is hardcoded to every 0.25s.
-            // Probably worth considering an Attribute-grouped Class that allows us to run differentt regeneration methods & calculations for each stat.
+            vitalHandler.Invoke(this, value);
+        }
 
-            if (Health < MaxHealth)
-                Health += (uint)(MaxHealth / 200f);
+        /// <summary>
+        /// Modify the current stat value for the <see cref="Vital"/>.
+        /// </summary>
+        public void ModifyVital(Vital vital, float value)
+        {
+            var vitalHandler = EntityManager.Instance.GetVitalSetter(vital);
+            if (vitalHandler == null)
+                return;
 
-            if (Shield < MaxShieldCapacity)
-                Shield += (uint)(MaxShieldCapacity * GetPropertyValue(Property.ShieldRegenPct) * statUpdateTimer.Duration);
+            vitalHandler.Invoke(this, GetVitalValue(vital) + value);
         }
 
         /// <summary>
