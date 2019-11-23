@@ -17,6 +17,7 @@ using NexusForever.WorldServer.Game.Prerequisite;
 using NexusForever.WorldServer.Game.Reputation;
 using NexusForever.WorldServer.Game.Reputation.Static;
 using NexusForever.WorldServer.Game.Spell;
+using NexusForever.WorldServer.Network.Message;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
 using NexusForever.WorldServer.Script;
@@ -25,6 +26,7 @@ namespace NexusForever.WorldServer.Game.Entity
 {
     public abstract class WorldEntity : GridEntity
     {
+
         public EntityType Type { get; }
         public EntityCreateFlag CreateFlags { get; set; }
 
@@ -104,6 +106,67 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             get => (uint)GetPropertyValue(Property.ShieldCapacityMax);
             set => SetBaseProperty(Property.ShieldCapacityMax, value);
+        }
+        
+        [Vital(Vital.Dash)]
+        public float Dash
+        {
+            get => GetStatFloat(Stat.Dash) ?? 0f;
+            set
+            {
+                // TODO: Validate prior to setting
+                float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax7));
+                SetStat(Stat.Dash, value);
+            }
+        }
+
+        [Vital(Vital.Resource1)]
+        [Vital(Vital.KineticEnergy)]
+        [Vital(Vital.Volatility)]
+        [Vital(Vital.Actuator)]
+        [Vital(Vital.Actuator2)]
+        public float Resource1
+        {
+            get => GetStatFloat(Stat.Resource1) ?? 0f;
+            set
+            {
+                // TODO: Validate prior to setting
+                float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax1));
+                SetStat(Stat.Resource1, value);
+            }
+        }
+
+        [Vital(Vital.Resource3)]
+        [Vital(Vital.SuitPower)]
+        public float Resource3
+        {
+            get => GetStatFloat(Stat.Resource3) ?? 0f;
+            set
+            {
+                // TODO: Validate prior to setting
+                float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax3));
+                SetStat(Stat.Resource3, value);
+            }
+        }
+
+        [Vital(Vital.Resource4)]
+        [Vital(Vital.SpellSurge)]
+        public float Resource4
+        {
+            get => GetStatFloat(Stat.Resource4) ?? 0f;
+            set
+            {
+                // TODO: Validate prior to setting
+                float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax4));
+                SetStat(Stat.Resource4, value);
+            }
+        }
+
+        [Vital(Vital.InterruptArmor)]
+        public float InterruptArmor
+        {
+            get => (float)(GetStatInteger(Stat.InterruptArmour) ?? 0f);
+            set => SetStat(Stat.InterruptArmour, (uint)value);
         }
 
         public uint Level
@@ -697,6 +760,38 @@ namespace NexusForever.WorldServer.Game.Entity
 
             if (Shield < MaxShieldCapacity)
                 Shield += (uint)(MaxShieldCapacity * GetPropertyValue(Property.ShieldRegenPct) * statUpdateTimer.Duration);
+        }
+
+        /// <summary>
+        /// Get the current value of the <see cref="Stat"/> mapped to <see cref="Vital"/>.
+        /// </summary>
+        public float GetVitalValue(Vital vital)
+        {
+            return EntityManager.Instance.GetVitalGetter(vital)?.Invoke(this) ?? 0f;
+        }
+
+        /// <summary>
+        /// Set the stat value for the provided <see cref="Vital"/>.
+        /// </summary>
+        public void SetVital(Vital vital, float value)
+        {
+            var vitalHandler = EntityManager.Instance.GetVitalSetter(vital);
+            if (vitalHandler == null)
+                return;
+                
+            vitalHandler.Invoke(this, value);
+        }
+
+        /// <summary>
+        /// Modify the current stat value for the <see cref="Vital"/>.
+        /// </summary>
+        public void ModifyVital(Vital vital, float value)
+        {
+            var vitalHandler = EntityManager.Instance.GetVitalSetter(vital);
+            if (vitalHandler == null)
+                return;
+
+            vitalHandler.Invoke(this, GetVitalValue(vital) + value);
         }
 
         /// <summary>

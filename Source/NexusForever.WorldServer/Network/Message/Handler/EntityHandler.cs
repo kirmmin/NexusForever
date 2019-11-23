@@ -183,5 +183,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             else
                 session.Player.GetActiveSpell(i => i.Spell4Id == 80529)?.Finish();
         }
+
+        [MessageHandler(GameMessageOpcode.ClientDash)]
+        public static void HandleClientDash(WorldSession session, ClientDash clientDash)
+        {
+            session.Player.HandleDash(clientDash.Direction);
+        }
     }
 }
