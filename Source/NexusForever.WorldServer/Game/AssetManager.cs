@@ -42,6 +42,14 @@ namespace NexusForever.WorldServer.Game
         private ImmutableDictionary</*zoneId*/uint, /*tutorialId*/uint> zoneTutorials;
         private ImmutableDictionary</*creatureId*/uint, /*targetGroupIds*/ImmutableList<uint>> creatureAssociatedTargetGroups;
 
+        private Dictionary<DashDirection, uint /*spell4Id*/> dashSpells = new Dictionary<DashDirection, uint>
+        {
+            { DashDirection.Forward, 25295 },
+            { DashDirection.Backward, 25296 },
+            { DashDirection.Left, 25293 },
+            { DashDirection.Right, 25294 },
+        };
+
         private AssetManager()
         {
         }
@@ -196,6 +204,14 @@ namespace NexusForever.WorldServer.Game
         public ImmutableList<uint> GetTargetGroupsForCreatureId(uint creatureId)
         {
             return creatureAssociatedTargetGroups.TryGetValue(creatureId, out ImmutableList<uint> entries) ? entries : null;
+        }
+        
+        /// <summary>
+        /// Returns a Spell4 ID for the given <see cref="DashDirection"/>.
+        /// </summary>
+        public uint GetDashSpell(DashDirection direction)
+        {
+            return dashSpells.TryGetValue(direction, out uint spellId) ? spellId : 25295;
         }
     }
 }

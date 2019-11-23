@@ -153,5 +153,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
 
             session.Player.Sit(chair);
         }
+
+        [MessageHandler(GameMessageOpcode.ClientDash)]
+        public static void HandleClientDash(WorldSession session, ClientDash clientDash)
+        {
+            session.Player.HandleDash(clientDash.Direction);
+        }
     }
 }
