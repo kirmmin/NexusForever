@@ -298,6 +298,7 @@ namespace NexusForever.WorldServer.Game.Spell
                     CombatResult = 8
                 }
             }, true);
+            target.IsStunned = true;
 
             double ccDuration = info.Entry.DurationTime;
             if (parameters.CCDurationOverride > 0)
@@ -328,6 +329,7 @@ namespace NexusForever.WorldServer.Game.Spell
                         CombatResult = 8
                     }
                 }, true);
+                target.IsStunned = false;
             }));
         }
 

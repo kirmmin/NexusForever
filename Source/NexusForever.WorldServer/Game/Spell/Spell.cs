@@ -12,6 +12,7 @@ using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
 using NLog;
+using NexusForever.WorldServer.Game.Combat.Static;
 
 namespace NexusForever.WorldServer.Game.Spell
 {
@@ -227,6 +228,9 @@ namespace NexusForever.WorldServer.Game.Spell
 
         private CastResult CheckCCConditions()
         {
+            if (caster.IsStunned)
+                return CastResult.CasterCannotBeStun;
+
             // TODO: this just looks like a mask for CCState enum
             if (parameters.SpellInfo.CasterCCConditions != null)
             {

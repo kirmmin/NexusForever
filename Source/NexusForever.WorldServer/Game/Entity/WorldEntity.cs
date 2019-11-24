@@ -50,6 +50,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public bool IsAlive => Health > 0;
         public bool InCombat { get; protected set; }
+        public bool IsStunned { get; set; }
 
         public uint Health
         {
@@ -97,8 +98,8 @@ namespace NexusForever.WorldServer.Game.Entity
             set
             {
                 // TODO: Validate prior to setting
-                // float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax7).Value);
-                SetStat(Stat.Dash, value);
+                float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax7));
+                SetStat(Stat.Dash, newVal);
             }
         }
 
@@ -106,14 +107,15 @@ namespace NexusForever.WorldServer.Game.Entity
         [Vital(Vital.KineticEnergy)]
         [Vital(Vital.Volatility)]
         [Vital(Vital.Actuator)]
+        [Vital(Vital.Actuator2)]
         public float Resource1
         {
             get => GetStatFloat(Stat.Resource1) ?? 0u;
             set
             {
                 // TODO: Validate prior to setting
-                //float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax1).Value);
-                SetStat(Stat.Resource1, value);
+                float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax1));
+                SetStat(Stat.Resource1, newVal);
             }
         }
 
@@ -125,8 +127,8 @@ namespace NexusForever.WorldServer.Game.Entity
             set
             {
                 // TODO: Validate prior to setting
-                //float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax3).Value);
-                SetStat(Stat.Resource3, value);
+                float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax3));
+                SetStat(Stat.Resource3, newVal);
             }
         }
 
@@ -138,8 +140,8 @@ namespace NexusForever.WorldServer.Game.Entity
             set
             {
                 // TODO: Validate prior to setting
-                //float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax4).Value);
-                SetStat(Stat.Resource4, value);
+                float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax4));
+                SetStat(Stat.Resource4, newVal);
             }
         }
 
