@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -10,6 +11,7 @@ using NexusForever.Shared;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NLog;
 
@@ -36,6 +38,8 @@ namespace NexusForever.WorldServer.Game.Spell
         private readonly Dictionary<SpellEffectType, SpellEffectDelegate> spellEffectDelegates =  new Dictionary<SpellEffectType, SpellEffectDelegate>();
         private readonly Dictionary<CastMethod, CastMethodDelegate> castMethodDelegates = new Dictionary<CastMethod, CastMethodDelegate>();
 
+        private ImmutableDictionary<Vital, CastResult> vitalCastResults;
+
         private GlobalSpellManager()
         {
         }
@@ -45,6 +49,7 @@ namespace NexusForever.WorldServer.Game.Spell
             //InitialiseSpellInfo();
             InitialiseSpellEffectHandlers();
             InitialiseCastMethodHandlers();
+            InitialiseVitalCastResults();
         }
 
         private void InitialiseSpellInfo()
@@ -107,6 +112,23 @@ namespace NexusForever.WorldServer.Game.Spell
                 }
             }
         }
+        
+        private void InitialiseVitalCastResults()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<Vital, CastResult>();
+
+            foreach (FieldInfo field in typeof(CastResult).GetFields())
+            {
+                IEnumerable<CastResultVitalAttribute> attributes = field.GetCustomAttributes<CastResultVitalAttribute>();
+                if (attributes.Count() == 0)
+                    continue;
+
+                foreach (CastResultVitalAttribute attribute in attributes)
+                    builder.Add(attribute.Vital, (CastResult)field.GetValue(null));
+            }
+
+            vitalCastResults = builder.ToImmutable();
+        }
 
         /// <summary>
         /// Return <see cref="SpellBaseInfo"/>, if not already cached it will be generated before being returned.
@@ -140,6 +162,13 @@ namespace NexusForever.WorldServer.Game.Spell
         public CastMethodDelegate GetCastMethodHandler(CastMethod castMethod)
         {
             return castMethodDelegates.TryGetValue(castMethod, out CastMethodDelegate handler) ? handler : null;
+        }
+        
+        /// Return <see cref="CastResult"/> for failed cast on supplied <see cref="Vital"/>.
+        /// </summary>
+        public CastResult GetFailedCastResultForVital(Vital vital)
+        {
+            return vitalCastResults.TryGetValue(vital, out CastResult result) ? result : CastResult.SpellBad;
         }
     }
 }

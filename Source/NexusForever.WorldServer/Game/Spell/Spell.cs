@@ -193,9 +193,19 @@ namespace NexusForever.WorldServer.Game.Spell
                     {
                         case 2:
                             if (caster.GetVitalValue((Vital)innateRequirement) < parameters.SpellInfo.Entry.CasterInnateRequirementValues[i])
-                                return CastResult.CasterVitalCostResource1;
+                                return GlobalSpellManager.Instance.GetFailedCastResultForVital((Vital)innateRequirement);
                             break;
                     }
+                }
+
+                for (int i = 0; i < parameters.SpellInfo.Entry.InnateCostTypes.Length; i++)
+                {
+                    uint innateCostType = parameters.SpellInfo.Entry.InnateCostTypes[i];
+                    if (innateCostType == 0)
+                        continue;
+
+                    if (caster.GetVitalValue((Vital)innateCostType) < parameters.SpellInfo.Entry.InnateCosts[i])
+                        return GlobalSpellManager.Instance.GetFailedCastResultForVital((Vital)innateCostType);
                 }
             }
 
@@ -362,6 +372,8 @@ namespace NexusForever.WorldServer.Game.Spell
 
             SelectTargets();
             ExecuteEffects();
+            ChargeSpellCost();
+
             SendSpellGo();
 
             // TODO: Confirm whether RapidTap spells cancel another out, and add logic as necessary
@@ -447,6 +459,18 @@ namespace NexusForever.WorldServer.Game.Spell
 
                 if (spell4EffectsEntry.DurationTime > 0 && spell4EffectsEntry.DurationTime > duration)
                     duration = spell4EffectsEntry.DurationTime;
+            }
+        }
+
+        private void ChargeSpellCost()
+        {
+            for (int i = 0; i < parameters.SpellInfo.Entry.InnateCostTypes.Length; i++)
+            {
+                uint innateCostType = parameters.SpellInfo.Entry.InnateCostTypes[i];
+                if (innateCostType == 0)
+                    continue;
+
+                caster.ModifyVital((Vital)innateCostType, parameters.SpellInfo.Entry.InnateCosts[i] * -1f);
             }
         }
 

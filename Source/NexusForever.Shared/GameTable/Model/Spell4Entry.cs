@@ -22,12 +22,12 @@ namespace NexusForever.Shared.GameTable.Model
         public uint TargetBeginInnateRequirement;
         public uint TargetBeginInnateRequirementValue;
         public uint TargetBeginInnateRequirementEval;
-        public uint InnateCostType0;
-        public uint InnateCostType1;
-        public uint InnateCost0;
-        public uint InnateCost1;
-        public uint InnateCostEMMId0;
-        public uint InnateCostEMMId1;
+        [GameTableFieldArray(2u)]
+        public uint[] InnateCostTypes;
+        [GameTableFieldArray(2u)]
+        public uint[] InnateCosts;
+        [GameTableFieldArray(2u)]
+        public uint[] InnateCostEMMIds;
         public uint ChannelInitialDelay;
         public uint ChannelMaxTime;
         public uint ChannelPulseTime;
