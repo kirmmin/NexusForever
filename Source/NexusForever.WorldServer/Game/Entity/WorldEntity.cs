@@ -655,6 +655,21 @@ namespace NexusForever.WorldServer.Game.Entity
             SetStat(stat, value.ToUInt32(null));
         }
 
+        protected virtual void HandleOOCRegen(double lastTick)
+        {
+            if (InCombat)
+                return;
+
+            // TODO: This should probably get moved to a Calculation Library/Manager at some point. There will be different timers on Stat refreshes, but right now the timer is hardcoded to every 0.25s.
+            // Probably worth considering an Attribute-grouped Class that allows us to run differentt regeneration methods & calculations for each stat.
+
+            if (Health < MaxHealth)
+                Health += (uint)(MaxHealth / 200f);
+
+            if (Shield < MaxShieldCapacity)
+                Shield += (uint)(MaxShieldCapacity * GetPropertyValue(Property.ShieldRegenPct) * statUpdateTimer.Duration);
+        }
+
         /// <summary>
         /// Get the current value of the <see cref="Stat"/> mapped to <see cref="Vital"/>.
         /// </summary>
