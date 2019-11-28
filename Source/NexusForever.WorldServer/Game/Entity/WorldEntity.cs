@@ -44,6 +44,8 @@ namespace NexusForever.WorldServer.Game.Entity
             set => SetStat(Stat.Sheathed, Convert.ToUInt32(value));
         }
 
+        public bool Stealthed { get; set; }
+
         /// <summary>
         /// Guid of the <see cref="WorldEntity"/> currently targeted.
         /// </summary>

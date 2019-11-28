@@ -178,5 +178,19 @@ namespace NexusForever.WorldServer.Game.Spell
             var vanityPet = new VanityPet(player, info.Entry.DataBits00);
             player.Map.EnqueueAdd(vanityPet, player.Position);
         }
+
+        [SpellEffectHandler(SpellEffectType.Stealth)]
+        private void HandleEffectStealth(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+            events.EnqueueEvent(new Event.SpellEvent(info.Entry.DelayTime / 1000d, () =>
+            {
+                target.Stealthed = true;
+                target.EnqueueToVisible(new ServerUnitStealth
+                {
+                    UnitId = target.Guid,
+                    Stealthed = true
+                }, true);
+            }));
+        }
     }
 }
