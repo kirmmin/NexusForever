@@ -30,6 +30,7 @@ namespace NexusForever.WorldServer.Game.Spell
         private readonly UnitEntity caster;
         private readonly SpellParameters parameters;
         private SpellStatus status;
+
         private double holdDuration;
         private uint totalThresholdTimer;
         private uint thresholdMax;
@@ -92,11 +93,10 @@ namespace NexusForever.WorldServer.Game.Spell
             if ((status == SpellStatus.Executing && !events.HasPendingEvent) || 
                 (status == SpellStatus.Waiting && !HasThresholdToCast))
             {
-                // spell effects have finished executing
+                // spell effects have finished 
                 status = SpellStatus.Finished;
+                caster.RemoveEffect(CastingId);
                 log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has finished.");
-
-                // TODO: add a timer to count down on the Effect before sending the finish - sending the finish will e.g. wear off the buff
                 SendSpellFinish();
 
                 if (caster is Player player)
@@ -413,8 +413,11 @@ namespace NexusForever.WorldServer.Game.Spell
 
         private void ExecuteEffects()
         {
-            foreach (Spell4EffectsEntry spell4EffectsEntry in parameters.SpellInfo.Effects)
+            // Using For..Loop instead of foreach intentionally, as this can be modified as effects are evaluated.
+            for (int index = 0; index < parameters.SpellInfo.Effects.Count(); index++)
             {
+                Spell4EffectsEntry spell4EffectsEntry = parameters.SpellInfo.Effects[index];
+
                 if (caster is Player player)
                 {
                     // Ensure caster can apply this effect
@@ -442,12 +445,41 @@ namespace NexusForever.WorldServer.Game.Spell
                     uint effectId = GlobalSpellManager.Instance.NextEffectId;
                     foreach (SpellTargetInfo effectTarget in effectTargets)
                     {
+                        if (!CheckEffectApplyPrerequisites(spell4EffectsEntry, effectTarget.Entity, effectTarget.Flags))
+                            continue;
+
                         var info = new SpellTargetInfo.SpellTargetEffectInfo(effectId, spell4EffectsEntry);
                         effectTarget.Effects.Add(info);
 
                         // TODO: if there is an unhandled exception in the handler, there will be an infinite loop on Execute()
-                        handler.Invoke(this, effectTarget.Entity, info);
+                        events.EnqueueEvent(new SpellEvent(spell4EffectsEntry.DelayTime / 1000d, () =>
+                        {
+                            handler.Invoke(this, effectTarget.Entity, info);
+                        }));
                     }
+
+                    // Add durations for each effect so that when the Effect timer runs out, the Spell can Finish.
+                    if (spell4EffectsEntry.DurationTime > 0)
+                        events.EnqueueEvent(new SpellEvent(spell4EffectsEntry.DurationTime / 1000d, () => { /* placeholder for duration */ }));
+
+                    if (spell4EffectsEntry.DurationTime > 0 && spell4EffectsEntry.DurationTime > duration)
+                        duration = spell4EffectsEntry.DurationTime;
+                }
+            }
+        }
+
+        private bool CheckEffectApplyPrerequisites(Spell4EffectsEntry spell4EffectsEntry, UnitEntity unit, SpellEffectTargetFlags targetFlags)
+        {
+            // TODO: Possibly update Prereq Manager to handle other Units
+            if (!(unit is Player player))
+                return true;
+
+            if ((targetFlags & SpellEffectTargetFlags.Caster) != 0)
+            {
+                // TODO
+                if (spell4EffectsEntry.PrerequisiteIdCasterApply > 0)
+                {
+                    return PrerequisiteManager.Instance.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply);
                 }
 
                 // Add durations for each effect so that when the Effect timer runs out, the Spell can Finish.
@@ -457,6 +489,16 @@ namespace NexusForever.WorldServer.Game.Spell
                 if (spell4EffectsEntry.DurationTime > 0 && spell4EffectsEntry.DurationTime > duration)
                     duration = spell4EffectsEntry.DurationTime;
             }
+
+            if ((targetFlags & SpellEffectTargetFlags.Caster) == 0)
+            {
+                if (spell4EffectsEntry.PrerequisiteIdTargetApply > 0)
+                {
+                    return PrerequisiteManager.Instance.Meets(player, spell4EffectsEntry.PrerequisiteIdTargetApply);
+                }
+            }
+
+            return true;
         }
 
         public bool IsMovingInterrupted()
@@ -465,14 +507,17 @@ namespace NexusForever.WorldServer.Game.Spell
             return parameters.SpellInfo.Entry.CastTime > 0;
         }
 
+        /// <summary>
+        /// Finish this <see cref="Spell"/> and end all effects associated with it.
+        /// </summary>
         public void Finish()
         {
-            if (status == SpellStatus.Executing || status == SpellStatus.Waiting)
-                SetCooldown();
+            if (status == SpellStatus.Finished)
+                return;
 
             thresholdValue = thresholdMax;
             events.CancelEvents();
-            status = SpellStatus.Executing;
+            caster.RemoveEffect(CastingId);
         }
 
         private void SendSpellCastResult(CastResult castResult)

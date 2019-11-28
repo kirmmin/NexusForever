@@ -30,8 +30,8 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 return;
             }
 
-            ulong characterId = CharacterManager.Instance.GetCharacterIdByName(request.PlayerName);
-            if (characterId > 0)
+            ulong? characterId = CharacterManager.Instance.GetCharacterIdByName(request.PlayerName);
+            if (characterId != null)
             {
                 // TODO: Handle Rival, Ignore, and Account Requests
                 if (request.Type == ContactType.Account)
@@ -40,13 +40,13 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     switch (request.Type)
                     {
                         case ContactType.Friend:
-                            session.Player.ContactManager.CreateFriendRequest(characterId, request.Message);
+                            session.Player.ContactManager.CreateFriendRequest((ulong)characterId, request.Message);
                             break;
                         case ContactType.Rival:
-                            session.Player.ContactManager.CreateRival(characterId);
+                            session.Player.ContactManager.CreateRival((ulong)characterId);
                             break;
                         case ContactType.Ignore:
-                            session.Player.ContactManager.CreateIgnored(characterId);
+                            session.Player.ContactManager.CreateIgnored((ulong)characterId);
                             break;
                         default:
                             session.Player.ContactManager.SendContactsResult(ContactResult.InvalidType);
