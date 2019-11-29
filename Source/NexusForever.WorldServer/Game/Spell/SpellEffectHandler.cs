@@ -55,6 +55,15 @@ namespace NexusForever.WorldServer.Game.Spell
         [SpellEffectHandler(SpellEffectType.Proxy)]
         private void HandleEffectProxy(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
+            void TickingProxyEvent(double tickTime, Action action)
+            {
+                events.EnqueueEvent(new SpellEvent(tickTime / 1000d, () =>
+                {
+                    action.Invoke();
+                    TickingProxyEvent(tickTime, action);
+                }));
+            }
+
             SpellParameters proxyParameters = new SpellParameters
             {
                 ParentSpellInfo = parameters.SpellInfo,
@@ -69,11 +78,19 @@ namespace NexusForever.WorldServer.Game.Spell
                 if (info.Entry.TickTime > 0)
                 {
                     double tickTime = info.Entry.TickTime;
-                    for (int i = 1; i == info.Entry.DurationTime / tickTime; i++)
-                        events.EnqueueEvent(new SpellEvent(tickTime * i / 1000d, () =>
+                    if (info.Entry.DurationTime > 0)
+                    {
+                        for (int i = 1; i == info.Entry.DurationTime / tickTime; i++)
+                            events.EnqueueEvent(new SpellEvent(tickTime * i / 1000d, () =>
+                            {
+                                caster.CastSpell(info.Entry.DataBits01, proxyParameters);
+                            }));
+                    }
+                    else
+                        TickingProxyEvent(tickTime, () =>
                         {
                             caster.CastSpell(info.Entry.DataBits01, proxyParameters);
-                        }));
+                        });
                 }
                 else
                     caster.CastSpell(info.Entry.DataBits00, proxyParameters);
@@ -261,6 +278,11 @@ namespace NexusForever.WorldServer.Game.Spell
                 return;
 
             player.TitleManager.AddTitle((ushort)info.Entry.DataBits00);
+        }
+        
+        [SpellEffectHandler(SpellEffectType.Fluff)]
+        private void HandleEffectFluff(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
         }
     }
 }
