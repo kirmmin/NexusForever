@@ -88,17 +88,6 @@ namespace NexusForever.WorldServer.Game.Entity
         }
         private InputSets inputKeySet;
 
-        public byte InnateIndex
-        {
-            get => innateIndex;
-            set
-            {
-                innateIndex = value;
-                saveMask |= PlayerSaveMask.Innate;
-            }
-        }
-        private byte innateIndex;
-
         public DateTime CreateTime { get; }
         public double TimePlayedTotal { get; private set; }
         public double TimePlayedLevel { get; private set; }
@@ -229,7 +218,6 @@ namespace NexusForever.WorldServer.Game.Entity
             Faction         = (Faction)model.FactionId;
             Faction1        = (Faction)model.FactionId;
             Faction2        = (Faction)model.FactionId;
-            innateIndex     = model.InnateIndex;
             guildAffiliation = model.GuildAffiliation;
             guildHolomarkMask = (GuildHolomark)model.GuildHolomarkMask;
 
@@ -436,12 +424,6 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     model.InputKeySet = (sbyte)InputKeySet;
                     entity.Property(p => p.InputKeySet).IsModified = true;
-                }
-
-                if ((saveMask & PlayerSaveMask.Innate) != 0)
-                {
-                    model.InnateIndex = InnateIndex;
-                    entity.Property(p => p.InnateIndex).IsModified = true;
                 }
                 
                 if ((saveMask & PlayerSaveMask.Appearance) != 0)
@@ -739,11 +721,6 @@ namespace NexusForever.WorldServer.Game.Entity
             Session.AccountCurrencyManager.SendInitialPackets();
             QuestManager.SendInitialPackets();
             AchievementManager.SendInitialPackets();
-
-            Session.EnqueueMessageEncrypted(new ServerPlayerInnate
-            {
-                InnateIndex = InnateIndex
-            });
         }
 
         public ItemProficiency GetItemProficiencies()
