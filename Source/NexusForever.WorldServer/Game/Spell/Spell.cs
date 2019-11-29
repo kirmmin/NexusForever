@@ -17,7 +17,8 @@ namespace NexusForever.WorldServer.Game.Spell
         private static readonly ILogger log = LogManager.GetCurrentClassLogger();
 
         public uint CastingId { get; }
-        public bool IsCasting => status == SpellStatus.Casting;
+        public uint Spell4Id => parameters.SpellInfo.Entry.Id;
+        public bool IsCasting => parameters.UserInitiatedSpellCast && status == SpellStatus.Casting;
         public bool IsFinished => status == SpellStatus.Finished;
 
         private readonly UnitEntity caster;
@@ -74,7 +75,7 @@ namespace NexusForever.WorldServer.Game.Spell
             }
 
             if (caster is Player player)
-                if (parameters.SpellInfo.GlobalCooldown != null)
+                if (parameters.SpellInfo.GlobalCooldown != null && !parameters.IsProxy)
                     player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
 
             SendSpellStart();
@@ -181,7 +182,7 @@ namespace NexusForever.WorldServer.Game.Spell
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started executing.");
 
             if (caster is Player player)
-                if (parameters.SpellInfo.Entry.SpellCoolDown != 0u)
+                if (parameters.SpellInfo.Entry.SpellCoolDown != 0u && !parameters.IsProxy)
                     player.SpellManager.SetSpellCooldown(parameters.SpellInfo.Entry.Id, parameters.SpellInfo.Entry.SpellCoolDown / 1000d);
 
             SelectTargets();
@@ -269,6 +270,14 @@ namespace NexusForever.WorldServer.Game.Spell
                 FieldPosition          = new Position(caster.Position),
                 UserInitiatedSpellCast = parameters.UserInitiatedSpellCast
             }, true);
+        }
+
+        public void Finish()
+        {
+            events.CancelEvents();
+            status = SpellStatus.Finished;
+
+            SendSpellFinish();
         }
 
         private void SendSpellFinish()
