@@ -373,22 +373,11 @@ namespace NexusForever.WorldServer.Game.Map
                         decor.DecorParentId = update.ParentDecorId;
                     }
                 }
-            }
-            else
-            {
-                player.Session.EnqueueMessageEncrypted(new ServerHousingResult
-                {
-                    RealmId = WorldServer.RealmId,
-                    ResidenceId = residence.Id,
-                    PlayerName = player.Name,
-                    Result = result
-                });
-            }
 
-            EnqueueToAll(new ServerHousingResidenceDecor
-            {
-                Operation = 0,
-                DecorData = new List<ServerHousingResidenceDecor.Decor>
+                EnqueueToAll(new ServerHousingResidenceDecor
+                {
+                    Operation = 0,
+                    DecorData = new List<ServerHousingResidenceDecor.Decor>
                     {
                         new ServerHousingResidenceDecor.Decor
                         {
@@ -405,7 +394,18 @@ namespace NexusForever.WorldServer.Game.Map
                             ColourShift   = decor.ColourShiftId
                         }
                     }
-            });
+                });
+            }
+            else
+            {
+                player.Session.EnqueueMessageEncrypted(new ServerHousingResult
+                {
+                    RealmId = WorldServer.RealmId,
+                    ResidenceId = residence.Id,
+                    PlayerName = player.Name,
+                    Result = result
+                });
+            }
         }
 
         private void DecorDelete(ClientHousingDecorUpdate.DecorUpdate update)
@@ -446,7 +446,7 @@ namespace NexusForever.WorldServer.Game.Map
 
             log.Debug($"IsValidPlotForPosition - PlotIndex: {update.PlotIndex}, Range: {minBound}-{maxBound}, Coords: {globalCellX}, {globalCellZ}");
 
-            return !(globalCellX >= minBound && globalCellX <= maxBound && globalCellZ >= minBound && globalCellZ <= maxBound);
+            return (globalCellX >= minBound && globalCellX <= maxBound && globalCellZ >= minBound && globalCellZ <= maxBound);
         }
 
         /// <summary>
