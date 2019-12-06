@@ -18,5 +18,6 @@ namespace NexusForever.Database.Auth.Model
         public ICollection<AccountEntitlementModel> AccountEntitlement { get; set; } = new HashSet<AccountEntitlementModel>();
         public ICollection<AccountGenericUnlockModel> AccountGenericUnlock { get; set; } = new HashSet<AccountGenericUnlockModel>();
         public ICollection<AccountKeybindingModel> AccountKeybinding { get; set; } = new HashSet<AccountKeybindingModel>();
+        public ICollection<AccountRewardTrackModel> AccountRewardTrack { get; set; } = new HashSet<AccountRewardTrackModel>();
     }
 }

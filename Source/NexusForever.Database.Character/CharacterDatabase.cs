@@ -150,6 +150,11 @@ namespace NexusForever.Database.Character
 
             await query.SelectMany(c => c.TradeskillMaterials).LoadAsync();
 
+            await query.SelectMany(c => c.RewardTrack).LoadAsync();
+            await query.SelectMany(c => c.RewardTrack)
+                .SelectMany(c => c.Milestone)
+                .LoadAsync();
+
             return await query.ToListAsync();
         }
 

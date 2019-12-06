@@ -10,6 +10,7 @@ using NexusForever.Shared.Network.Message.Model;
 using NexusForever.Shared.Network.Packet;
 using NexusForever.WorldServer.Game.Account;
 using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.RewardTrack;
 using NexusForever.WorldServer.Network.Message.Model;
 
 namespace NexusForever.WorldServer.Network
@@ -24,6 +25,7 @@ namespace NexusForever.WorldServer.Network
         public GenericUnlockManager GenericUnlockManager { get; set; }
         public AccountCurrencyManager AccountCurrencyManager { get; set; }
         public EntitlementManager EntitlementManager { get; set; }
+        public RewardTrackManager RewardTrackManager { get; set; }
 
         public override void OnAccept(Socket newSocket)
         {
@@ -66,6 +68,7 @@ namespace NexusForever.WorldServer.Network
             GenericUnlockManager   = new GenericUnlockManager(this, account);
             AccountCurrencyManager = new AccountCurrencyManager(this, account);
             EntitlementManager     = new EntitlementManager(this, account);
+            RewardTrackManager     = new RewardTrackManager(this, account);
         }
 
         public void SetEncryptionKey(byte[] sessionKey)

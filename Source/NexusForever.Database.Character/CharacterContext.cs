@@ -26,6 +26,8 @@ namespace NexusForever.Database.Character
         public DbSet<CharacterPetFlairModel> CharacterPetFlair { get; set; }
         public DbSet<CharacterQuestModel> CharacterQuest { get; set; }
         public DbSet<CharacterQuestObjectiveModel> CharacterQuestObjective { get; set; }
+        public DbSet<CharacterRewardTrackModel> CharacterRewardTrack { get; set; }
+        public DbSet<CharacterRewardTrackMilestoneModel> CharacterRewardTrackMilestone { get; set; }
         public DbSet<CharacterSpellModel> CharacterSpell { get; set; }
         public DbSet<CharacterStatModel> CharacterStat { get; set; }
         public DbSet<CharacterTitleModel> CharacterTitle { get; set; }
@@ -955,6 +957,71 @@ namespace NexusForever.Database.Character
                     .WithMany(p => p.QuestObjective)
                     .HasForeignKey(d => new { d.Id, d.QuestId })
                     .HasConstraintName("FK__character_quest_objective_id__character_id");
+            });
+
+            modelBuilder.Entity<CharacterRewardTrackModel>(entity =>
+            {
+                entity.ToTable("character_reward_track");
+
+                entity.HasKey(e => new { e.Id, e.RewardTrackId })
+                    .HasName("PRIMARY");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("bigint(20) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.RewardTrackId)
+                    .HasColumnName("rewardTrackId")
+                    .HasColumnType("int(10) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.Points)
+                    .HasColumnName("points")
+                    .HasColumnType("int(10) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.HasOne(d => d.Character)
+                    .WithMany(p => p.RewardTrack)
+                    .HasForeignKey(d => d.Id)
+                    .HasConstraintName("FK__character_reward_track_id__character_id");
+            });
+
+            modelBuilder.Entity<CharacterRewardTrackMilestoneModel>(entity =>
+            {
+                entity.ToTable("character_reward_track_milestone");
+
+                entity.HasKey(e => new { e.Id, e.RewardTrackId, e.MilestoneId })
+                    .HasName("PRIMARY");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasColumnType("bigint(20) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.RewardTrackId)
+                    .HasColumnName("rewardTrackId")
+                    .HasColumnType("int(10) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.MilestoneId)
+                    .HasColumnName("milestoneId")
+                    .HasColumnType("int(10) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.PointsRequired)
+                    .HasColumnName("pointsRequired")
+                    .HasColumnType("int(10) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.Choice)
+                    .HasColumnName("choice")
+                    .HasDefaultValue(-1);
+
+                entity.HasOne(d => d.RewardTrack)
+                    .WithMany(p => p.Milestone)
+                    .HasForeignKey(d => new { d.Id, d.RewardTrackId })
+                    .HasConstraintName("FK__character_reward_track_milestone_id-rewardTrackId__character_reward_track_id-rewardTrackId");
             });
 
             modelBuilder.Entity<CharacterSpellModel>(entity =>

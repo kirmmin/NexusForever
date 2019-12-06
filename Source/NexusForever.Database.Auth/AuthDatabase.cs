@@ -74,6 +74,8 @@ namespace NexusForever.Database.Auth
                 .Include(a => a.AccountGenericUnlock)
                 .Include(a => a.AccountKeybinding)
                 .Include(a => a.AccountEntitlement)
+                .Include(a => a.AccountRewardTrack)
+                    .ThenInclude(b => b.Milestone)
                 .SingleOrDefaultAsync(a => a.Email == email && a.SessionKey == sessionKey);
         }
 
