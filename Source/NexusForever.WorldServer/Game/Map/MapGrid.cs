@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using NexusForever.Shared;
 using NexusForever.Shared.Configuration;
+using NexusForever.Shared.Game;
 using NexusForever.Shared.Game.Map;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Map.Search;
@@ -24,6 +25,7 @@ namespace NexusForever.WorldServer.Game.Map
         private readonly UpdateTimer unloadTimer = new UpdateTimer(ConfigurationManager<WorldServerConfiguration>.Instance.Config.Map.GridUnloadTimer ?? 600d);
         private uint unloadCellX;
         private uint unloadCellZ;
+        private bool isStatic = false;
 
         /// <summary>
         /// Return <see cref="MapGrid"/> at supplied <see cref="Vector3"/>.
@@ -44,9 +46,10 @@ namespace NexusForever.WorldServer.Game.Map
         /// <summary>
         /// Initialise new <see cref="MapGrid"/> at the supplied position.
         /// </summary>
-        public MapGrid(uint gridX, uint gridZ)
+        public MapGrid(uint gridX, uint gridZ, bool isStatic)
         {
             Coord = (gridX, gridZ);
+            this.isStatic = isStatic;
 
             for (uint z = 0u; z < MapDefines.GridCellCount; z++)
                 for (uint x = 0u; x < MapDefines.GridCellCount; x++)
@@ -58,7 +61,7 @@ namespace NexusForever.WorldServer.Game.Map
             foreach (MapCell cell in cells)
                 cell.Update(lastTick);
 
-            if (ConfigurationManager<WorldServerConfiguration>.Instance.Config.Map.GridUnloadTimer.HasValue)
+            if (!isStatic && ConfigurationManager<WorldServerConfiguration>.Instance.Config.Map.GridUnloadTimer.HasValue)
             {
                 unloadTimer.Update(lastTick);
                 if (unloadTimer.HasElapsed)

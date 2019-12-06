@@ -40,6 +40,7 @@ namespace NexusForever.WorldServer.Game.Map
         private readonly QueuedCounter entityCounter = new QueuedCounter();
         private readonly Dictionary<uint /*guid*/, GridEntity> entities = new Dictionary<uint /*guid*/, GridEntity>();
         private EntityCache entityCache;
+        protected bool IsStatic = false;
 
         public virtual void Initialise(MapInfo info, Player player)
         {
@@ -85,6 +86,9 @@ namespace NexusForever.WorldServer.Game.Map
                 MapGrid grid = GetGrid(gridX, gridZ);
 
                 grid.Update(lastTick);
+                if (IsStatic)
+                    return;
+
                 // make sure the grid has fully unloaded before removing from active grids
                 if (grid.PendingUnload && DeactivateGrid(grid))
                     gridsToRemove.Add((gridX, gridZ));
@@ -233,7 +237,7 @@ namespace NexusForever.WorldServer.Game.Map
         /// </summary>
         private void ActivateGrid(uint gridX, uint gridZ)
         {
-            var grid = new MapGrid(gridX, gridZ);
+            var grid = new MapGrid(gridX, gridZ, IsStatic);
             grids[gridZ * MapDefines.WorldGridCount + gridX] = grid;
             activeGrids.Add(grid.Coord);
 

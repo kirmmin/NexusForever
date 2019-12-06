@@ -29,6 +29,8 @@ namespace NexusForever.WorldServer.Game.Map
         {
             base.Initialise(info, player);
 
+            IsStatic = true;
+
             if (info.ResidenceId != 0u)
             {
                 residence = ResidenceManager.Instance.GetCachedResidence(info.ResidenceId);
@@ -517,6 +519,9 @@ namespace NexusForever.WorldServer.Game.Map
 
             foreach (Plot plot in residence.GetPlots())
             {
+                if (player != null && plot.PlugEntry != null && plot.BuildState != 4)
+                    plot.BuildState = 4;
+
                 housingPlots.Plots.Add(new ServerHousingPlots.Plot
                 {
                     PlotPropertyIndex = plot.Index,
