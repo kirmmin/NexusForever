@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using NexusForever.Shared;
 using NexusForever.Shared.Configuration;
 using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Entity;
@@ -38,11 +39,14 @@ namespace NexusForever.WorldServer.Game.Social
             { ChatChannel.Nexus, new List<WorldSession>() },
             { ChatChannel.Trade, new List<WorldSession>() }
         };
+        private Dictionary<CustomChannel, List<WorldSession>> customChatChannelSessions = new Dictionary<CustomChannel, List<WorldSession>>();
         private readonly bool CrossFactionChat = ConfigurationManager<WorldServerConfiguration>.Instance.Config.CrossFactionChat;
+
+        public ulong NextCustomChannelId => nextCustomChannelId++;
+        private ulong nextCustomChannelId = 500ul;
 
         private SocialManager()
         {
-            Initialise();
         }
 
         public void Initialise()
@@ -129,7 +133,7 @@ namespace NexusForever.WorldServer.Game.Social
         /// Add the <see cref="WorldSession"/> to the chat channels sessions list for appropriate chat channels.
         /// </summary>
         /// <param name="session"></param>
-        public static void JoinChatChannels(WorldSession session)
+        public void JoinChatChannels(WorldSession session)
         {
             foreach(KeyValuePair<ChatChannel, List<WorldSession>> chatChannel in chatChannelSessions)
             {
@@ -149,10 +153,45 @@ namespace NexusForever.WorldServer.Game.Social
         /// Removes the <see cref="WorldSession"/> from appropriate chat channels.
         /// </summary>
         /// <param name="session"></param>
-        public static void LeaveChatChannels(WorldSession session)
+        public void LeaveChatChannels(WorldSession session)
         {
             foreach (KeyValuePair<ChatChannel, List<WorldSession>> chatChannel in chatChannelSessions)
                 chatChannelSessions[chatChannel.Key].Remove(session);
+
+            foreach(KeyValuePair<CustomChannel, List<WorldSession>> customChannel in customChatChannelSessions)
+            {
+                if (customChannel.Value.FirstOrDefault(i => i.Account.Id == session.Account.Id) == null)
+                    continue;
+
+                customChannel.Value.Remove(session);
+            }
+                
+        }
+
+        /// <summary>
+        /// Add the <see cref="WorldSession"/> to the chat channels sessions list for appropriate chat channels.
+        /// </summary>
+        /// <param name="session"></param>
+        public void JoinChatChannel(WorldSession session, ClientChatJoinCustom joinCustom)
+        {
+            CustomChannel customChannel = customChatChannelSessions.Keys.FirstOrDefault(i => i.Name == joinCustom.Name);
+            if (customChannel == null)
+            {
+                customChannel = new CustomChannel(joinCustom.Name);
+                customChatChannelSessions.Add(customChannel, new List<WorldSession>());
+            }
+
+            if (customChatChannelSessions[customChannel].Contains(session) || customChatChannelSessions[customChannel].FindAll(s => s.Player == session.Player).ToList().Count <= 0)
+                customChatChannelSessions[customChannel].Remove(session);
+
+            customChatChannelSessions[customChannel].Add(session);
+
+            session.EnqueueMessageEncrypted(new ServerChatJoin
+            {
+                Channel = ChatChannel.Custom,
+                ChannelId = customChannel.ChannelId,
+                CustomChannelName = customChannel.Name
+            });
         }
 
         [ChatChannelHandler(ChatChannel.Say)]
@@ -255,6 +294,38 @@ namespace NexusForever.WorldServer.Game.Social
         }
 
         /// <summary>
+        /// Handles server-wide <see cref="ChatChannel"/>
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="chat"></param>
+        [ChatChannelHandler(ChatChannel.Custom)]
+        private void HandleCustomChannelChat(WorldSession session, ClientChat chat)
+        {
+            CustomChannel customChannel = customChatChannelSessions.Keys.FirstOrDefault(i => i.ChannelId == chat.Unknown0);
+            if (customChannel == null)
+            {
+                session.Player.SendSystemMessage("Error finding channel.");
+                return;
+            }
+
+            var serverChat = new ServerChat
+            {
+                Guid = session.Player.Guid,
+                Channel = chat.Channel,
+                ChatId = customChannel.ChannelId,
+                Name = session.Player.Name,
+                Text = chat.Message,
+                Formats = ParseChatLinks(session, chat).ToList(),
+            };
+
+            foreach (WorldSession channelSession in customChatChannelSessions[customChannel])
+            {
+                serverChat.CrossFaction = session.Player.Faction1 != channelSession.Player.Faction1;
+                channelSession.EnqueueMessageEncrypted(serverChat);
+            }
+        }
+
+        /// <summary>
         /// Parses chat links from <see cref="ChatFormat"/> delivered by <see cref="ClientChat"/>
         /// </summary>
         /// <param name="session"></param>
@@ -274,7 +345,7 @@ namespace NexusForever.WorldServer.Game.Social
         /// <param name="session"></param>
         /// <param name="chat"></param>
         /// <returns></returns>
-        private static IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, ClientChatWhisper chat)
+        private IEnumerable<ChatFormat> ParseChatLinks(WorldSession session, ClientChatWhisper chat)
         {
             foreach (ChatFormat format in chat.Formats)
             {
@@ -288,7 +359,7 @@ namespace NexusForever.WorldServer.Game.Social
         /// <param name="session"></param>
         /// <param name="format"></param>
         /// <returns></returns>
-        private static ChatFormat ParseChatFormat(WorldSession session, ChatFormat format)
+        private ChatFormat ParseChatFormat(WorldSession session, ChatFormat format)
         {
             switch (format.FormatModel)
             {

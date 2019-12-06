@@ -360,7 +360,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         private void SendPacketsAfterAddToMap()
         {
-            SocialManager.JoinChatChannels(Session);
+            SocialManager.Instance.JoinChatChannels(Session);
             SendInGameTime();
             PathManager.SendInitialPackets();
             BuybackManager.Instance.SendBuybackItems(this);
@@ -587,7 +587,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 Save(() =>
                 {
                     RemoveFromMap();
-                    SocialManager.LeaveChatChannels(Session);
+                    SocialManager.Instance.LeaveChatChannels(Session);
                     Session.Player = null;
                 });
             }
