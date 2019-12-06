@@ -1,5 +1,6 @@
 ﻿using NexusForever.Shared;
 using NexusForever.Shared.Configuration;
+using NexusForever.Shared.Game;
 using NexusForever.WorldServer.Game.Entity;
 using NLog;
 using System;
@@ -33,26 +34,7 @@ namespace NexusForever.WorldServer.Game.Event
 
         public static void Update(double lastTick)
         {
-            UpdateTimer.Update(lastTick);
-            if (UpdateTimer.HasElapsed)
-            {
-                if (EffigyCount >= Step2Threshold && DateTime.UtcNow.Subtract(BuildTime).TotalSeconds >= EffigyResetTimeInSecond)
-                {
-                    dirtyCount = true;
-                    EffigyCount = 0;
-                }
-
-                if (dirtyCount)
-                {
-                    ConfigurationManager<WorldServerConfiguration>.Instance.Config.ShadesEveEffigyBuilt = BuildTime;
-                    ConfigurationManager<WorldServerConfiguration>.Instance.Config.ShadesEveEffigyCount = EffigyCount;
-                    ConfigurationManager<WorldServerConfiguration>.Instance.Save();
-
-                    dirtyCount = false;
-                }
-
-                UpdateTimer.Reset();
-            }
+           
         }
 
         public static void AddEffigy(Player player, uint count)

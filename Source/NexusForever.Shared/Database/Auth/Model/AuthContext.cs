@@ -363,6 +363,10 @@ namespace NexusForever.Shared.Database.Auth.Model
                 entity.Property(e => e.Type)
                     .HasColumnName("type")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.RequiredRole)
+                    .HasColumnName("requiredRole")
+                    .HasDefaultValueSql("'0'");
             });
 
             modelBuilder.Entity<ServerMessage>(entity =>

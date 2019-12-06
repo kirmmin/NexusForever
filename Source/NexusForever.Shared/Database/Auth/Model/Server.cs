@@ -10,5 +10,6 @@ namespace NexusForever.Shared.Database.Auth.Model
         public string Host { get; set; }
         public ushort Port { get; set; }
         public byte Type { get; set; }
+        public ushort RequiredRole { get; set; }
     }
 }

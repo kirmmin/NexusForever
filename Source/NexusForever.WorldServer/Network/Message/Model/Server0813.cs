@@ -4,7 +4,7 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.Server0813)]
+    [Message(GameMessageOpcode.ServerSpellBuffRemove)]
     public class Server0813 : IWritable
     {
         public uint CastingId { get; set; }

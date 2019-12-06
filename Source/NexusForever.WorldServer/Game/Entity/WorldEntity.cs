@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using NexusForever.Shared.Game;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Database.World.Model;
 using NexusForever.WorldServer.Game.Entity.Movement;

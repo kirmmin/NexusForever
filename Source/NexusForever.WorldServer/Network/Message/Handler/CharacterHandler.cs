@@ -31,6 +31,8 @@ using Item = NexusForever.WorldServer.Game.Entity.Item;
 using Residence = NexusForever.WorldServer.Game.Housing.Residence;
 using NetworkMessage = NexusForever.Shared.Network.Message.Model.Shared.Message;
 using NLog;
+using NexusForever.WorldServer.Game.Account;
+using NexusForever.WorldServer.Game.Account.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Handler
 {
@@ -45,12 +47,22 @@ namespace NexusForever.WorldServer.Network.Message.Handler
 
             foreach (ServerInfo server in ServerManager.Instance.Servers)
             {
+                if (server.Model.RequiredRole > 0)
+                {
+                    if (!(RoleManager.HasPermission(session, (Permission)server.Model.RequiredRole)))
+                        continue;
+                }
+
+                RealmStatus status = RealmStatus.Up;
+                if (!server.IsOnline && server.Model.Id != WorldServer.RealmId)
+                    status = RealmStatus.Down;
+
                 serverRealmList.Realms.Add(new ServerRealmList.RealmInfo
                 {
                     RealmId          = server.Model.Id,
                     RealmName        = server.Model.Name,
                     Type             = (RealmType)server.Model.Type,
-                    Status           = server.IsOnline ? RealmStatus.Up : RealmStatus.Down,
+                    Status           = status,
                     Population       = RealmPopulation.Low,
                     Unknown8         = new byte[16],
                     AccountRealmInfo = new ServerRealmList.RealmInfo.AccountRealmData

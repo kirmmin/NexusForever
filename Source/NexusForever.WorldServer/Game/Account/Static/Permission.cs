@@ -38,5 +38,6 @@ namespace NexusForever.WorldServer.Game.Account.Static
         CommandMovementDirect       = 30,
         CommandMovementRandom       = 31,
         GMFlag                      = 100,
+        PTRAccess                   = 101
     }
 }

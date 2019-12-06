@@ -29,6 +29,7 @@ using NexusForever.WorldServer.Game.Guild;
 using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Account;
 using NexusForever.WorldServer.Game.Event;
+using System.Linq;
 
 namespace NexusForever.WorldServer
 {
