@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NexusForever.Database.Auth;
 
 namespace NexusForever.Database.Auth.Migrations
 {
     [DbContext(typeof(AuthContext))]
-    partial class AuthContextModelSnapshot : ModelSnapshot
+    [Migration("20200928044039_AccountRewardTrack")]
+    partial class AccountRewardTrack
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -884,11 +886,6 @@ namespace NexusForever.Database.Auth.Migrations
                         {
                             Id = 10000u,
                             Name = "Other: InstantLogout"
-                        },
-                        new
-                        {
-                            Id = 10001u,
-                            Name = "Other: Signature"
                         });
                 });
 

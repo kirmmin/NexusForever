@@ -163,6 +163,10 @@
         GuildRegister               = 101,
         GuildJoin                   = 102,
 
+        // reward tracks
+        RewardTrack                 = 100,
+        RewardTrackUpdate           = 101,
+
         // non command permissions
         InstantLogout               = 10000,
         Signature                   = 10001

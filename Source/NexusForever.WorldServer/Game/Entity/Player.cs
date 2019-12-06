@@ -246,6 +246,7 @@ namespace NexusForever.WorldServer.Game.Entity
             TimePlayedLevel = model.TimePlayedLevel;
 
             Session.EntitlementManager.Initialise(model);
+            Session.RewardTrackManager.OnNewCharacter(this, model);
 
             foreach (CharacterStatModel statModel in model.Stat)
                 stats.Add((Stat)statModel.Stat, new StatValue(statModel));
@@ -395,6 +396,7 @@ namespace NexusForever.WorldServer.Game.Entity
             Session.GenericUnlockManager.Save(context);
             Session.AccountCurrencyManager.Save(context);
             Session.EntitlementManager.Save(context);
+            Session.RewardTrackManager.Save(context);
 
             CostumeManager.Save(context);
             KeybindingManager.Save(context);
@@ -521,6 +523,7 @@ namespace NexusForever.WorldServer.Game.Entity
             ContactManager.Save(context);
 
             Session.EntitlementManager.Save(context);
+            Session.RewardTrackManager.Save(context);
         }
 
         protected override IEntityModel BuildEntityModel()
@@ -664,7 +667,6 @@ namespace NexusForever.WorldServer.Game.Entity
                     Reason = ItemUpdateReason.NoReason
                 });
             }
-
             playerCreate.SpecIndex = SpellManager.ActiveActionSet;
             Session.EnqueueMessageEncrypted(playerCreate);
 
@@ -679,6 +681,7 @@ namespace NexusForever.WorldServer.Game.Entity
             QuestManager.SendInitialPackets();
             AchievementManager.SendInitialPackets(null);
             Session.EntitlementManager.SendInitialPackets();
+            Session.RewardTrackManager.SendInitialPackets();
 
             // TODO: Move this to a script
             if (Map.Entry.Id == 3460 && firstTimeLoggingIn)

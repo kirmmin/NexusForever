@@ -1,11 +1,10 @@
 using System;
-using NexusForever.Database.Character;
-using NexusForever.Database.Character.Model;
+using NexusForever.Shared.GameTable;
+using NexusForever.Shared.GameTable.Model;
 using NexusForever.Shared.Network;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Contact.Static;
-using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
 
@@ -120,6 +119,16 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         public static void HandleCinematicState(WorldSession session, ClientCinematicState cinematicState)
         {
             session.Player.CinematicManager.HandleClientCinematicState(cinematicState.State);
+        }
+
+        [MessageHandler(GameMessageOpcode.ClientRewardTrackChoice)]
+        public static void HandleClickRewardTrachChoice(WorldSession session, ClientRewardTrackChoice rewardTrackChoice)
+        {
+            RewardTrackRewardsEntry rewardEntry = GameTableManager.Instance.RewardTrackRewards.GetEntry(rewardTrackChoice.RewardId);
+            if (rewardEntry == null)
+                throw new InvalidOperationException($"RewardTrackRewards entry with ID {rewardTrackChoice.RewardId} not found!");
+
+            session.RewardTrackManager.HandleChooseReward(rewardEntry, rewardTrackChoice.Index);
         }
     }
 }

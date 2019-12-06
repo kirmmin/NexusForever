@@ -1002,6 +1002,67 @@ namespace NexusForever.Database.Character.Migrations
                     b.ToTable("character_reputation");
                 });
 
+            modelBuilder.Entity("NexusForever.Database.Character.Model.CharacterRewardTrackMilestoneModel", b =>
+                {
+                    b.Property<ulong>("Id")
+                        .HasColumnName("id")
+                        .HasColumnType("bigint(20) unsigned")
+                        .HasDefaultValue(0ul);
+
+                    b.Property<uint>("RewardTrackId")
+                        .HasColumnName("rewardTrackId")
+                        .HasColumnType("int(10) unsigned")
+                        .HasDefaultValue(0u);
+
+                    b.Property<uint>("MilestoneId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("milestoneId")
+                        .HasColumnType("int(10) unsigned")
+                        .HasDefaultValue(0u);
+
+                    b.Property<int>("Choice")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("choice")
+                        .HasColumnType("int")
+                        .HasDefaultValue(-1);
+
+                    b.Property<uint>("PointsRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("pointsRequired")
+                        .HasColumnType("int(10) unsigned")
+                        .HasDefaultValue(0u);
+
+                    b.HasKey("Id", "RewardTrackId", "MilestoneId")
+                        .HasName("PRIMARY");
+
+                    b.ToTable("character_reward_track_milestone");
+                });
+
+            modelBuilder.Entity("NexusForever.Database.Character.Model.CharacterRewardTrackModel", b =>
+                {
+                    b.Property<ulong>("Id")
+                        .HasColumnName("id")
+                        .HasColumnType("bigint(20) unsigned")
+                        .HasDefaultValue(0ul);
+
+                    b.Property<uint>("RewardTrackId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("rewardTrackId")
+                        .HasColumnType("int(10) unsigned")
+                        .HasDefaultValue(0u);
+
+                    b.Property<uint>("Points")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("points")
+                        .HasColumnType("int(10) unsigned")
+                        .HasDefaultValue(0u);
+
+                    b.HasKey("Id", "RewardTrackId")
+                        .HasName("PRIMARY");
+
+                    b.ToTable("character_reward_track");
+                });
+
             modelBuilder.Entity("NexusForever.Database.Character.Model.CharacterSpellModel", b =>
                 {
                     b.Property<ulong>("Id")
@@ -2662,6 +2723,26 @@ namespace NexusForever.Database.Character.Migrations
                         .IsRequired();
 
                     b.Navigation("Character");
+                });
+
+            modelBuilder.Entity("NexusForever.Database.Character.Model.CharacterRewardTrackMilestoneModel", b =>
+                {
+                    b.HasOne("NexusForever.Database.Character.Model.CharacterRewardTrackModel", "RewardTrack")
+                        .WithMany("Milestone")
+                        .HasForeignKey("Id", "RewardTrackId")
+                        .HasConstraintName("FK__character_reward_track_milestone_id-rewardTrackId__character_reward_track_id-rewardTrackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NexusForever.Database.Character.Model.CharacterRewardTrackModel", b =>
+                {
+                    b.HasOne("NexusForever.Database.Character.Model.CharacterModel", "Character")
+                        .WithMany("RewardTrack")
+                        .HasForeignKey("Id")
+                        .HasConstraintName("FK__character_reward_track_id__character_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("NexusForever.Database.Character.Model.CharacterSpellModel", b =>

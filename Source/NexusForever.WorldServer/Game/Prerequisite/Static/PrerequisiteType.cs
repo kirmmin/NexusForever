@@ -36,6 +36,7 @@
         Plane       = 232,
         Faction2    = 243,
         BaseFaction = 250,
-        Unhealthy   = 269
+        Unhealthy   = 269,
+        CosmicRewards = 270
     }
 }
