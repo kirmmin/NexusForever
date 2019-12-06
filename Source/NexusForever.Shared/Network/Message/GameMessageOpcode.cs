@@ -125,6 +125,7 @@ namespace NexusForever.Shared.Network.Message
         ServerQuestObjectiveUpdate      = 0x0361,
         ClientQuestSetTracked           = 0x0364,
         ClientQuestRetry                = 0x0365,
+        ServerForceKick                 = 0x036A,
         ClientEmote                     = 0x037E,
         ClientCostumeItemForget         = 0x038B,
         ClientPackedWorld               = 0x038C,
@@ -276,7 +277,7 @@ namespace NexusForever.Shared.Network.Message
         ClientInteractionResult         = 0x0805,
         Server0810                      = 0x0810,
         ServerSpellBuffRemoved          = 0x0811, // spell related: broadcast parts of 0x07FF?
-        Server0813                      = 0x0813,
+        ServerSpellBuffRemove           = 0x0813,
         ServerSpellThresholdClear       = 0x0814,
         ServerSpellThresholdStart       = 0x0816,
         ServerSpellThresholdUpdate      = 0x0817, 

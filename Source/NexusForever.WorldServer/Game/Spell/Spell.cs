@@ -600,7 +600,7 @@ namespace NexusForever.WorldServer.Game.Spell
             foreach (SpellTargetInfo targetInfo in targets
                 .Where(t => t.Effects.Count > 0))
             {
-                var networkTargetInfo = new ServerSpellGo.TargetInfo
+                var networkTargetInfo = new TargetInfo
                 {
                     UnitId        = targetInfo.Entity.Guid,
                     Ndx           = targetCount++,
@@ -611,7 +611,7 @@ namespace NexusForever.WorldServer.Game.Spell
 
                 foreach (SpellTargetInfo.SpellTargetEffectInfo targetEffectInfo in targetInfo.Effects)
                 {
-                    var networkTargetEffectInfo = new ServerSpellGo.TargetInfo.EffectInfo
+                    var networkTargetEffectInfo = new TargetInfo.EffectInfo
                     {
                         Spell4EffectId = targetEffectInfo.Entry.Id,
                         EffectUniqueId = targetEffectInfo.EffectId,
@@ -622,7 +622,7 @@ namespace NexusForever.WorldServer.Game.Spell
                     if (targetEffectInfo.Damage != null)
                     {
                         networkTargetEffectInfo.InfoType = 1;
-                        networkTargetEffectInfo.DamageDescriptionData = new ServerSpellGo.TargetInfo.EffectInfo.DamageDescription
+                        networkTargetEffectInfo.DamageDescriptionData = new TargetInfo.EffectInfo.DamageDescription
                         {
                             RawDamage          = targetEffectInfo.Damage.RawDamage,
                             RawScaledDamage    = targetEffectInfo.Damage.RawScaledDamage,
