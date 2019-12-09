@@ -34,6 +34,7 @@ namespace NexusForever.Shared.Network.Message
         ServerDatacubeVolumeUpdate      = 0x00E2,
         ServerCharacterDeleteResult     = 0x00E6,
         Server00F1                      = 0x00F1, // handler sends 0x00D5 and ClientPlayerMovementSpeedUpdate
+        ClientFallingDamage             = 0x00FB,
         ServerCharacterFlagsUpdated     = 0x00FE,
         Server0104                      = 0x0104, // Galactic Archive
         ServerGenericError              = 0x0106,

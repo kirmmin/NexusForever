@@ -625,5 +625,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     .ToList()
             });
         }
+
+        [MessageHandler(GameMessageOpcode.ClientFallingDamage)]
+        public static void HandleFallingDamage(WorldSession session, ClientFallingDamage fallingDamage)
+        {
+            session.Player.TakeFallingDamage(fallingDamage.HealthPercent);
+        }
     }
 }
