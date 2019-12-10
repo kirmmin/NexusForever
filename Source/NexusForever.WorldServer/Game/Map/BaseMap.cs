@@ -86,8 +86,9 @@ namespace NexusForever.WorldServer.Game.Map
                 MapGrid grid = GetGrid(gridX, gridZ);
 
                 grid.Update(lastTick);
+
                 if (IsStatic)
-                    return;
+                    continue;
 
                 // make sure the grid has fully unloaded before removing from active grids
                 if (grid.PendingUnload && DeactivateGrid(grid))

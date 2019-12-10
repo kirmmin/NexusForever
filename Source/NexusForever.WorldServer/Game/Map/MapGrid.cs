@@ -61,7 +61,10 @@ namespace NexusForever.WorldServer.Game.Map
             foreach (MapCell cell in cells)
                 cell.Update(lastTick);
 
-            if (!isStatic && ConfigurationManager<WorldServerConfiguration>.Instance.Config.Map.GridUnloadTimer.HasValue)
+            if (isStatic)
+                return;
+
+            if (ConfigurationManager<WorldServerConfiguration>.Instance.Config.Map.GridUnloadTimer.HasValue)
             {
                 unloadTimer.Update(lastTick);
                 if (unloadTimer.HasElapsed)

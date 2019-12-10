@@ -20,7 +20,7 @@ namespace NexusForever.WorldServer.Game.Spell
 
         public uint CastingId { get; }
         public bool IsClientSideInteraction => parameters.ClientSideInteraction != null;
-        public bool IsCasting => !parameters.UserInitiatedSpellCast && status == SpellStatus.Casting || ((CastMethod == CastMethod.Channeled || CastMethod == CastMethod.ChanneledField) && (status == SpellStatus.Casting || status == SpellStatus.Executing));
+        public bool IsCasting => parameters.UserInitiatedSpellCast && (status == SpellStatus.Casting || ((CastMethod == CastMethod.Channeled || CastMethod == CastMethod.ChanneledField) && (status == SpellStatus.Casting || status == SpellStatus.Executing)));
         public bool IsFinished => status == SpellStatus.Finished;
         public bool IsFailed => status == SpellStatus.Failed;
         public bool IsWaiting => status == SpellStatus.Waiting;
@@ -141,7 +141,7 @@ namespace NexusForever.WorldServer.Game.Spell
             }
 
             if (caster is Player player)
-                if (parameters.SpellInfo.GlobalCooldown != null && !parameters.IsProxy) // Using UserInitiatedSpellCast to prevent proxies affecting the GCD
+                if (parameters.SpellInfo.GlobalCooldown != null && parameters.UserInitiatedSpellCast && !parameters.IsProxy) // Using UserInitiatedSpellCast to prevent proxies affecting the GCD
                     player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
 
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started initating.");  
