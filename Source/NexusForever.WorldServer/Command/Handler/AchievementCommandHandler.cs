@@ -2,12 +2,13 @@
 using System.Threading.Tasks;
 using NexusForever.WorldServer.Command.Attributes;
 using NexusForever.WorldServer.Command.Contexts;
+using NexusForever.WorldServer.Game.Account.Static;
 using NexusForever.WorldServer.Game.Achievement;
 using NexusForever.WorldServer.Game.Achievement.Static;
 
 namespace NexusForever.WorldServer.Command.Handler
 {
-    [Name("Achievement")]
+    [Name("Achievement", Permission.None)]
     public class AchievementCommandHandler : CommandCategory
     {
         public AchievementCommandHandler()
@@ -15,7 +16,7 @@ namespace NexusForever.WorldServer.Command.Handler
         {
         }
 
-        [SubCommandHandler("update", "type objectId objectIdAlt count - Update all achievement criteria with type and object ids by count.")]
+        [SubCommandHandler("update", "type objectId objectIdAlt count - Update all achievement criteria with type and object ids by count.", Permission.None)]
         public async Task AchievementUpdateCommandHandler(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length != 4
@@ -31,7 +32,7 @@ namespace NexusForever.WorldServer.Command.Handler
             context.Session.Player.AchievementManager.CheckAchievements(context.Session.Player, (AchievementType)type, objectId, objectIdAlt, count);
         }
 
-        [SubCommandHandler("grant", "achievementId - Grant the specific achievement.")]
+        [SubCommandHandler("grant", "achievementId - Grant the specific achievement.", Permission.None)]
         public async Task AchievementGrantCommandHandler(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length != 1

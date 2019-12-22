@@ -43,7 +43,7 @@ namespace NexusForever.WorldServer.Command.Handler
             return Task.CompletedTask;
         }
 
-        [SubCommandHandler("targetcast", "spell4Id - Make your target cast a spell")]
+        [SubCommandHandler("targetcast", "spell4Id - Make your target cast a spell", Permission.Everything)]
         public Task TargetCastSpellSubCommand(CommandContext context, string command, string[] parameters)
         {
             if (parameters.Length == 0)
