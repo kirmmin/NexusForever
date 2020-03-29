@@ -94,7 +94,6 @@ namespace NexusForever.WorldServer
             MessageManager.Instance.Initialise();
             SocialManager.Instance.Initialise();
             CommandManager.Instance.Initialise();
-            PublicEventManager.Initialise();
             NetworkManager<WorldSession>.Instance.Initialise(ConfigurationManager<WorldServerConfiguration>.Instance.Config.Network);
             WorldManager.Instance.Initialise(lastTick =>
             {
@@ -105,7 +104,6 @@ namespace NexusForever.WorldServer
                 GlobalQuestManager.Instance.Update(lastTick);
                 ContactManager.Update(lastTick);
                 GuildManager.Update(lastTick);
-                PublicEventManager.Update(lastTick);
                 Console.Title = Title + $":: Clients: {NetworkManager<WorldSession>.Instance.GetSessions().Count()} | Maps: {MapManager.Instance.GetMapCount()}";
             });
 

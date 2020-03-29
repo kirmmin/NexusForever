@@ -195,15 +195,6 @@ namespace NexusForever.WorldServer.Game.Entity
                 AddVisible(entity);
                 if (entity != this)
                     entity.AddVisible(this);
-
-                if (entity is NonPlayer nonPlayer)
-                    if (nonPlayer.CreatureId == 65980 || nonPlayer.CreatureId == 66263)
-                    {
-                        if (Event.PublicEventManager.GetEffigyCount() >= Event.PublicEventManager.Step1Threshold && Event.PublicEventManager.GetEffigyCount() < Event.PublicEventManager.Step2Threshold)
-                            nonPlayer.CastSpell(75505, new Spell.SpellParameters());
-                        else if (Event.PublicEventManager.GetEffigyCount() >= Event.PublicEventManager.Step2Threshold)
-                            nonPlayer.CastSpell(75506, new Spell.SpellParameters());
-                    }
             }
 
             // old entities now out of vision range
