@@ -18,6 +18,8 @@ using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Achievement;
 using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Contact;
+using NexusForever.WorldServer.Game.Cinematic;
+using NexusForever.WorldServer.Game.Cinematic.Cinematics;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
@@ -193,6 +195,7 @@ namespace NexusForever.WorldServer.Game.Entity
         public GuildManager GuildManager { get; }
         public ChatManager ChatManager { get; }
         public ContactManager ContactManager { get; }
+        public CinematicManager CinematicManager { get; }
 
         public VendorInfo SelectedVendorInfo { get; set; } // TODO unset this when too far away from vendor
 
@@ -213,6 +216,8 @@ namespace NexusForever.WorldServer.Game.Entity
         private HashSet<Appearance> deletedCharacterAppearances = new HashSet<Appearance>();
         private List<Bone> characterBones = new List<Bone>();
         private HashSet<Bone> deletedCharacterBones = new HashSet<Bone>();
+
+        private bool firstTimeLoggingIn;
 
         public Player(WorldSession session, CharacterModel model)
             : base(EntityType.Player)
@@ -265,6 +270,7 @@ namespace NexusForever.WorldServer.Game.Entity
             GuildManager            = new GuildManager(this, model);
             ChatManager             = new ChatManager(this);
             ContactManager          = new ContactManager(this, model);
+            CinematicManager        = new CinematicManager(this);
 
             Costume costume = null;
             if (CostumeIndex >= 0)
@@ -304,6 +310,7 @@ namespace NexusForever.WorldServer.Game.Entity
             SetStat(Stat.Shield, 450u);
 
             CharacterManager.Instance.RegisterPlayer(this);
+            firstTimeLoggingIn = model.TimePlayedTotal == 0;
         }
 
         public override void BuildBaseProperties()
@@ -672,6 +679,12 @@ namespace NexusForever.WorldServer.Game.Entity
             QuestManager.SendInitialPackets();
             AchievementManager.SendInitialPackets(null);
             Session.EntitlementManager.SendInitialPackets();
+
+            // TODO: Move this to a script
+            if (Map.Entry.Id == 3460 && firstTimeLoggingIn)
+                CinematicManager.QueueCinematic(new NoviceTutorialOnEnter(this));
+
+            CinematicManager.PlayQueuedCinematics();
         }
 
         public ItemProficiency GetItemProficiencies()

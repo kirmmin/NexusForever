@@ -15,6 +15,7 @@ using NexusForever.WorldServer.Game.RBAC;
 using NexusForever.WorldServer.Game;
 using NexusForever.WorldServer.Game.Achievement;
 using NexusForever.WorldServer.Game.CharacterCache;
+using NexusForever.WorldServer.Game.Cinematic;
 using NexusForever.WorldServer.Game.Contact;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Movement;
@@ -94,6 +95,7 @@ namespace NexusForever.WorldServer
             CharacterManager.Instance.Initialise();
             ResidenceManager.Instance.Initialise();
             GlobalStorefrontManager.Instance.Initialise();
+            GlobalCinematicManager.Instance.Initialise();
 
             ServerManager.Instance.Initialise(RealmId); 
 

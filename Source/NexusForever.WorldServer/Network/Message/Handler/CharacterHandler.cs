@@ -316,11 +316,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     });
                 }
 
-                //TODO: handle starting locations per race
-                character.LocationX = -7683.809f;
-                character.LocationY = -942.5914f;
-                character.LocationZ = -666.6343f;
-                character.WorldId = 870;
+                //TODO: handle starting locations per race - this is set to the Novice Tutorial zone
+                character.LocationX = 29.128599166870117f;
+                character.LocationY = -853.87158203125f;
+                character.LocationZ = -560.18798828125f;
+                character.WorldId = 3460;
 
                 character.ActiveSpec = 0;
 
