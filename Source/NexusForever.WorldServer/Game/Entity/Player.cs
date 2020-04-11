@@ -16,6 +16,8 @@ using NexusForever.Shared.GameTable.Static;
 using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Achievement;
 using NexusForever.WorldServer.Game.CharacterCache;
+using NexusForever.WorldServer.Game.Cinematic;
+using NexusForever.WorldServer.Game.Cinematic.Cinematics;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
@@ -136,6 +138,7 @@ namespace NexusForever.WorldServer.Game.Entity
         public QuestManager QuestManager { get; }
         public CharacterAchievementManager AchievementManager { get; }
         public SupplySatchelManager SupplySatchelManager { get; }
+        public CinematicManager CinematicManager { get; }
 
         public VendorInfo SelectedVendorInfo { get; set; } // TODO unset this when too far away from vendor
 
@@ -144,6 +147,8 @@ namespace NexusForever.WorldServer.Game.Entity
 
         private LogoutManager logoutManager;
         private PendingTeleport pendingTeleport;
+
+        private bool firstTimeLoggingIn;
 
         public Player(WorldSession session, CharacterModel model)
             : base(EntityType.Player)
@@ -183,6 +188,7 @@ namespace NexusForever.WorldServer.Game.Entity
             QuestManager            = new QuestManager(this, model);
             AchievementManager      = new CharacterAchievementManager(this, model);
             SupplySatchelManager    = new SupplySatchelManager(this, model);
+            CinematicManager        = new CinematicManager(this);
 
             Session.EntitlementManager.OnNewCharacter(model);
 
@@ -224,6 +230,7 @@ namespace NexusForever.WorldServer.Game.Entity
             SetStat(Stat.Shield, 450u);
 
             CharacterManager.Instance.RegisterPlayer(this);
+            firstTimeLoggingIn = model.TimePlayedTotal == 0;
         }
 
         public override void Update(double lastTick)
@@ -460,6 +467,12 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 InnateIndex = InnateIndex
             });
+
+            // TODO: Move this to a script
+            if (Map.Entry.Id == 3460 && firstTimeLoggingIn)
+                CinematicManager.QueueCinematic(new NoviceTutorialOnEnter(this));
+
+            CinematicManager.PlayQueuedCinematics();
         }
 
         public ItemProficiency GetItemProficiencies()

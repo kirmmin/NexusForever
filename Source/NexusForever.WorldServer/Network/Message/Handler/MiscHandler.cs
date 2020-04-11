@@ -83,5 +83,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         public static void HandleClientZoneChange(WorldSession session, ClientZoneChange zoneChange)
         {
         }
+        
+        [MessageHandler(GameMessageOpcode.ClientCinematicState)]
+        public static void HandleCinematicState(WorldSession session, ClientCinematicState cinematicState)
+        {
+            session.Player.CinematicManager.HandleClientCinematicState(cinematicState.State);
+        }
     }
 }
