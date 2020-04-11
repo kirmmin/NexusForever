@@ -27,6 +27,8 @@ using NexusForever.WorldServer.Game.Social;
 using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Game.Storefront;
 using NexusForever.WorldServer.Network;
+using NexusForever.WorldServer.Game.CharacterCache;
+using NexusForever.WorldServer.Game.Cinematic;
 
 namespace NexusForever.WorldServer
 {
@@ -89,6 +91,8 @@ namespace NexusForever.WorldServer
             GlobalStorefrontManager.Instance.Initialise();
 
             GlobalAchievementManager.Instance.Initialise();
+            GlobalCinematicManager.Instance.Initialise();
+
             ServerManager.Instance.Initialise(RealmId); 
 
             MessageManager.Instance.Initialise();
