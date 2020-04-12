@@ -365,6 +365,7 @@ namespace NexusForever.WorldServer.Game.Spell
 
             SelectTargets();
             ExecuteEffects();
+            HandleVisual();
 
             SendSpellGo();
 
@@ -388,6 +389,41 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             if (parameters.CharacterSpell?.MaxAbilityCharges > 0)
                 parameters.CharacterSpell.UseCharge();
+        }
+
+        private void HandleVisual()
+        {
+            foreach (Spell4VisualEntry visual in parameters.SpellInfo.Visuals)
+            {
+                VisualEffectEntry visualEffect = GameTableManager.Instance.VisualEffect.GetEntry(visual.VisualEffectId);
+                if (visualEffect == null)
+                    throw new InvalidOperationException($"VisualEffectEntry with ID {visual.VisualEffectId} does not exist");
+
+                if (visualEffect.VisualType == 0 && visualEffect.ModelSequenceIdTarget00 > 0)
+                {
+                    ushort emotesId = (ushort)(GameTableManager.Instance.Emotes.Entries.FirstOrDefault(i => i.NoArgAnim == visualEffect.ModelSequenceIdTarget00)?.Id ?? 0u);
+
+                    // TODO: Adjust logic as necessary. It's possible that there are other packets used instead of the ServerEntityEmote to have them "play" effects appropriately.
+                    if (emotesId == 0)
+                        return;
+
+                    caster.EnqueueToVisible(new ServerEntityEmote
+                    {
+                        EmotesId = emotesId,
+                        SourceUnitId = caster.Guid
+                    }, true);
+                    
+                    if (visualEffect.Duration > 0)
+                        events.EnqueueEvent(new SpellEvent(visualEffect.Duration / 1000d, () => 
+                        {
+                            caster.EnqueueToVisible(new ServerEntityEmote
+                            {
+                                EmotesId = 0,
+                                SourceUnitId = caster.Guid
+                            }, true);
+                        }));
+                }
+            }
         }
 
         private void SelectTargets()
