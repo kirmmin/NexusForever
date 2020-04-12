@@ -20,9 +20,11 @@ namespace NexusForever.WorldServer.Game.Spell
         public PrerequisiteEntry TargetCastPrerequisites { get; }
         public PrerequisiteEntry CasterPersistencePrerequisites { get; }
         public PrerequisiteEntry TargetPersistencePrerequisites { get; }
+        public Spell4VisualGroupEntry VisualGroup { get; }
 
         public List<TelegraphDamageEntry> Telegraphs { get; }
         public List<Spell4EffectsEntry> Effects { get; }
+        public List<Spell4VisualEntry> Visuals { get; } = new List<Spell4VisualEntry>();
 
         public SpellInfo(SpellBaseInfo spellBaseBaseInfo, Spell4Entry spell4Entry)
         {
@@ -39,9 +41,19 @@ namespace NexusForever.WorldServer.Game.Spell
             TargetCastPrerequisites        = GameTableManager.Instance.Prerequisite.GetEntry(spell4Entry.PrerequisiteIdTargetCast);
             CasterPersistencePrerequisites = GameTableManager.Instance.Prerequisite.GetEntry(spell4Entry.PrerequisiteIdCasterPersistence);
             TargetPersistencePrerequisites = GameTableManager.Instance.Prerequisite.GetEntry(spell4Entry.PrerequisiteIdTargetPersistence);
+            VisualGroup                    = GameTableManager.Instance.Spell4VisualGroup.GetEntry(spell4Entry.Spell4VisualGroupId);
 
             Telegraphs = GlobalSpellManager.Instance.GetTelegraphDamageEntries(spell4Entry.Id).ToList();
             Effects = GlobalSpellManager.Instance.GetSpell4EffectEntries(spell4Entry.Id).ToList();
+
+            if (VisualGroup != null)
+                foreach (uint visual in VisualGroup.Spell4VisualIdVisuals.Where(i => i != 0).ToList())
+                {
+                    Spell4VisualEntry visualEntry = GameTableManager.Instance.Spell4Visual.GetEntry(visual);
+                    if (visualEntry != null)
+                        Visuals.Add(visualEntry);
+                }
+                    
         }
     }
 }
