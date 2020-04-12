@@ -161,7 +161,7 @@ namespace NexusForever.WorldServer.Game.Spell
 
             if (caster is Player player && !player.IsLoading)
             {
-                player.Session.EnqueueMessageEncrypted(new Server07F9
+                player.Session.EnqueueMessageEncrypted(new ServerSpellFinishResult
                 {
                     ServerUniqueId = CastingId,
                     CastResult     = result,

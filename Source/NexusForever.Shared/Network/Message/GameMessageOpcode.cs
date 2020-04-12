@@ -203,6 +203,8 @@ namespace NexusForever.Shared.Network.Message
         ServerUnlockPetFlair            = 0x068D,
         ServerChangePetStance           = 0x068F,
         ServerPublicEventStart          = 0x0700,
+        ClientRaidInfoRequest           = 0x0719,
+        ServerRaidInfoList              = 0x071A,
         ClientRandomRollRequest         = 0x071B,
         ServerRandomRollResponse        = 0x071C,
         ServerEntityInteractiveUpdate   = 0x0755,
@@ -222,7 +224,7 @@ namespace NexusForever.Shared.Network.Message
         Server07F6                      = 0x07F6, // spell related
         Server07F7                      = 0x07F7, // spell related
         Server07F8                      = 0x07F8, // spell related
-        Server07F9                      = 0x07F9, // spell related
+        ServerSpellFinishResult         = 0x07F9, // spell related
         Server07FA                      = 0x07FA, // spell related
         Server07FB                      = 0x07FB, // spell miss info?
         ServerSpellCastResult           = 0x07FC,

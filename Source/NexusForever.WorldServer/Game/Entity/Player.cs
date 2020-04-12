@@ -512,7 +512,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 Session.EnqueueMessageEncrypted(new ServerEntityDestroy
                 {
                     Guid     = entity.Guid,
-                    Unknown0 = true
+                    WasDestroyed = true
                 });
             }
         }

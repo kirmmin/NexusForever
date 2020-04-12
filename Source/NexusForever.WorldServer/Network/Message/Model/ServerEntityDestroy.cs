@@ -7,12 +7,12 @@ namespace NexusForever.WorldServer.Network.Message.Model
     public class ServerEntityDestroy : IWritable
     {
         public uint Guid { get; set; }
-        public bool Unknown0 { get; set; }
+        public bool WasDestroyed { get; set; }
 
         public void Write(GamePacketWriter writer)
         {
             writer.Write(Guid);
-            writer.Write(Unknown0);
+            writer.Write(WasDestroyed);
         }
     }
 }
