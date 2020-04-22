@@ -48,6 +48,7 @@ namespace NexusForever.WorldServer.Game.Entity
         private byte innateIndex;
 
         private readonly Player player;
+        private CharacterSpell continuousSpell;
 
         private readonly Dictionary<uint /*spell4BaseId*/, CharacterSpell> spells = new();
         private readonly Dictionary<uint /*spell4Id*/, double /*cooldown*/> spellCooldowns = new();
@@ -152,13 +153,12 @@ namespace NexusForever.WorldServer.Game.Entity
             // update global cooldown
             if (globalSpellCooldown > 0d)
             {
-                if (globalSpellCooldown - lastTick <= 0d)
+                globalSpellCooldown -= lastTick;
+                if (globalSpellCooldown <= 0d)
                 {
                     globalSpellCooldown = 0d;
                     log.Trace("Global spell cooldown has reset.");
                 }
-                else
-                    globalSpellCooldown -= lastTick;
             }
 
             // update spell cooldowns
@@ -175,6 +175,9 @@ namespace NexusForever.WorldServer.Game.Entity
 
             foreach (CharacterSpell unlockedSpell in spells.Values)
                 unlockedSpell.Update(lastTick);
+
+            if (globalSpellCooldown <= 0d && !player.IsCasting())
+                continuousSpell?.SpellManagerCast();
         }
 
         public void Save(CharacterContext context)
@@ -487,6 +490,14 @@ namespace NexusForever.WorldServer.Game.Entity
                     });
                 }
             }
+        }
+
+        /// <summary>
+        /// Set the supplied spell as the spell to Continuously Cast when GCD expires. Should only be called by a <see cref="CharacterSpell"/>.
+        /// </summary>
+        public void SetAsContinuousCast(CharacterSpell spell)
+        {
+            continuousSpell = spell;
         }
 
         public void SendInitialPackets()
