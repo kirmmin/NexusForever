@@ -31,6 +31,7 @@ namespace NexusForever.WorldServer.Network
         public AccountCurrencyManager AccountCurrencyManager { get; private set; }
         public EntitlementManager EntitlementManager { get; private set; }
         public RewardTrackManager RewardTrackManager { get; set; }
+        public AccountInventory AccountInventory { get; set; }
 
         public AccountTier AccountTier => AccountRbacManager.HasPermission(Permission.Signature) ? AccountTier.Signature : AccountTier.Basic;
 
@@ -78,6 +79,7 @@ namespace NexusForever.WorldServer.Network
             AccountCurrencyManager = new AccountCurrencyManager(this, account);
             EntitlementManager     = new EntitlementManager(this, account);
             RewardTrackManager     = new RewardTrackManager(this, account);
+            AccountInventory       = new AccountInventory(this, account);
         }
 
         public void SetEncryptionKey(byte[] sessionKey)

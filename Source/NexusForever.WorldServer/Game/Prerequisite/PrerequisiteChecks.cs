@@ -182,6 +182,22 @@ namespace NexusForever.WorldServer.Game.Prerequisite
                 case PrerequisiteComparison.NotEqual:
                     return player.Faction1 != (Faction)value;
                 default:
+                    log.Warn($"Unhandled PrerequisiteComparison {comparison} for {PrerequisiteType.Faction2}!");
+                    return false;
+            }
+        }
+
+        [PrerequisiteCheck(PrerequisiteType.AccountItemClaimed)]
+        private static bool PrerequisiteCheckAccountItemClaimed(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        {
+            switch (comparison)
+            {
+                case PrerequisiteComparison.NotEqual:
+                    return !player.Inventory.HasItem(value);
+                case PrerequisiteComparison.Equal:
+                    return player.Inventory.HasItem(value);
+                default:
+                    log.Warn($"Unhandled PrerequisiteComparison {comparison} for {PrerequisiteType.AccountItemClaimed}!");
                     return false;
             }
         }

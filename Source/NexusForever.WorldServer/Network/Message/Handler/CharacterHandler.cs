@@ -125,8 +125,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 session.Characters.Clear();
                 session.Characters.AddRange(characters);
 
-                session.AccountCurrencyManager.SendCharacterListPacket();
-                session.GenericUnlockManager.SendUnlockList();
+                session.AccountInventory.SendCharacterListPackets();
 
                 session.EnqueueMessageEncrypted(new ServerAccountEntitlements
                 {
@@ -147,6 +146,9 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 // this is set in the tbl files so a value should always exist
                 uint characterSlots = (uint)(session.EntitlementManager.GetRewardProperty(RewardPropertyType.CharacterSlots).GetValue(0u) ?? 2u);
                 uint characterCount = (uint)characters.Count(c => c.DeleteTime == null);
+
+                session.AccountCurrencyManager.SendCharacterListPacket();
+                session.GenericUnlockManager.SendUnlockList();
 
                 var serverCharacterList = new ServerCharacterList
                 {
