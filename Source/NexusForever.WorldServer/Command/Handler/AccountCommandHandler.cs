@@ -101,5 +101,33 @@ namespace NexusForever.WorldServer.Command.Handler
 
             return Task.CompletedTask;
         }
+
+        [SubCommandHandler("itemadd", "Add an Account Item to the Account Inventory")]
+        public Task HandleAccountItemAdd(CommandContext context, string command, string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                SendHelpAsync(context);
+                return Task.CompletedTask;
+            }
+
+            uint itemId = 0;
+            if (!uint.TryParse(parameters[0], out itemId))
+            {
+                context.SendErrorAsync($"Could not parse Item ID. Please make sure you've entered it correctly.");
+                return Task.CompletedTask;
+            }
+
+            AccountItemEntry accountItem = GameTableManager.Instance.AccountItem.GetEntry(itemId);
+            if (accountItem == null)
+            {
+                context.SendErrorAsync($"Could not find Account Item with ID {itemId}. Please try again with a valid ID.");
+                return Task.CompletedTask;
+            }
+
+            context.Session.AccountInventory.ItemCreate(accountItem);
+
+            return Task.CompletedTask;
+        }
     }
 }

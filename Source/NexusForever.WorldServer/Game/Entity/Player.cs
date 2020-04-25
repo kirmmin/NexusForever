@@ -252,6 +252,7 @@ namespace NexusForever.WorldServer.Game.Entity
             SpellManager.Update(lastTick);
             CostumeManager.Update(lastTick);
             QuestManager.Update(lastTick);
+            MailManager.Update(lastTick);
 
             saveTimer.Update(lastTick);
             if (saveTimer.HasElapsed)
@@ -787,6 +788,7 @@ namespace NexusForever.WorldServer.Game.Entity
             Session.GenericUnlockManager.Save(context);
             Session.AccountCurrencyManager.Save(context);
             Session.EntitlementManager.Save(context);
+            Session.AccountInventory.Save(context);
 
             CostumeManager.Save(context);
             KeybindingManager.Save(context);
