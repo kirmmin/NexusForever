@@ -123,8 +123,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 session.Characters.Clear();
                 session.Characters.AddRange(characters);
 
-                session.AccountCurrencyManager.SendCharacterListPacket();
-                session.GenericUnlockManager.SendUnlockList();
+                session.AccountInventory.SendCharacterListPackets();
 
                 session.EnqueueMessageEncrypted(new ServerAccountEntitlements
                 {
@@ -136,6 +135,9 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         })
                         .ToList()
                 });
+
+                session.AccountCurrencyManager.SendCharacterListPacket();
+                session.GenericUnlockManager.SendUnlockList();
 
                 var serverCharacterList = new ServerCharacterList
                 {
