@@ -245,6 +245,7 @@ namespace NexusForever.Shared.Network.Message
         ClientStorefrontPurchaseAccount = 0x0828,
         ClientStorefrontPurchaseCharacter = 0x082A,
         ClientStorefrontRequestCatalog  = 0x082D,
+        ClientStorefrontRequestPurchaseHistory = 0x082E,
         ClientSummonVanityPet           = 0x082F,
         ServerTimeOfDay                 = 0x0845,
         Server0854                      = 0x0854, // crafting schematic
@@ -289,5 +290,6 @@ namespace NexusForever.Shared.Network.Message
         ServerStoreFinalise             = 0x0987,
         ServerStoreCategories           = 0x0988,
         ServerStoreOffers               = 0x098B,
+        ServerStorePurchaseHistory      = 0x098E
     }
 }
