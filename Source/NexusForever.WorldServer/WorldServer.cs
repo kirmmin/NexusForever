@@ -25,6 +25,7 @@ using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Game.Storefront;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Game.CharacterCache;
+using NexusForever.WorldServer.Game.Loot;
 
 namespace NexusForever.WorldServer
 {
@@ -72,6 +73,7 @@ namespace NexusForever.WorldServer
             GlobalStorefrontManager.Instance.Initialise();
 
             GlobalAchievementManager.Instance.Initialise();
+            GlobalLootManager.Instance.Initialise();
 
             RealmId = ConfigurationManager<WorldServerConfiguration>.Instance.Config.RealmId;
             ServerManager.Instance.Initialise(RealmId); 
@@ -87,6 +89,7 @@ namespace NexusForever.WorldServer
                 ResidenceManager.Instance.Update(lastTick);
                 BuybackManager.Instance.Update(lastTick);
                 GlobalQuestManager.Instance.Update(lastTick);
+                GlobalLootManager.Instance.Update(lastTick);
             });
 
             using (WorldServerEmbeddedWebServer.Initialise())
