@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NexusForever.Database.Auth;
 
 namespace NexusForever.Database.Auth.Migrations
 {
     [DbContext(typeof(AuthContext))]
-    partial class AuthContextModelSnapshot : ModelSnapshot
+    [Migration("20200929013959_QuestActivateCommand")]
+    partial class QuestActivateCommand
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -115,63 +117,6 @@ namespace NexusForever.Database.Auth.Migrations
                         .HasName("PRIMARY");
 
                     b.ToTable("account_generic_unlock");
-                });
-
-            modelBuilder.Entity("NexusForever.Database.Auth.Model.AccountItemCooldownModel", b =>
-                {
-                    b.Property<uint>("Id")
-                        .HasColumnName("id")
-                        .HasColumnType("int(10) unsigned")
-                        .HasDefaultValue(0u);
-
-                    b.Property<uint>("CooldownGroupId")
-                        .HasColumnName("cooldownGroupId")
-                        .HasColumnType("int(10) unsigned");
-
-                    b.Property<uint>("Duration")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("duration")
-                        .HasColumnType("int(10) unsigned")
-                        .HasDefaultValue(0u);
-
-                    b.Property<DateTime?>("Timestamp")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("timestamp")
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("current_timestamp()");
-
-                    b.HasKey("Id", "CooldownGroupId")
-                        .HasName("PRIMARY");
-
-                    b.ToTable("account_item_cooldown");
-                });
-
-            modelBuilder.Entity("NexusForever.Database.Auth.Model.AccountItemModel", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("entry")
-                        .HasColumnType("bigint(20) unsigned")
-                        .HasDefaultValue(0ul);
-
-                    b.Property<uint>("AccountId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("accountId")
-                        .HasColumnType("int(10) unsigned")
-                        .HasDefaultValue(0u);
-
-                    b.Property<uint>("ItemId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("itemId")
-                        .HasColumnType("int(10) unsigned")
-                        .HasDefaultValue(0u);
-
-                    b.HasKey("Id", "AccountId")
-                        .HasName("PRIMARY");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("account_item");
                 });
 
             modelBuilder.Entity("NexusForever.Database.Auth.Model.AccountKeybindingModel", b =>
@@ -345,67 +290,6 @@ namespace NexusForever.Database.Auth.Migrations
                     b.HasIndex("PermissionId");
 
                     b.ToTable("account_permission");
-                });
-
-            modelBuilder.Entity("NexusForever.Database.Auth.Model.AccountRewardTrackMilestoneModel", b =>
-                {
-                    b.Property<uint>("Id")
-                        .HasColumnName("id")
-                        .HasColumnType("int(10) unsigned")
-                        .HasDefaultValue(0u);
-
-                    b.Property<uint>("RewardTrackId")
-                        .HasColumnName("rewardTrackId")
-                        .HasColumnType("int(10) unsigned")
-                        .HasDefaultValue(0u);
-
-                    b.Property<uint>("MilestoneId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("milestoneId")
-                        .HasColumnType("int(10) unsigned")
-                        .HasDefaultValue(0u);
-
-                    b.Property<int>("Choice")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("choice")
-                        .HasColumnType("int")
-                        .HasDefaultValue(-1);
-
-                    b.Property<uint>("PointsRequired")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("pointsRequired")
-                        .HasColumnType("int(10) unsigned")
-                        .HasDefaultValue(0u);
-
-                    b.HasKey("Id", "RewardTrackId", "MilestoneId")
-                        .HasName("PRIMARY");
-
-                    b.ToTable("account_reward_track_milestone");
-                });
-
-            modelBuilder.Entity("NexusForever.Database.Auth.Model.AccountRewardTrackModel", b =>
-                {
-                    b.Property<uint>("Id")
-                        .HasColumnName("id")
-                        .HasColumnType("int(10) unsigned")
-                        .HasDefaultValue(0u);
-
-                    b.Property<uint>("RewardTrackId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("rewardTrackId")
-                        .HasColumnType("int(10) unsigned")
-                        .HasDefaultValue(0u);
-
-                    b.Property<uint>("Points")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("points")
-                        .HasColumnType("int(10) unsigned")
-                        .HasDefaultValue(0u);
-
-                    b.HasKey("Id", "RewardTrackId")
-                        .HasName("PRIMARY");
-
-                    b.ToTable("account_reward_track");
                 });
 
             modelBuilder.Entity("NexusForever.Database.Auth.Model.AccountRoleModel", b =>
@@ -937,11 +821,6 @@ namespace NexusForever.Database.Auth.Migrations
                             Id = 99u,
                             Name = "Command: ReputationUpdate"
                         },
-                        new 
-                        {
-                            Id = 105u,
-                            Name = "Command: QuestActivate"
-                        },
                         new
                         {
                             Id = 10000u,
@@ -949,8 +828,8 @@ namespace NexusForever.Database.Auth.Migrations
                         },
                         new
                         {
-                            Id = 10001u,
-                            Name = "Other: Signature"
+                            Id = 105u,
+                            Name = "Command: QuestActivate"
                         });
                 });
 
@@ -1160,26 +1039,6 @@ Besuch: https://github.com/NexusForever/NexusForever"
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("NexusForever.Database.Auth.Model.AccountItemCooldownModel", b =>
-                {
-                    b.HasOne("NexusForever.Database.Auth.Model.AccountModel", "Account")
-                        .WithMany("AccountItemCooldown")
-                        .HasForeignKey("Id")
-                        .HasConstraintName("FK__account_item_cooldown_id__account_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("NexusForever.Database.Auth.Model.AccountItemModel", b =>
-                {
-                    b.HasOne("NexusForever.Database.Auth.Model.AccountModel", "Account")
-                        .WithMany("AccountItem")
-                        .HasForeignKey("AccountId")
-                        .HasConstraintName("FK__account_item_accountId__account_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("NexusForever.Database.Auth.Model.AccountKeybindingModel", b =>
                 {
                     b.HasOne("NexusForever.Database.Auth.Model.AccountModel", "Account")
@@ -1203,26 +1062,6 @@ Besuch: https://github.com/NexusForever/NexusForever"
                         .WithMany("AccountPermission")
                         .HasForeignKey("PermissionId")
                         .HasConstraintName("FK__account_permission_permission_id__permission_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("NexusForever.Database.Auth.Model.AccountRewardTrackMilestoneModel", b =>
-                {
-                    b.HasOne("NexusForever.Database.Auth.Model.AccountRewardTrackModel", "RewardTrack")
-                        .WithMany("Milestone")
-                        .HasForeignKey("Id", "RewardTrackId")
-                        .HasConstraintName("FK__account_reward_track_milestone_id-rewardTrackId__account_reward_track_id-rewardTrackId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("NexusForever.Database.Auth.Model.AccountRewardTrackModel", b =>
-                {
-                    b.HasOne("NexusForever.Database.Auth.Model.AccountModel", "Account")
-                        .WithMany("AccountRewardTrack")
-                        .HasForeignKey("Id")
-                        .HasConstraintName("FK__account_reward_track_id__account_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
