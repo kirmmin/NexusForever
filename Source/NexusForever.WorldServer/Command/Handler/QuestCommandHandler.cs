@@ -96,13 +96,39 @@ namespace NexusForever.WorldServer.Command.Handler
 
             context.Session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.KillCreature, creatureId, quantity);
             context.Session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.KillCreature2, creatureId, quantity);
-            foreach (uint targetGroupId in AssetManager.Instance.GetTargetGroupsForCreatureId(creatureId) ?? Enumerable.Empty<uint>())
-            {
-                context.Session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.KillTargetGroup, targetGroupId, quantity);
-                context.Session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.KillTargetGroups, targetGroupId, quantity);
-            }
+            context.Session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.KillTargetGroup, creatureId, quantity);
+            context.Session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.KillTargetGroups, creatureId, quantity);
 
             await context.SendMessageAsync($"Success! You've killed {quantity} of Creature ID: {creatureId}");
+            return;
+        }
+
+        [SubCommandHandler("activate", "id, [quantity | checklistIdx] - Update all quest objectives that require a kill with the given creature ID.")]
+        public async Task QuestActivateCommandHandler(CommandContext context, string command, string[] parameters)
+        {
+            if (parameters.Length < 1)
+            {
+                await context.SendErrorAsync("You must specify a Creature ID to kill.");
+                return;
+            }
+
+            if (!uint.TryParse(parameters[0], out uint creatureId))
+            {
+                await context.SendErrorAsync("Unable to parse Creature ID. Ensure you've entered just digits and please try again.");
+                return;
+            }
+
+            uint quantity = 1;
+            if (parameters.Length == 2 && uint.TryParse(parameters[1], out uint quantityParse))
+                quantity = quantityParse;
+
+            context.Session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateEntity, creatureId, quantity);
+            context.Session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateEntity2, creatureId, quantity);
+            context.Session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateTargetGroup, creatureId, quantity);
+            context.Session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateTargetGroupChecklist, creatureId, quantity);
+            context.Session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.SucceedCSI, creatureId, quantity);
+
+            await context.SendMessageAsync($"Success! You've activated {quantity} of Creature ID: {creatureId}");
             return;
         }
     }

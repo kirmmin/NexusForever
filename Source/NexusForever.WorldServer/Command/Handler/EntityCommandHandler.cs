@@ -63,7 +63,8 @@ namespace NexusForever.WorldServer.Command.Handler
         {
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("=============================");
-            stringBuilder.AppendLine($"{GetCreatureName(targetEntity, lang)} | UnitId: {targetEntity.Guid} | CreatureID: {targetEntity.CreatureId} | Type: {targetEntity.Type}");
+            stringBuilder.AppendLine($"{GetCreatureName(targetEntity, lang)} | UnitId: {targetEntity.Guid} | Type: {targetEntity.Type}");
+            stringBuilder.AppendLine($"CreatureID: {targetEntity.CreatureId} | QuestChecklistIdx: {targetEntity.QuestChecklistIdx}");
 
             return stringBuilder;
         }

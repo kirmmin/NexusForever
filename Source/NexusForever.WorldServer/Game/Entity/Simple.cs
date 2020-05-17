@@ -10,8 +10,6 @@ namespace NexusForever.WorldServer.Game.Entity
     [DatabaseEntity(EntityType.Simple)]
     public class Simple : UnitEntity
     {
-        public byte QuestChecklistIdx { get; private set; }
-
         public Simple()
             : base(EntityType.Simple)
         {
