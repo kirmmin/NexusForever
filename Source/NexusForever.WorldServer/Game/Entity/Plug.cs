@@ -2,6 +2,9 @@
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.Map;
+using NexusForever.WorldServer.Script;
+using System.Numerics;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -15,6 +18,8 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             PlotEntry = plotEntry;
             PlugEntry = plugEntry;
+
+            ScriptManager.Instance.GetScript<PlugScript>(PlugEntry.Id)?.OnCreate(this);
         }
 
         protected override IEntityModel BuildEntityModel()
@@ -25,6 +30,13 @@ namespace NexusForever.WorldServer.Game.Entity
                 PlugId    = (ushort)PlugEntry.WorldIdPlug00,
                 PlugFlags = 63
             };
+        }
+
+        public override void OnAddToMap(BaseMap map, uint guid, Vector3 vector)
+        {
+            base.OnAddToMap(map, guid, vector);
+
+            ScriptManager.Instance.GetScript<PlugScript>(PlugEntry.Id)?.OnAddToMap(this);
         }
     }
 }

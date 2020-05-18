@@ -10,6 +10,7 @@ using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Map;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
+using NexusForever.WorldServer.Script;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -54,6 +55,20 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             get => Convert.ToBoolean(GetStatInteger(Stat.Sheathed) ?? 0u);
             set => SetStat(Stat.Sheathed, Convert.ToUInt32(value));
+        }
+
+        public StandState StandState
+        {
+            get => (StandState)(GetStatInteger(Stat.StandState) ?? 0u);
+            set
+            {
+                SetStat(Stat.StandState, (uint)value);
+                EnqueueToVisible(new ServerEmote
+                {
+                    Guid = Guid,
+                    StandState = value
+                });
+            }
         }
 
         /// <summary>
@@ -102,6 +117,9 @@ namespace NexusForever.WorldServer.Game.Entity
             LeashPosition   = vector;
             MovementManager = new MovementManager(this, vector, Rotation);
             base.OnAddToMap(map, guid, vector);
+
+            if (Type != EntityType.Plug && Type != EntityType.Player)
+                ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnAddToMap(this);
         }
 
         public override void OnRemoveFromMap()
