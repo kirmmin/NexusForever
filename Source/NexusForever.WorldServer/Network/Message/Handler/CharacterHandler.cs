@@ -37,6 +37,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
 {
     public static class CharacterHandler
     {
+
         [MessageHandler(GameMessageOpcode.ClientRealmList)]
         public static void HandleRealmList(WorldSession session, ClientRealmList realmList)
         {
@@ -276,15 +277,14 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         Value = value
                     });
 
-                    CharacterCustomizationEntry entry = GetCharacterCustomisation(customisations, creationEntry.RaceId, creationEntry.Sex, label, value);
-                    if (entry == null)
-                        continue;
-
-                    character.Appearance.Add(new CharacterAppearanceModel
+                    foreach(CharacterCustomizationEntry entry in AssetManager.Instance.GetCharacterCustomisation(customisations, creationEntry.RaceId, creationEntry.Sex, label, value))
                     {
-                        Slot      = (byte)entry.ItemSlotId,
-                        DisplayId = (ushort)entry.ItemDisplayId
-                    });
+                        character.Appearance.Add(new CharacterAppearanceModel
+                        {
+                            Slot = (byte)entry.ItemSlotId,
+                            DisplayId = (ushort)entry.ItemDisplayId
+                        });
+                    }
                 }
 
                 for (int i = 0; i < characterCreate.Bones.Count; ++i)
@@ -397,22 +397,6 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 });
 
                 throw;
-            }
-
-            CharacterCustomizationEntry GetCharacterCustomisation(Dictionary<uint, uint> customisations, uint race, uint sex, uint primaryLabel, uint primaryValue)
-            {
-                ImmutableList<CharacterCustomizationEntry> entries = AssetManager.Instance.GetPrimaryCharacterCustomisation(race, sex, primaryLabel, primaryValue);
-                if (entries == null)
-                    return null;
-                if (entries.Count == 1)
-                    return entries[0];
-
-                // customisation has multiple results, filter with secondary label and value 
-                uint secondaryLabel = entries.First(e => e.CharacterCustomizationLabelId01 != 0).CharacterCustomizationLabelId01;
-                uint secondaryValue = customisations[secondaryLabel];
-
-                CharacterCustomizationEntry entry = entries.SingleOrDefault(e => e.CharacterCustomizationLabelId01 == secondaryLabel && e.Value01 == secondaryValue);
-                return entry ?? entries.Single(e => e.CharacterCustomizationLabelId01 == 0 && e.Value01 == 0);
             }
         }
 
@@ -658,6 +642,17 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     .Select(i => i.BuildNetworkItem())
                     .ToList()
             });
+        }
+        
+        [MessageHandler(GameMessageOpcode.ClientCharacterAppearanceChange)]
+        public static void HandleAppearanceChange(WorldSession session, ClientCharacterAppearanceChange appearanceChange)
+        {
+            // merge seperate label and value lists into a single dictonary
+            Dictionary<uint, uint> customisations = appearanceChange.Labels
+                .Zip(appearanceChange.Values, (l, v) => new { l, v })
+                .ToDictionary(p => p.l, p => p.v);
+
+            session.Player.SetCharacterCustomisation(customisations, appearanceChange.Bones, (Race)appearanceChange.Race, (Sex)appearanceChange.Sex, appearanceChange.UseServiceTokens);
         }
     }
 }
