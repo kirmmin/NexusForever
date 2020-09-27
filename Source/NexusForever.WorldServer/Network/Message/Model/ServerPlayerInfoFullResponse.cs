@@ -9,23 +9,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
     [Message(GameMessageOpcode.ServerPlayerInfoFullResponse)]
     public class ServerPlayerInfoFullResponse : IWritable
     {
-        public Base BaseData { get; set; }
-
-        public class Base : IWritable
-        {
-            public byte ResultCode { get; set; }
-            public TargetPlayerIdentity Identity { get; set; }
-            public string Name { get; set; }
-            public Faction Faction { get; set; }
-
-            public void Write(GamePacketWriter writer)
-            {
-                writer.Write(ResultCode, 3u);
-                Identity.Write(writer);
-                writer.WriteStringFixed(Name);
-                writer.Write(Faction, 14u);
-            }
-        }
+        public ServerPlayerInfoBasicResponse BaseData { get; set; }
 
         public bool IsClassPathSet { get; set; } = true;
         public Path Path { get; set; }

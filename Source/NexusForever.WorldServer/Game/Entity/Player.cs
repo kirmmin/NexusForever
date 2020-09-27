@@ -16,6 +16,7 @@ using NexusForever.Shared.GameTable.Static;
 using NexusForever.Shared.Network;
 using NexusForever.WorldServer.Game.Achievement;
 using NexusForever.WorldServer.Game.CharacterCache;
+using NexusForever.WorldServer.Game.Contact;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
@@ -165,10 +166,12 @@ namespace NexusForever.WorldServer.Game.Entity
         public ReputationManager ReputationManager { get; }
         public GuildManager GuildManager { get; }
         public ChatManager ChatManager { get; }
+        public ContactManager ContactManager { get; }
 
         public VendorInfo SelectedVendorInfo { get; set; } // TODO unset this when too far away from vendor
 
         private UpdateTimer saveTimer = new(SaveDuration);
+
         private PlayerSaveMask saveMask;
 
         private LogoutManager logoutManager;
@@ -225,6 +228,7 @@ namespace NexusForever.WorldServer.Game.Entity
             ReputationManager       = new ReputationManager(this, model);
             GuildManager            = new GuildManager(this, model);
             ChatManager             = new ChatManager(this);
+            ContactManager          = new ContactManager(this, model);
 
             // temp
             Properties.Add(Property.BaseHealth, new PropertyValue(Property.BaseHealth, 200f, 800f));
@@ -418,6 +422,7 @@ namespace NexusForever.WorldServer.Game.Entity
             XpManager.Save(context);
             ReputationManager.Save(context);
             GuildManager.Save(context);
+            ContactManager.Save(context);
 
             Session.EntitlementManager.Save(context);
         }
@@ -512,6 +517,8 @@ namespace NexusForever.WorldServer.Game.Entity
             SendInGameTime();
             PathManager.SendInitialPackets();
             BuybackManager.Instance.SendBuybackItems(this);
+
+            ContactManager.OnLogin();
 
             Session.EnqueueMessageEncrypted(new ServerHousingNeighbors());
             Session.EnqueueMessageEncrypted(new ServerInstanceSettings());
@@ -706,6 +713,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public void CleanUp()
         {
+            ContactManager.OnLogout();
             CharacterManager.Instance.DeregisterPlayer(this);
             CleanupManager.Track(Session.Account);
 
