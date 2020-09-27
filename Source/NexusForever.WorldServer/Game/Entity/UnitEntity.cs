@@ -90,7 +90,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
             // Cancel certain Spells / Buffs if required, when another ability is cast.
             // TODO: Improve this with certain rules, as there will be abilities that can be cast while stealthed, etc.
-            if (parameters.UserInitiatedSpellCast)
+            if (parameters.UserInitiatedSpellCast && parameters.IsProxy == false)
             {
                 if (this is Player player)
                     player.Dismount();
