@@ -140,6 +140,9 @@ namespace NexusForever.WorldServer.Game.Social
                 out List<GridEntity> intersectedEntities
             );
 
+            // Remove all session in range who are currently ignoring this person
+            intersectedEntities.RemoveAll(e => ((Player)e).ContactManager.IsIgnored(session.Player.CharacterId)); // TODO: Could probably be cleaner by not grabbing users who are ignoring in the first place
+
             intersectedEntities.ForEach(e => ((Player)e).Session.EnqueueMessageEncrypted(serverChat));
             SendChatAccept(session);            
         }

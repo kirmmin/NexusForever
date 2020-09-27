@@ -15,6 +15,14 @@ namespace NexusForever.WorldServer
             public double? GridUnloadTimer { get; set; }
         }
 
+        public struct ContactLimits
+        {
+            public uint? MaxFriends { get; set; }
+            public uint? MaxRivals { get; set; }
+            public uint? MaxIgnored { get; set; }
+            public float? MaxRequestDuration { get; set; }
+        }
+
         public NetworkConfig Network { get; set; }
         public DatabaseConfig Database { get; set; }
         public MapConfig Map { get; set; }
@@ -23,5 +31,6 @@ namespace NexusForever.WorldServer
         public string MessageOfTheDay { get; set; }
         public uint LengthOfInGameDay { get; set; }
         public bool CrossFactionChat { get; set; } = true;
+        public ContactLimits Contacts { get; set; }
     }
 }

@@ -32,6 +32,11 @@
         "GridActionThreshold": 100,
         "GridUnloadTimer": 3600
     },
+    "Contacts": {
+        "MaxFriends": 100,
+        "MaxRivals": 100,
+        "MaxIgnored": 100
+    },
     "RealmId": 1,
     "MessageOfTheDay": "Welcome to this NexusForever server!",
     "LengthOfInGameDay": 12600,

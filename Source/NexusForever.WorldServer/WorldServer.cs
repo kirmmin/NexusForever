@@ -15,6 +15,7 @@ using NexusForever.WorldServer.Game.RBAC;
 using NexusForever.WorldServer.Game;
 using NexusForever.WorldServer.Game.Achievement;
 using NexusForever.WorldServer.Game.CharacterCache;
+using NexusForever.WorldServer.Game.Contact;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Movement;
 using NexusForever.WorldServer.Game.Entity.Network;
@@ -78,6 +79,7 @@ namespace NexusForever.WorldServer
             EntityCacheManager.Instance.Initialise();
             FactionManager.Instance.Initialise();
             GlobalMovementManager.Instance.Initialise();
+            GlobalContactManager.Instance.Initialise();
 
             AssetManager.Instance.Initialise();
             PrerequisiteManager.Instance.Initialise();
@@ -102,10 +104,11 @@ namespace NexusForever.WorldServer
 
                 ResidenceManager.Instance.Update(lastTick);
                 BuybackManager.Instance.Update(lastTick);
-                GlobalQuestManager.Instance.Update(lastTick);
+                GlobalQuestManager.Instance.Update(lastTick);                
+                CommandManager.Instance.Update(lastTick);
 
                 // process commands after everything else in the tick has processed
-                CommandManager.Instance.Update(lastTick);
+                GlobalContactManager.Instance.Update(lastTick);
             });
 
             using (WorldServerEmbeddedWebServer.Initialise())
