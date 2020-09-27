@@ -14,5 +14,6 @@ namespace NexusForever.WorldServer.Game.Spell
         public ushort TaxiNode { get; set; }
         public uint ThresholdValue { get; set; }
         public bool IsProxy { get; set; }
+        public bool ForceCancelOnly { get; set; }
     }
 }

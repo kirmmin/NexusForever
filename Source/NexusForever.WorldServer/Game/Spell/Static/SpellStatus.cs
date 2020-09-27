@@ -7,6 +7,7 @@
         Executing,
         Finished,
         Waiting,
-        Failed
+        Failed,
+        Finishing
     }
 }

@@ -90,8 +90,9 @@ namespace NexusForever.WorldServer.Game.Spell
                         thresholdSpells.Remove(thresholdSpell);
             }
 
-            if ((status == SpellStatus.Executing && !events.HasPendingEvent) || 
-                (status == SpellStatus.Waiting && !HasThresholdToCast))
+            if ((status == SpellStatus.Executing && !events.HasPendingEvent && !parameters.ForceCancelOnly) || 
+                (status == SpellStatus.Waiting && !HasThresholdToCast) ||
+                status == SpellStatus.Finishing)
             {
                 // spell effects have finished 
                 status = SpellStatus.Finished;
@@ -488,6 +489,9 @@ namespace NexusForever.WorldServer.Game.Spell
 
                 if (spell4EffectsEntry.DurationTime > 0 && spell4EffectsEntry.DurationTime > duration)
                     duration = spell4EffectsEntry.DurationTime;
+
+                if (spell4EffectsEntry.DurationTime == 0u && ((SpellEffectFlags)spell4EffectsEntry.Flags & SpellEffectFlags.CancelOnly) != 0)
+                    parameters.ForceCancelOnly = true;
             }
 
             if ((targetFlags & SpellEffectTargetFlags.Caster) == 0)
@@ -518,6 +522,7 @@ namespace NexusForever.WorldServer.Game.Spell
             thresholdValue = thresholdMax;
             events.CancelEvents();
             caster.RemoveEffect(CastingId);
+            status = SpellStatus.Finishing;
         }
 
         private void SendSpellCastResult(CastResult castResult)
