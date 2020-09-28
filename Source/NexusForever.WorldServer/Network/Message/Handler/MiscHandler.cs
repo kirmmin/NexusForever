@@ -108,5 +108,11 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         public static void HandleClientEnteredWorld(WorldSession session, ClientEnteredWorld enteredWorld)
         {
         }
+        
+        [MessageHandler(GameMessageOpcode.ClientCinematicState)]
+        public static void HandleCinematicState(WorldSession session, ClientCinematicState cinematicState)
+        {
+            session.Player.CinematicManager.HandleClientCinematicState(cinematicState.State);
+        }
     }
 }
