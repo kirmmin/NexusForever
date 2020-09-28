@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using NexusForever.Database.Character;
 using NexusForever.Database.Character.Model;
@@ -38,6 +39,8 @@ namespace NexusForever.WorldServer.Game.Spell
         private UnlockedSpellSaveMask saveMask;
 
         private UpdateTimer rechargeTimer;
+        private bool buttonPressed;
+        private bool noCooldown => SpellInfo.Entry.SpellCoolDown == 0 && SpellInfo.Entry.SpellCoolDownIds.Where(s => s != 0).Count() == 0;
 
         /// <summary>
         /// Create a new <see cref="CharacterSpell"/> from an existing database model.
@@ -129,10 +132,23 @@ namespace NexusForever.WorldServer.Game.Spell
         }
 
         /// <summary>
+        /// Used to call this spell from the <see cref="SpellManager"/>. For use in continuous casting.
+        /// </summary>
+        public void SpellManagerCast()
+        {
+            if (!buttonPressed)
+                throw new InvalidOperationException($"Spell should not cast because button is not held down!");
+
+            CastSpell();
+        }
+
+        /// <summary>
         /// Used for when the client does not have continuous casting enabled
         /// </summary>
         public void Cast()
         {
+            Owner.SpellManager.SetAsContinuousCast(null);
+            
             if (Owner.HasSpell(BaseInfo.GetSpellInfo(Tier).Entry.Id, out Spell spell))
             {
                 if ((spell.CastMethod == CastMethod.RapidTap || spell.CastMethod == CastMethod.ChargeRelease) && !spell.IsFinished)
@@ -151,11 +167,24 @@ namespace NexusForever.WorldServer.Game.Spell
         public void Cast(bool buttonPressed)
         {
             // TODO: Handle continuous casting of spell for Player if button remains depressed
+            this.buttonPressed = buttonPressed;
 
             // If the player depresses button after the spell had exceeded its threshold, don't try and recast the spell until button is pressed down again.
-            if (!buttonPressed && (CastMethod)BaseInfo.Entry.CastMethod != CastMethod.ChargeRelease)
+            if (buttonPressed && noCooldown && (CastMethod)BaseInfo.Entry.CastMethod != CastMethod.ChargeRelease)
+                Owner.SpellManager.SetAsContinuousCast(this);
+            else if (!buttonPressed && (CastMethod)BaseInfo.Entry.CastMethod != CastMethod.ChargeRelease)
+            {
+                Owner.SpellManager.SetAsContinuousCast(null);
                 return;
+            }
+            else
+                Owner.SpellManager.SetAsContinuousCast(null);
 
+            CastSpell();
+        }
+
+        private void CastSpell()
+        {
             if (Owner.HasSpell(BaseInfo.GetSpellInfo(Tier).Entry.Id, out Spell spell))
             {
                 if ((spell.CastMethod == CastMethod.RapidTap || spell.CastMethod == CastMethod.ChargeRelease) && !spell.IsFinished)
@@ -165,11 +194,6 @@ namespace NexusForever.WorldServer.Game.Spell
                 }
             }
 
-            CastSpell();
-        }
-
-        private void CastSpell()
-        {
             Owner.CastSpell(new SpellParameters
             {
                 CharacterSpell         = this,
