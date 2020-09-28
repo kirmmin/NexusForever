@@ -285,6 +285,9 @@ namespace NexusForever.WorldServer.Game.Entity
                     }
                 });
             }
+
+            if (item.Entry != null)
+                player.AchievementManager.CheckAchievements(player, AchievementType.AccountItemLoot, item.Entry.Id, count: item.StackCount);
         }
 
         /// <summary>
@@ -357,6 +360,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 }
             }
 
+            uint originalCount = count;
             // create new stacks for the remaining count
             while (count > 0)
             {
@@ -371,7 +375,10 @@ namespace NexusForever.WorldServer.Game.Entity
                         {
                             ErrorCode = ItemError.InventoryFull
                         });
-                        
+
+                    if (reason != ItemUpdateReason.ResourceConversion)
+                        player.AchievementManager.CheckAchievements(player, AchievementType.AccountItemLoot, itemEntry.Id, count: originalCount - count);
+
                     return;
                 }
 
@@ -392,6 +399,10 @@ namespace NexusForever.WorldServer.Game.Entity
 
                 count -= item.StackCount;
             }
+
+            // Handle achievements for receiving item
+            if (itemEntry != null)
+                player.AchievementManager.CheckAchievements(player, AchievementType.AccountItemLoot, itemEntry.Id, count: originalCount - count);
         }
 
         /// <summary>
