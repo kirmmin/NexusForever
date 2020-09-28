@@ -360,6 +360,7 @@ namespace NexusForever.WorldServer.Game.Spell
             {
                 CostSpell();
                 SetCooldown();
+                HandleVisual();
             }
 
             SelectTargets();
@@ -387,6 +388,43 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             if (parameters.CharacterSpell?.MaxAbilityCharges > 0)
                 parameters.CharacterSpell.UseCharge();
+        }
+
+        private void HandleVisual()
+        {
+            foreach (Spell4VisualEntry visual in parameters.SpellInfo.Visuals)
+            {
+                VisualEffectEntry visualEffect = GameTableManager.Instance.VisualEffect.GetEntry(visual.VisualEffectId);
+                if (visualEffect == null)
+                    throw new InvalidOperationException($"VisualEffectEntry with ID {visual.VisualEffectId} does not exist");
+
+                if (visualEffect.VisualType == 0 && visualEffect.ModelSequenceIdTarget00 > 0)
+                {
+                    ushort emotesId = (ushort)(GameTableManager.Instance.Emotes.Entries.FirstOrDefault(i => i.NoArgAnim == visualEffect.ModelSequenceIdTarget00)?.Id ?? 0u);
+
+                    // TODO: Adjust logic as necessary. It's possible that there are other packets used instead of the ServerEntityEmote to have them "play" effects appropriately.
+                    if (emotesId == 0)
+                        return;
+
+                    if (visualEffect.Duration > 0)
+                    {
+                        caster.EnqueueToVisible(new ServerEntityEmote
+                        {
+                            EmotesId = emotesId,
+                            SourceUnitId = caster.Guid
+                        }, true);
+
+                        events.EnqueueEvent(new SpellEvent(visualEffect.Duration / 1000d, () =>
+                        {
+                            caster.EnqueueToVisible(new ServerEntityEmote
+                            {
+                                EmotesId = 0,
+                                SourceUnitId = caster.Guid
+                            }, true);
+                        }));
+                    }
+                }
+            }
         }
 
         private void SelectTargets()
@@ -452,10 +490,7 @@ namespace NexusForever.WorldServer.Game.Spell
                         effectTarget.Effects.Add(info);
 
                         // TODO: if there is an unhandled exception in the handler, there will be an infinite loop on Execute()
-                        events.EnqueueEvent(new SpellEvent(spell4EffectsEntry.DelayTime / 1000d, () =>
-                        {
-                            handler.Invoke(this, effectTarget.Entity, info);
-                        }));
+                        handler.Invoke(this, effectTarget.Entity, info);
                     }
 
                     // Add durations for each effect so that when the Effect timer runs out, the Spell can Finish.

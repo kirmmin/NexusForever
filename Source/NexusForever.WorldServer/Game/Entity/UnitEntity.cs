@@ -179,7 +179,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public Spell.Spell GetActiveSpell(Func<Spell.Spell, bool> func)
         {
-            return pendingSpells.SingleOrDefault(func);
+            return pendingSpells.FirstOrDefault(func);
         }
     }
 }
