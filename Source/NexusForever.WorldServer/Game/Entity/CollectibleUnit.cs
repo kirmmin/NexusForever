@@ -10,13 +10,13 @@ using NexusForever.WorldServer.Game.Spell;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
-    [DatabaseEntity(EntityType.Simple)]
-    public class Simple : UnitEntity
+    [DatabaseEntity(EntityType.CollectableUnit)]
+    public class CollectableUnit : UnitEntity
     {
         public byte QuestChecklistIdx { get; private set; }
 
-        public Simple()
-            : base(EntityType.Simple)
+        public CollectableUnit()
+            : base(EntityType.CollectableUnit)
         {
         }
 
@@ -37,9 +37,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public override void OnActivate(Player activator)
         {
-            Creature2Entry entry = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
-            if (entry.DatacubeId != 0u)
-                activator.DatacubeManager.AddDatacube((ushort)entry.DatacubeId, int.MaxValue);
+
         }
 
         public override void OnActivateCast(Player activator, uint interactionId)
@@ -71,33 +69,6 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public override void OnActivateSuccess(Player activator)
         {
-            uint progress = (uint)(1 << QuestChecklistIdx);
-
-            Creature2Entry entry = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
-            if (entry.DatacubeId != 0u)
-            {
-                Datacube datacube = activator.DatacubeManager.GetDatacube((ushort)entry.DatacubeId, DatacubeType.Datacube);
-                if (datacube == null)
-                    activator.DatacubeManager.AddDatacube((ushort)entry.DatacubeId, progress);
-                else
-                {
-                    datacube.Progress |= progress;
-                    activator.DatacubeManager.SendDatacube(datacube);
-                }
-            }
-
-            if (entry.DatacubeVolumeId != 0u)
-            {
-                Datacube datacube = activator.DatacubeManager.GetDatacube((ushort)entry.DatacubeVolumeId, DatacubeType.Journal);
-                if (datacube == null)
-                    activator.DatacubeManager.AddDatacubeVolume((ushort)entry.DatacubeVolumeId, progress);
-                else
-                {
-                    datacube.Progress |= progress;
-                    activator.DatacubeManager.SendDatacubeVolume(datacube);
-                }
-            }
-
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateEntity, CreatureId, 1u);
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.SucceedCSI, CreatureId, 1u);
         }

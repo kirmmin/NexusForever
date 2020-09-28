@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using NexusForever.Shared;
+using NexusForever.Shared.Game.Events;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.Shared.Network;
@@ -30,26 +31,41 @@ namespace NexusForever.WorldServer.Game.Spell
             if (!(target is Player player))
                 return;
 
-            PropertyModifier modifier = null;
-
-            if (info.Entry.DataBits01 == 1) // Adjust value by percent
-                modifier = new PropertyModifier(ModifierType.AdjustPercent, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) * BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03));
-
-            if (info.Entry.DataBits01 == 2) // Override current value (mainly used by debuffs, and NPC buffs)
-                modifier = new PropertyModifier(ModifierType.SetValue, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02));
-
-            if (info.Entry.DataBits01 == 3) // Adjust current value
+            PropertyModifier GetPropertyModifier(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
             {
-                if (info.Entry.DataBits03 > 0u)
-                    modifier = new PropertyModifier(ModifierType.AdjustValue, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) * BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03));
-                else
-                    modifier = new PropertyModifier(ModifierType.SetBase, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02)); // 0 = Set Base
+                PropertyModifier modifier = null;
+
+                if (info.Entry.DataBits01 == 1) // Adjust value by percent
+                    modifier = new PropertyModifier(ModifierType.AdjustPercent, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) * BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03));
+
+                if (info.Entry.DataBits01 == 2) // Override current value (mainly used by debuffs, and NPC buffs)
+                    modifier = new PropertyModifier(ModifierType.SetValue, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02));
+
+                if (info.Entry.DataBits01 == 3) // Adjust current value
+                {
+                    if (info.Entry.DataBits03 > 0u)
+                        modifier = new PropertyModifier(ModifierType.AdjustValue, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) * BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03));
+                    else
+                        modifier = new PropertyModifier(ModifierType.SetBase, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02)); // 0 = Set Base
+                }
+
+                if (info.Entry.DataBits01 == 4) // Adjust current value per stack
+                    modifier = new PropertyModifier(ModifierType.AdjustValueStack, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) + BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03), 0); // TODO: Increase stack count as necessary
+
+                return modifier;
             }
 
-            if (info.Entry.DataBits01 == 4) // Adjust current value per stack
-                modifier = new PropertyModifier(ModifierType.AdjustValueStack, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) + BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03), 0); // TODO: Increase stack count as necessary
+            PropertyModifier modifier = GetPropertyModifier(player, info);
+            if (modifier != null)
+            {
+                player.AddSpellModifierProperty((Property)info.Entry.DataBits00, parameters.SpellInfo.Entry.Id, modifier);
 
-            player.AddSpellModifierProperty((Property)info.Entry.DataBits00, parameters.SpellInfo.Entry.Id, modifier);
+                if (info.Entry.DurationTime > 0d)
+                    events.EnqueueEvent(new SpellEvent(info.Entry.DurationTime / 1000d, () =>
+                    {
+                        player.RemoveSpellProperty((Property)info.Entry.DataBits00, parameters.SpellInfo.Entry.Id);
+                    }));
+            }
         }
 
         [SpellEffectHandler(SpellEffectType.Proxy)]
@@ -167,13 +183,35 @@ namespace NexusForever.WorldServer.Game.Spell
         [SpellEffectHandler(SpellEffectType.Teleport)]
         private void HandleEffectTeleport(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
+            // Handle NPC teleporting?
+
+            if (!(target is Player player))
+                return;
+
+            // Assuming that this is Recall to Transmat
+            if (info.Entry.DataBits00 == 0)
+            {
+                if (player.BindPoint == 0) // Must have bindpoint set
+                    return;
+
+                Location bindPointLocation = AssetManager.Instance.GetBindPoint(player.BindPoint);
+                Vector3 offset = new Vector3(2f, 1.5f, 2f); // TODO: Should use new Vector3(0f, 1.5f, 0f); when map props are being used
+
+                if (player.CanTeleport()) {
+                    player.Rotation = bindPointLocation.Rotation;
+                    player.TeleportTo(bindPointLocation.World, Vector3.Add(bindPointLocation.Position, offset));
+                }
+                return;
+            }
+
             WorldLocation2Entry locationEntry = GameTableManager.Instance.WorldLocation2.GetEntry(info.Entry.DataBits00);
             if (locationEntry == null)
                 return;
 
-            if (target is Player player)
-                if (player.CanTeleport())
-                    player.TeleportTo((ushort)locationEntry.WorldId, locationEntry.Position0, locationEntry.Position1, locationEntry.Position2);
+            if (player.CanTeleport()) {
+                player.Rotation = new Quaternion(locationEntry.Facing0, locationEntry.Facing1, locationEntry.Facing2, locationEntry.Facing3).ToEulerDegrees();
+                player.TeleportTo((ushort)locationEntry.WorldId, locationEntry.Position0, locationEntry.Position1, locationEntry.Position2);
+            }
         }
 
         [SpellEffectHandler(SpellEffectType.FullScreenEffect)]

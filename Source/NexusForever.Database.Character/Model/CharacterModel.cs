@@ -35,6 +35,7 @@ namespace NexusForever.Database.Character.Model
         public uint RestBonusXp { get; set; }
         public ulong GuildAffiliation { get; set; }
         public byte GuildHolomarkMask { get; set; }
+        public ushort BindPoint { get; set; }
 
         public ResidenceModel Residence { get; set; }
         public ICollection<CharacterAchievementModel> Achievement { get; set; } = new HashSet<CharacterAchievementModel>();

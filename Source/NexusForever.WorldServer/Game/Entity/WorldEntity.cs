@@ -244,7 +244,23 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Invoked when <see cref="WorldEntity"/> is cast activated.
         /// </summary>
-        public virtual void OnActivateCast(Player activator)
+        public virtual void OnActivateCast(Player activator, uint interactionId)
+        {
+            // deliberately empty
+        }
+
+        /// <summary>
+        /// Invoked when <see cref="WorldEntity"/>'s activate succeeds.
+        /// </summary>
+        public virtual void OnActivateSuccess(Player activator)
+        {
+            // deliberately empty
+        }
+
+        /// <summary>
+        /// Invoked when <see cref="WorldEntity"/>'s activation fails.
+        /// </summary>
+        public virtual void OnActivateFail(Player activator)
         {
             // deliberately empty
         }
