@@ -7,6 +7,7 @@ using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Quest.Static;
 using NexusForever.WorldServer.Game.Spell;
+using NexusForever.WorldServer.Script;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -31,6 +32,8 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             CalculateProperties();
+
+            ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnCreate(this);
         }
 
         protected override IEntityModel BuildEntityModel()
@@ -73,6 +76,8 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateEntity, CreatureId, 1u);
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.SucceedCSI, CreatureId, 1u);
+
+            ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnActivate(this, activator);
         }
 
         private void CalculateProperties()

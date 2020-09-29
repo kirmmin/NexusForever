@@ -16,6 +16,7 @@ using NexusForever.WorldServer.Game.Reputation.Static;
 using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
+using NexusForever.WorldServer.Script;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -109,6 +110,20 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         public bool Stealthed => StatusEffects.Values.SelectMany(i => i).Distinct().Contains(EntityStatus.Stealth);
+        
+        public StandState StandState
+        {
+            get => (StandState)(GetStatInteger(Stat.StandState) ?? 0u);
+            set
+            {
+                SetStat(Stat.StandState, (uint)value);
+                EnqueueToVisible(new ServerEmote
+                {
+                    Guid = Guid,
+                    StandState = value
+                });
+            }
+        }
 
         /// <summary>
         /// Guid of the <see cref="WorldEntity"/> currently targeted.
@@ -164,6 +179,9 @@ namespace NexusForever.WorldServer.Game.Entity
             LeashPosition   = vector;
             MovementManager = new MovementManager(this, vector, Rotation);
             base.OnAddToMap(map, guid, vector);
+
+            if (Type != EntityType.Plug && Type != EntityType.Player)
+                ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnAddToMap(this);
         }
 
         public override void OnRemoveFromMap()

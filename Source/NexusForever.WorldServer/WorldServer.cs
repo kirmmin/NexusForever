@@ -30,6 +30,7 @@ using NexusForever.WorldServer.Game.Social;
 using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Game.Storefront;
 using NexusForever.WorldServer.Network;
+using NexusForever.WorldServer.Script;
 
 namespace NexusForever.WorldServer
 {
@@ -98,6 +99,7 @@ namespace NexusForever.WorldServer
 
             ServerManager.Instance.Initialise(RealmId); 
 
+            ScriptManager.Instance.Initialise();
             MessageManager.Instance.Initialise();
             SocialManager.Instance.Initialise();
             NetworkManager<WorldSession>.Instance.Initialise(ConfigurationManager<WorldServerConfiguration>.Instance.Config.Network);
