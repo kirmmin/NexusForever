@@ -65,7 +65,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
 
             // TODO: sanity check for range etc.
 
-            entity.OnActivate(session.Player);
+            entity.OnInteract(session.Player);
         }
 
         [MessageHandler(GameMessageOpcode.ClientActivateUnitCast)]

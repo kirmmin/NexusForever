@@ -368,5 +368,11 @@ namespace NexusForever.WorldServer.Game.Spell
             else
                 log.Warn($"Unhandled spell effect {SpellEffectType.RavelSignal}");
         }
+
+        [SpellEffectHandler(SpellEffectType.Activate)]
+        private void HandleEffectActivate(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+            parameters.ClientSideInteraction?.HandleSuccess(parameters);
+        }
     }
 }

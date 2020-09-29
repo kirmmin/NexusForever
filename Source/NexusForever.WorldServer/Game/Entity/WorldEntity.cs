@@ -237,7 +237,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Invoked when <see cref="WorldEntity"/> is activated.
         /// </summary>
-        public virtual void OnActivate(Player activator)
+        public virtual void OnInteract(Player activator)
         {
             // deliberately empty
         }

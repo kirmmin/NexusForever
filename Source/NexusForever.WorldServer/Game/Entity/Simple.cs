@@ -33,7 +33,7 @@ namespace NexusForever.WorldServer.Game.Entity
             };
         }
 
-        public override void OnActivate(Player activator)
+        public override void OnInteract(Player activator)
         {
             Creature2Entry entry = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
             if (entry.DatacubeId != 0u)
