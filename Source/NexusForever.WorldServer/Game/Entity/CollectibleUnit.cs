@@ -35,7 +35,7 @@ namespace NexusForever.WorldServer.Game.Entity
             };
         }
 
-        public override void OnActivate(Player activator)
+        public override void OnInteract(Player activator)
         {
 
         }

@@ -443,6 +443,10 @@ namespace NexusForever.WorldServer.Game.Spell
             targets.Clear();
 
             targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Caster, caster));
+
+            if (parameters.ClientSideInteraction != null)
+                targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Target, parameters.ClientSideInteraction.ActivateUnit as UnitEntity));
+
             foreach (TelegraphDamageEntry telegraphDamageEntry in parameters.SpellInfo.Telegraphs)
             {
                 Telegraph telegraph = null;
@@ -574,8 +578,6 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             if (parameters.ClientSideInteraction == null)
                 throw new ArgumentException("This can only be used by a Client Interaction Event.");
-
-            parameters.ClientSideInteraction.HandleSuccess(parameters);
 
             Execute();
         }
