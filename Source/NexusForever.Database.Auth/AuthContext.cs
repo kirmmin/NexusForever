@@ -913,6 +913,11 @@ namespace NexusForever.Database.Auth
                     {
                         Id   = 10000,
                         Name = "Other: InstantLogout"
+                    },
+                    new PermissionModel
+                    {
+                        Id   = 105,
+                        Name = "Command: QuestActivate"
                     });
             });
 

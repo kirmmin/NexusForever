@@ -515,6 +515,12 @@ namespace NexusForever.WorldServer.Game.Entity
             uint money = info.GetRewardMoney();
             if (money != 0u)
                 player.CurrencyManager.CurrencyAddAmount(CurrencyType.Credits, money);
+
+            foreach ((uint faction2Id, float rep) in info.GetRewardReputation())
+            {
+                if (faction2Id != 0u)
+                    player.ReputationManager.UpdateReputation((Faction)faction2Id, rep);
+            }
         }
 
         private void RewardQuest(Quest2RewardEntry entry)

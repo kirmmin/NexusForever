@@ -14,11 +14,14 @@ using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Quest.Static;
 using NexusForever.WorldServer.Game.Static;
+using NLog;
 
 namespace NexusForever.WorldServer.Game
 {
     public sealed class AssetManager : Singleton<AssetManager>
     {
+        private static readonly ILogger log = LogManager.GetCurrentClassLogger();
+
         public ImmutableDictionary<InventoryLocation, uint> InventoryLocationCapacities { get; private set; }
 
         /// <summary>
@@ -59,6 +62,7 @@ namespace NexusForever.WorldServer.Game
 
         private ImmutableDictionary</*zoneId*/uint, /*tutorialId*/uint> zoneTutorials;
         private ImmutableDictionary</*creatureId*/uint, /*targetGroupIds*/ImmutableList<uint>> creatureAssociatedTargetGroups;
+        private ImmutableDictionary</*targetGroupId*/uint, /*targetGroupIds*/ImmutableList<uint>> questObjectiveTargets;
 
         private ImmutableDictionary</*premiumTier*/AccountTier, /*targetGroupIds*/ImmutableList<RewardPropertyPremiumModifierEntry>> rewardPropertiesByTier;
 
@@ -83,6 +87,7 @@ namespace NexusForever.WorldServer.Game
             CacheItemInnateProperties();
             CacheTutorials();
             CacheCreatureTargetGroups();
+            CacheQuestObjectiveTargetGroups();
             CacheBindPointPositions();
             CacheRewardPropertiesByTier();
         }
@@ -315,6 +320,65 @@ namespace NexusForever.WorldServer.Game
             rewardPropertiesByTier = entries.ToImmutableDictionary(e => e.Key, e=> e.Value.ToImmutableList());
         }
 
+        private void CacheQuestObjectiveTargetGroups()
+        {
+            List<TargetGroupType> unhandledTargetGroups = new List<TargetGroupType>();
+
+            void AddToTargets(TargetGroupEntry entry, ref List<uint> targetIds)
+            {
+                switch ((TargetGroupType)entry.Type)
+                {
+                    case TargetGroupType.CreatureIdGroup:
+                        targetIds.AddRange(entry.DataEntries.Where(d => d != 0u));
+                        break;
+                    case TargetGroupType.OtherTargetGroup:
+                        foreach (uint targetGroupId in entry.DataEntries.Where(d => d != 0u))
+                        {
+                            TargetGroupEntry targetGroup = GameTableManager.Instance.TargetGroup.GetEntry(targetGroupId);
+                            if (targetGroup == null)
+                                throw new InvalidOperationException();
+
+                            AddToTargets(targetGroup, ref targetIds);
+                        }
+                        break;
+                    default:
+                        if (!(unhandledTargetGroups.Contains((TargetGroupType)entry.Type)))
+                            unhandledTargetGroups.Add((TargetGroupType)entry.Type);
+                        break;
+                }
+            }
+
+            var entries = ImmutableDictionary.CreateBuilder<uint, List<uint>>();
+            foreach (QuestObjectiveEntry questObjectiveEntry in GameTableManager.Instance.QuestObjective.Entries
+                .Where(o => o.TargetGroupIdRewardPane > 0u ||
+                    (QuestObjectiveType)o.Type == QuestObjectiveType.ActivateTargetGroup ||
+                    (QuestObjectiveType)o.Type == QuestObjectiveType.ActivateTargetGroupChecklist ||
+                    (QuestObjectiveType)o.Type == QuestObjectiveType.KillTargetGroup ||
+                    (QuestObjectiveType)o.Type == QuestObjectiveType.KillTargetGroups ||
+                    (QuestObjectiveType)o.Type == QuestObjectiveType.TalkToTargetGroup))
+            {
+                uint targetGroupId = questObjectiveEntry.Data > 0 ? questObjectiveEntry.Data : questObjectiveEntry.TargetGroupIdRewardPane;
+                if (targetGroupId == 0u)
+                    continue;
+
+                TargetGroupEntry targetGroup = GameTableManager.Instance.TargetGroup.GetEntry(targetGroupId);
+                if (targetGroup == null)
+                    continue;
+
+                List<uint> targetIds = new List<uint>();
+                AddToTargets(targetGroup, ref targetIds);
+                entries.Add(questObjectiveEntry.Id, targetIds);
+            }
+
+            questObjectiveTargets = entries.ToImmutableDictionary(e => e.Key, e => e.Value.ToImmutableList());
+
+            string targetGroupTypes = "";
+            foreach (TargetGroupType targetGroupType in unhandledTargetGroups)
+                targetGroupTypes += targetGroupType.ToString() + " ";
+
+            log.Warn($"Unhandled TargetGroup Types for Quest Objectives: {targetGroupTypes}");
+        }
+
         /// <summary>
         /// Returns an <see cref="ImmutableList{T}"/> containing all <see cref="CharacterCustomizationEntry"/>'s for the supplied race, sex, label and value.
         /// </summary>
@@ -491,6 +555,14 @@ namespace NexusForever.WorldServer.Game
         public ImmutableList<RewardPropertyPremiumModifierEntry> GetRewardPropertiesForTier(AccountTier tier)
         {
             return rewardPropertiesByTier.TryGetValue(tier, out ImmutableList<RewardPropertyPremiumModifierEntry> entries) ? entries : ImmutableList<RewardPropertyPremiumModifierEntry>.Empty;
+        }
+
+        /// <summary>
+        /// Returns an <see cref="ImmutableList{T}"/> containing all target ID's associated with the questObjectiveId.
+        /// </summary>
+        public ImmutableList<uint> GetQuestObjectiveTargetIds(uint questObjectiveId)
+        {
+            return questObjectiveTargets.TryGetValue(questObjectiveId, out ImmutableList<uint> entries) ? entries : Enumerable.Empty<uint>().ToImmutableList();
         }
     }
 }

@@ -264,13 +264,13 @@ namespace NexusForever.WorldServer.Game.Quest
 
             // Order in reverse Index so that sequential steps don't completed by the same action
             foreach (QuestObjective objective in objectives
-                .Where(o => o.Entry.Type == (uint)type && o.Entry.Data == data)
+                .Where(o => o.Entry.Type == (uint)type && o.IsTarget(data))
                 .OrderByDescending(o => o.Index))
             {
                 if (objective.IsComplete())
                     continue;
 
-                if (!CanUpdateObjective(objective))
+                if (!CanUpdateObjective(objective, progress))
                     continue;
 
                 objective.ObjectiveUpdate(progress);
@@ -296,7 +296,7 @@ namespace NexusForever.WorldServer.Game.Quest
             if (objective.IsComplete())
                 return;
 
-            if (!CanUpdateObjective(objective))
+            if (!CanUpdateObjective(objective, progress))
                 return;
 
             objective.ObjectiveUpdate(progress);
@@ -306,15 +306,20 @@ namespace NexusForever.WorldServer.Game.Quest
                 State = QuestState.Achieved;
         }
 
-        private bool CanUpdateObjective(QuestObjective objective)
+        private bool CanUpdateObjective(QuestObjective objective, uint progress)
         {
             // sequential objectives
             if ((objective.Entry.Flags & 0x02) != 0)
             {
                 for (int i = 0; i < objective.Index; i++)
-                    if (!objectives[i].IsComplete())
-                        return false;
+                    if ((objectives[i].Entry.Flags & 0x02) != 0) // Ensure each previous step wasn't optional.
+                        if (!objectives[i].IsComplete())
+                            return false;
             }
+
+            if (objective.IsChecklist())
+                if ((objective.Progress & (1 << (int)progress)) != 0)
+                    return false;
 
             // TODO: client also checks objective flags 1 and 8 in the same function
             return true;
