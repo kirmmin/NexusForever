@@ -100,7 +100,11 @@ namespace NexusForever.WorldServer.Game.Spell
                 status = SpellStatus.Finished;
                 caster.RemoveEffect(CastingId);
                 log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has finished.");
-                SendSpellFinish();
+
+                parameters.CompleteAction?.Invoke(parameters);
+
+                foreach (SpellTargetInfo target in targets)
+                    target.Entity?.RemoveSpellProperties(Spell4Id);
 
                 if (caster is Player player)
                     if (thresholdMax > 0)
@@ -114,8 +118,7 @@ namespace NexusForever.WorldServer.Game.Spell
                             SetCooldown();
                     }
 
-
-                parameters.CompleteAction?.Invoke(parameters);
+                SendSpellFinish();
             }
         }
 
@@ -519,6 +522,9 @@ namespace NexusForever.WorldServer.Game.Spell
 
                     if (spell4EffectsEntry.DurationTime > 0 && spell4EffectsEntry.DurationTime > duration)
                         duration = spell4EffectsEntry.DurationTime;
+
+                    if (spell4EffectsEntry.DurationTime == 0u && ((SpellEffectFlags)spell4EffectsEntry.Flags & SpellEffectFlags.CancelOnly) != 0)
+                        parameters.ForceCancelOnly = true;
                 }
             }
         }
@@ -536,16 +542,6 @@ namespace NexusForever.WorldServer.Game.Spell
                 {
                     return PrerequisiteManager.Instance.Meets(player, spell4EffectsEntry.PrerequisiteIdCasterApply);
                 }
-
-                // Add durations for each effect so that when the Effect timer runs out, the Spell can Finish.
-                if (spell4EffectsEntry.DurationTime > 0)
-                    events.EnqueueEvent(new SpellEvent(spell4EffectsEntry.DurationTime / 1000d, () => { /* placeholder for duration */ }));
-
-                if (spell4EffectsEntry.DurationTime > 0 && spell4EffectsEntry.DurationTime > duration)
-                    duration = spell4EffectsEntry.DurationTime;
-
-                if (spell4EffectsEntry.DurationTime == 0u && ((SpellEffectFlags)spell4EffectsEntry.Flags & SpellEffectFlags.CancelOnly) != 0)
-                    parameters.ForceCancelOnly = true;
             }
 
             if ((targetFlags & SpellEffectTargetFlags.Caster) == 0)

@@ -441,6 +441,17 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         /// <summary>
+        /// Remove all <see cref="Property"/> modifiers by a Spell that is currently affecting this <see cref="WorldEntity"/>
+        /// </summary>
+        public void RemoveSpellProperties(uint spell4Id)
+        {
+            List<Property> propertiesWithSpell = SpellProperties.Where(i => i.Value.Keys.Contains(spell4Id)).Select(p => p.Key).ToList();
+
+            foreach (Property property in propertiesWithSpell)
+                RemoveSpellProperty(property, spell4Id);
+        }
+
+        /// <summary>
         /// Return the base value for this <see cref="WorldEntity"/>'s <see cref="Property"/>
         /// </summary>
         private float GetBasePropertyValue(Property property)
