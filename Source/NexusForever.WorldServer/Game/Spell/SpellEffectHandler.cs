@@ -389,5 +389,10 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             parameters.ClientSideInteraction?.HandleSuccess(parameters);
         }
+
+        [SpellEffectHandler(SpellEffectType.ForcedMove)]
+        private void HandleEffectForcedMove(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+        }
     }
 }
