@@ -347,5 +347,22 @@ namespace NexusForever.WorldServer.Game.Prerequisite
                     return false;
             }
         }
+
+        [PrerequisiteCheck(PrerequisiteType.TargetIsPlayer)]
+        private static bool PrerequisiteCheckTargetIsPlayer(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        {
+            // TODO: Currently this is a wasted effort. We only evaluate prereq's against Players. This suggests we may need to start evaluating against all entities.
+
+            switch (comparison)
+            {
+                case PrerequisiteComparison.Equal:
+                    return player is Player;
+                case PrerequisiteComparison.NotEqual:
+                    return !(player is Player);
+                default:
+                    log.Warn($"Unhandled {comparison} for {PrerequisiteType.TargetIsPlayer}!");
+                    return false;
+            }
+        }
     }
 }

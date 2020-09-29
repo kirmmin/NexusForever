@@ -103,9 +103,9 @@ namespace NexusForever.WorldServer.Game.Quest
                 if (faction2Id == 0u)
                     continue;
 
-                if (Entry.Faction2IdRewardReputations[i] > 0f)
+                if (Entry.RewardReputationOverrides[i] > 0f)
                 {
-                    reputationRewards.Add(faction2Id, Entry.Faction2IdRewardReputations[i]);
+                    reputationRewards.Add(faction2Id, Entry.RewardReputationOverrides[i]);
                     continue;
                 }
 
