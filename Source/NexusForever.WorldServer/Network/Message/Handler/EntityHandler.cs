@@ -186,5 +186,19 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             if (result.Result == 1)
                 spell.SucceedClientInteraction();
         }
+
+        [MessageHandler(GameMessageOpcode.ClientPlayerMovementSpeedUpdate)]
+        public static void HandlePlayerMovementSpeedChange(WorldSession session, ClientPlayerMovementSpeedUpdate speedUpdate)
+        {
+            if (speedUpdate.Speed == 2)
+            {
+                session.Player.CastSpell(80529, new SpellParameters
+                {
+                    UserInitiatedSpellCast = false
+                });
+            }
+            else
+                session.Player.GetActiveSpell(i => i.Spell4Id == 80529)?.Finish();
+        }
     }
 }

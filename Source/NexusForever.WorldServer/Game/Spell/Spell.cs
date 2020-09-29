@@ -97,6 +97,9 @@ namespace NexusForever.WorldServer.Game.Spell
 
                 parameters.CompleteAction?.Invoke(parameters);
 
+                foreach (SpellTargetInfo target in targets)
+                    target.Entity?.RemoveSpellProperties(Spell4Id);
+
                 // TODO: add a timer to count down on the Effect before sending the finish - sending the finish will e.g. wear off the buff
                 SendSpellFinish();
 
