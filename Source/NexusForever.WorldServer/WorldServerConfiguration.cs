@@ -32,5 +32,6 @@ namespace NexusForever.WorldServer
         public uint LengthOfInGameDay { get; set; }
         public bool CrossFactionChat { get; set; } = true;
         public ContactLimits Contacts { get; set; }
+        public byte DefaultAccountTier { get; set; }
     }
 }

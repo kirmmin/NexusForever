@@ -135,6 +135,10 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                         })
                         .ToList()
                 });
+                session.EnqueueMessageEncrypted(new ServerAccountTier
+                {
+                    Tier = session.AccountTier
+                });
 
                 session.AccountCurrencyManager.SendCharacterListPacket();
                 session.GenericUnlockManager.SendUnlockList();

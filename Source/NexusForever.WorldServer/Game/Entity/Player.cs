@@ -266,6 +266,8 @@ namespace NexusForever.WorldServer.Game.Entity
             TimePlayedTotal = model.TimePlayedTotal;
             TimePlayedLevel = model.TimePlayedLevel;
 
+            Session.EntitlementManager.OnNewCharacter(model);
+
             foreach (CharacterStatModel statModel in model.Stat)
                 stats.Add((Stat)statModel.Stat, new StatValue(statModel));
 
@@ -666,57 +668,7 @@ namespace NexusForever.WorldServer.Game.Entity
             // TODO: Move to Unlocks/Rewards Handler. A lot of these are tied to Entitlements which display in the character sheet, but don't actually unlock anything without this packet.
             Session.EnqueueMessageEncrypted(new ServerRewardPropertySet
             {
-                Variables = new List<ServerRewardPropertySet.RewardProperty>
-                {
-                    new ServerRewardPropertySet.RewardProperty
-                    {
-                        Id    = RewardProperty.CostumeSlots,
-                        Type  = 1,
-                        Value = CostumeManager.CostumeCap
-                    },
-                    new ServerRewardPropertySet.RewardProperty
-                    {
-                        Id    = RewardProperty.ExtraDecorSlots,
-                        Type  = 1,
-                        Value = 2000
-                    },
-                    new ServerRewardPropertySet.RewardProperty
-                    {
-                        Id    = RewardProperty.BagSlots,
-                        Type  = 1,
-                        Value = 4
-                    },
-                    new ServerRewardPropertySet.RewardProperty
-                    {
-                        Id    = RewardProperty.Trading,
-                        Type  = 1,
-                        Value = 1
-                    },
-                    new ServerRewardPropertySet.RewardProperty
-                    {
-                        Id    = RewardProperty.TradeskillMatStackLimit,
-                        Type  = 1,
-                        Value = 100
-                    },
-                    new ServerRewardPropertySet.RewardProperty
-                    {
-                        Id    = RewardProperty.TradeskillMatTrading,
-                        Type  = 1,
-                        Value = 1
-                    },
-                    new ServerRewardPropertySet.RewardProperty
-                    {
-                        Id    = RewardProperty.GuildCreateOrInviteAccess,
-                        Type  = 1,
-                        Value = 1
-                    },
-                    new ServerRewardPropertySet.RewardProperty
-                    {
-                        Id    = RewardProperty.GuildHolomarkUnlimited,
-                        Type  = 1,
-                        Value = 1
-                    }
-                }
+                Variables = Session.EntitlementManager.GetRewardPropertiesNetworkMessage()
             });
 
             CostumeManager.SendInitialPackets();

@@ -13,6 +13,7 @@ using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Quest.Static;
+using NexusForever.WorldServer.Game.Static;
 
 namespace NexusForever.WorldServer.Game
 {
@@ -59,6 +60,8 @@ namespace NexusForever.WorldServer.Game
         private ImmutableDictionary</*zoneId*/uint, /*tutorialId*/uint> zoneTutorials;
         private ImmutableDictionary</*creatureId*/uint, /*targetGroupIds*/ImmutableList<uint>> creatureAssociatedTargetGroups;
 
+        private ImmutableDictionary</*premiumTier*/AccountTier, /*targetGroupIds*/ImmutableList<RewardPropertyPremiumModifierEntry>> rewardPropertiesByTier;
+
         private AssetManager()
         {
         }
@@ -81,6 +84,7 @@ namespace NexusForever.WorldServer.Game
             CacheTutorials();
             CacheCreatureTargetGroups();
             CacheBindPointPositions();
+            CacheRewardPropertiesByTier();
         }
 
         private void CacheCharacterCustomisations()
@@ -292,6 +296,25 @@ namespace NexusForever.WorldServer.Game
             innatePropertiesLevelScaling = propScaling.ToImmutable();
         }
 
+        private void CacheRewardPropertiesByTier()
+        {
+            var entries = ImmutableDictionary.CreateBuilder<AccountTier, List<RewardPropertyPremiumModifierEntry>>();
+
+            // Unknown how to set the PremiumSystemEnum in the Client at this time. In addition, looks like only "Hybrid" was used on Retail.
+            var rewardProps = GameTableManager.Instance.RewardPropertyPremiumModifier.Entries
+                .Where(i => (PremiumSystem)i.PremiumSystemEnum == PremiumSystem.Hybrid)
+                .GroupBy(i => i.Tier);
+            for (int i = 0; i < rewardProps.Count(); i++)
+                entries.Add((AccountTier)i, new List<RewardPropertyPremiumModifierEntry>());
+
+            foreach (var entry in rewardProps.SelectMany(e => e))
+                foreach ((AccountTier tier, List<RewardPropertyPremiumModifierEntry> list) in entries
+                    .Where(e => e.Key >= (AccountTier)entry.Tier)) // Base Reward Properties are determined by current Account Tier and lower. This is how Retail worked.
+                        list.Add(entry);
+
+            rewardPropertiesByTier = entries.ToImmutableDictionary(e => e.Key, e=> e.Value.ToImmutableList());
+        }
+
         /// <summary>
         /// Returns an <see cref="ImmutableList{T}"/> containing all <see cref="CharacterCustomizationEntry"/>'s for the supplied race, sex, label and value.
         /// </summary>
@@ -454,11 +477,20 @@ namespace NexusForever.WorldServer.Game
             return creatureAssociatedTargetGroups.TryGetValue(creatureId, out ImmutableList<uint> entries) ? entries : null;
         }
         
+        /// <summary>
         /// Returns a <see cref="Location"/> for a <see cref="BindPoint"/>
         /// </summary>
         public Location GetBindPoint(ushort bindpointId)
         {
             return bindPointLocations.TryGetValue(bindpointId, out Location bindPoint) ? bindPoint : null;
+        }
+
+        /// <summary>
+        /// Returns an <see cref="ImmutableList{T}"/> containing all <see cref="RewardPropertyPremiumModifierEntry"/> for the given <see cref="AccountTier"/>.
+        /// </summary>
+        public ImmutableList<RewardPropertyPremiumModifierEntry> GetRewardPropertiesForTier(AccountTier tier)
+        {
+            return rewardPropertiesByTier.TryGetValue(tier, out ImmutableList<RewardPropertyPremiumModifierEntry> entries) ? entries : ImmutableList<RewardPropertyPremiumModifierEntry>.Empty;
         }
     }
 }

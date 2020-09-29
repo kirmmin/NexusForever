@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using NexusForever.Database.Auth.Model;
 using NexusForever.Database.Character.Model;
+using NexusForever.Shared.Configuration;
 using NexusForever.Shared.Cryptography;
 using NexusForever.Shared.Network;
 using NexusForever.Shared.Network.Message;
@@ -12,6 +13,7 @@ using NexusForever.WorldServer.Game.RBAC;
 using NexusForever.WorldServer.Game.Account;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.RewardTrack;
+using NexusForever.WorldServer.Game.Static;
 using NexusForever.WorldServer.Network.Message.Model;
 
 namespace NexusForever.WorldServer.Network
@@ -29,6 +31,9 @@ namespace NexusForever.WorldServer.Network
         public EntitlementManager EntitlementManager { get; private set; }
         public RewardTrackManager RewardTrackManager { get; set; }
         public AccountInventory AccountInventory { get; set; }
+
+        // TODO: Add Account Tiers to the Database?
+        public AccountTier AccountTier = (AccountTier)ConfigurationManager<WorldServerConfiguration>.Instance.Config.DefaultAccountTier;
 
         public override void OnAccept(Socket newSocket)
         {
@@ -71,10 +76,10 @@ namespace NexusForever.WorldServer.Network
             // managers
             AccountRbacManager     = new AccountRBACManager(this, account);
             GenericUnlockManager   = new GenericUnlockManager(this, account);
+            AccountInventory       = new AccountInventory(this, account);
             AccountCurrencyManager = new AccountCurrencyManager(this, account);
             EntitlementManager     = new EntitlementManager(this, account);
             RewardTrackManager     = new RewardTrackManager(this, account);
-            AccountInventory       = new AccountInventory(this, account);
         }
 
         public void SetEncryptionKey(byte[] sessionKey)

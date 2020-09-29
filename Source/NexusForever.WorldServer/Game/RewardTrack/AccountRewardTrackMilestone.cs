@@ -98,6 +98,9 @@ namespace NexusForever.WorldServer.Game.RewardTrack
         /// </summary>
         public void GrantAllRewards(WorldSession session)
         {
+            if (Choice > -1)
+                return;
+
             SetChoice(0);
 
             for (int i = 0; i < Entry.RewardChoiceIds.Length; i++)

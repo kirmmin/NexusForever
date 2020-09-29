@@ -1,4 +1,5 @@
-﻿using NexusForever.Shared.GameTable.Model;
+﻿using NexusForever.Shared.GameTable;
+using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.RewardTrack.Static;
 using NexusForever.WorldServer.Network;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -86,8 +87,12 @@ namespace NexusForever.WorldServer.Game.RewardTrack
             switch (type)
             {
                 case RewardTrackRewardType.AccountItem:
-                    // Handle.
-                    return false;
+                    AccountItemEntry itemEntry = GameTableManager.Instance.AccountItem.GetEntry(itemId);
+                    if (itemEntry == null)
+                        throw new ArgumentException($"Invalid Account Item {itemId}!");
+
+                    session.AccountInventory.ItemCreate(itemEntry);
+                    return true;
                 case RewardTrackRewardType.Item:
                     if (session.Player == null)
                         throw new NotImplementedException();
