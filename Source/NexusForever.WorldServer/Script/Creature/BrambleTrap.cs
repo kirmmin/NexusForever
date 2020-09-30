@@ -8,7 +8,7 @@ namespace NexusForever.WorldServer.Script.Creature
     [Script(27768)] // Bramble Trap
     public class BrambleTrap : CreatureScript
     {
-        const StandState STATE_OPEN = StandState.State0;
+        const uint SPELL_PENALTY = 46051;
 
         public override void OnCreate(WorldEntity me)
         {
@@ -19,7 +19,13 @@ namespace NexusForever.WorldServer.Script.Creature
         {
             base.OnActivateSuccess(me, activator);
 
-            me.StandState = STATE_OPEN;
+            (activator as UnitEntity).GetActiveSpell(s => s.Spell4Id == SPELL_PENALTY)?.Finish();
+            me.EnqueueToVisible(new ServerEntityDeath
+            {
+                UnitId = me.Guid,
+                Dead = true,
+                Reason = 2
+            });
         }
 
         public override void OnActivateFail(WorldEntity me, WorldEntity activator)
