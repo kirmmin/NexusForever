@@ -18,10 +18,8 @@ namespace NexusForever.Shared.GameTable.Model
         public float ModelScale;
         [GameTableFieldArray(4u)]
         public uint[] Spell4IdActivate;
-        public uint PrerequisiteIdActivateSpell00;
-        public uint PrerequisiteIdActivateSpell01;
-        public uint PrerequisiteIdActivateSpell02;
-        public uint PrerequisiteIdActivateSpell03;
+        [GameTableFieldArray(4u)]
+        public uint[] PrerequisiteIdActivateSpells;
         public uint ActivateSpellCastTime;
         public float ActivateSpellMinRange;
         public float ActivateSpellMaxRange;

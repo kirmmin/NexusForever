@@ -45,33 +45,6 @@ namespace NexusForever.WorldServer.Game.Entity
             ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnActivate(this, activator);
         }
 
-        public override void OnActivateCast(Player activator, uint interactionId)
-        {
-            Creature2Entry entry = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
-
-            // TODO: Handle casting activate spells at correct times. Additionally, ensure Prerequisites are met to cast.
-            uint spell4Id = 116;
-            if (entry.Spell4IdActivate.Length > 0)
-            {
-                for (int i = entry.Spell4IdActivate.Length - 1; i > -1; i--)
-                {
-                    if (entry.Spell4IdActivate[i] == 0)
-                        continue;
-
-                    spell4Id = entry.Spell4IdActivate[i];
-                    break;
-                }
-            }
-
-            SpellParameters parameters = new SpellParameters
-            {
-                PrimaryTargetId = Guid,
-                ClientSideInteraction = new ClientSideInteraction(activator, this, interactionId),
-                CastTimeOverride = entry.ActivateSpellCastTime,
-            };
-            activator.CastSpell(spell4Id, parameters);
-        }
-
         public override void OnActivateSuccess(Player activator)
         {
             uint progress = (uint)(1 << QuestChecklistIdx);
