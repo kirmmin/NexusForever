@@ -327,6 +327,7 @@ namespace NexusForever.Shared.Network.Message
         Server0856                      = 0x0856, // tradeskills
         ServerVehiclePassengerAdd       = 0x086F,
         ServerEntityCCStateSet          = 0x087F,
+        ServerEntityDeath               = 0x088C,
         ServerUnitEnteredCombat         = 0x089A,
         Server089B                      = 0x089B, // mount related
         Server08B3                      = 0x08B3,
