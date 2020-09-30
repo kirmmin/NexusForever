@@ -96,6 +96,8 @@ namespace NexusForever.WorldServer.Game.Quest
                 throw new InvalidOperationException();
 
             targetIds = AssetManager.Instance.GetQuestObjectiveTargetIds(Entry.Id).ToList();
+            if (targetIds.Count == 0u)
+                return;
 
             if (targetIds.Count < Entry.Count)
                 for (int i = targetIds.Count - 1; i < Entry.Count; i++)
