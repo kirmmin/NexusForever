@@ -289,7 +289,7 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 PrimaryTargetId = Guid,
                 ClientSideInteraction = new ClientSideInteraction(activator, this, interactionId),
-                CastTimeOverride = entry.ActivateSpellCastTime,
+                CastTimeOverride = (int)entry.ActivateSpellCastTime,
             };
             activator.CastSpell(spell4Id, parameters);
         }
