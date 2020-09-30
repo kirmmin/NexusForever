@@ -125,14 +125,12 @@ namespace NexusForever.WorldServer.Game.Prerequisite
             if (value == 0 && objectId == 0)
                 return false;
 
-            Spell4Entry spell4 = GameTableManager.Instance.Spell4.GetEntry(value);
-
             switch (comparison)
             {
                 case PrerequisiteComparison.Equal:
-                    return player.SpellManager.GetSpell(spell4.Spell4BaseIdBaseSpell) != null;
+                    return player.GetActiveSpell(s => s.Spell4Id == value) != null;
                 case PrerequisiteComparison.NotEqual:
-                    return player.SpellManager.GetSpell(spell4.Spell4BaseIdBaseSpell) == null;
+                    return player.GetActiveSpell(s => s.Spell4Id == value) == null;
                 default:
                     return false;
             }
