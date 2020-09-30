@@ -223,5 +223,13 @@ namespace NexusForever.WorldServer.Game.Quest
 
             Progress = Math.Min(progress + update, GetMaxValue());
         }
+
+        /// <summary>
+        /// Complete this <see cref="QuestObjective"/>.
+        /// </summary>
+        public void Complete()
+        {
+            Progress = GetMaxValue();
+        }
     }
 }

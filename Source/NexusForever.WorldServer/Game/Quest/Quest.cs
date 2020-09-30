@@ -274,6 +274,10 @@ namespace NexusForever.WorldServer.Game.Quest
                     continue;
 
                 objective.ObjectiveUpdate(progress);
+
+                if (AreAllRequiredObjectivesCompleted())
+                    CompleteAllOptionalObjectives();
+
                 SendQuestObjectiveUpdate(objective);
             }
 
@@ -300,6 +304,10 @@ namespace NexusForever.WorldServer.Game.Quest
                 return;
 
             objective.ObjectiveUpdate(progress);
+
+            if (AreAllRequiredObjectivesCompleted())
+                CompleteAllOptionalObjectives();
+
             SendQuestObjectiveUpdate(objective);
 
             if (objectives.All(o => o.IsComplete()))
@@ -323,6 +331,39 @@ namespace NexusForever.WorldServer.Game.Quest
 
             // TODO: client also checks objective flags 1 and 8 in the same function
             return true;
+        }
+
+        private bool AreAllRequiredObjectivesCompleted()
+        {
+            foreach (QuestObjective objective in objectives)
+            {
+                if ((objective.Entry.Flags & 0x02) != 0)
+                    if (!objective.IsComplete())
+                        return false;
+            }
+
+            return true;
+        }
+
+        private void CompleteAllOptionalObjectives()
+        {
+            foreach (QuestObjective objective in objectives)
+            {
+                if ((objective.Entry.Flags & 0x02) == 0 && !objective.IsComplete())
+                    CompleteObjective(objective);
+            }
+        }
+
+        /// <summary>
+        /// Complete a given <see cref="QuestObjective"/> and update the <see cref="Player"/>.
+        /// </summary>
+        public void CompleteObjective(QuestObjective objective)
+        {
+            if (!objectives.Contains(objective))
+                throw new QuestException($"Objective {objective.Entry.Id} is not part of Quest {Info.Entry.Id}.");
+
+            objective.Complete();
+            SendQuestObjectiveUpdate(objective);
         }
 
         private void SendQuestObjectiveUpdate(QuestObjective objective)
