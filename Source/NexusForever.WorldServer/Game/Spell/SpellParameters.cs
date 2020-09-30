@@ -19,6 +19,6 @@ namespace NexusForever.WorldServer.Game.Spell
         public bool ForceCancelOnly { get; set; }
         public ClientSideInteraction ClientSideInteraction { get; set; }
         public Action<SpellParameters> CompleteAction { get; set; }
-        public uint CastTimeOverride { get; set; }
+        public int CastTimeOverride { get; set; } = -1;
     }
 }

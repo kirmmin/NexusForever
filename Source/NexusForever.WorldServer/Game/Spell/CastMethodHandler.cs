@@ -16,7 +16,7 @@ namespace NexusForever.WorldServer.Game.Spell
         [CastMethodHandler(CastMethod.Normal)]
         private void NormalHandler()
         {
-            uint castTime = parameters.CastTimeOverride > 0u ? parameters.CastTimeOverride : parameters.SpellInfo.Entry.CastTime;
+            uint castTime = parameters.CastTimeOverride > -1 ? (uint)parameters.CastTimeOverride : parameters.SpellInfo.Entry.CastTime;
 
             events.EnqueueEvent(new SpellEvent(castTime / 1000d, Execute)); // enqueue spell to be executed after cast time
         }
