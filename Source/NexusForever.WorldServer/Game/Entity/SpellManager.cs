@@ -126,7 +126,7 @@ namespace NexusForever.WorldServer.Game.Entity
                     if (spell4PetEntry == null)
                         continue;
 
-                    if (GetSpell(spell4PetEntry.Spell4IdPetSwitch) == null)
+                    if (GetSpell(spell4PetEntry.Spell4BaseIdBaseSpell) == null)
                         AddSpell(spell4PetEntry.Spell4BaseIdBaseSpell);
                 }
                 
