@@ -15,5 +15,13 @@ namespace NexusForever.WorldServer.Script
         public virtual void OnActivate(WorldEntity me, WorldEntity activator)
         {
         }
+
+        public virtual void OnActivateSuccess(WorldEntity me, WorldEntity activator)
+        {
+        }
+
+        public virtual void OnActivateFail(WorldEntity me, WorldEntity activator)
+        {
+        }
     }
 }

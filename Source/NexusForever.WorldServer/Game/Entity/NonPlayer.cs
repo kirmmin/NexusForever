@@ -8,6 +8,7 @@ using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Quest.Static;
 using NexusForever.WorldServer.Game.Spell;
 using NexusForever.WorldServer.Script;
+using System;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -76,6 +77,8 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateEntity, CreatureId, 1u);
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.SucceedCSI, CreatureId, 1u);
+
+            ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnActivateSuccess(this, activator);
         }
 
         private void CalculateProperties()

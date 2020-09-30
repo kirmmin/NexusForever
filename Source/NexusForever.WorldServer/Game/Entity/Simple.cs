@@ -105,7 +105,7 @@ namespace NexusForever.WorldServer.Game.Entity
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.SucceedCSI, CreatureId, 1u);
 
             //TODO: cast "116,Generic Quest Spell - Activating - Activate - Tier 1" by 0x07FD
-            ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnActivate(this, activator);
+            ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnActivateSuccess(this, activator);
         }
     }
 }
