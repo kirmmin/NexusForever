@@ -13,9 +13,9 @@ namespace NexusForever.WorldServer.Script.Creature
             base.OnCreate(me);
         }
 
-        public override void OnActivate(WorldEntity me, WorldEntity activator)
+        public override void OnActivateSuccess(WorldEntity me, WorldEntity activator)
         {
-            base.OnActivate(me, activator);
+            base.OnActivateSuccess(me, activator);
 
             (me as UnitEntity).CastSpell(26443, new Game.Spell.SpellParameters());
         }

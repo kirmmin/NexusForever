@@ -284,6 +284,7 @@ namespace NexusForever.WorldServer.Game.Entity
         public virtual void OnActivateFail(Player activator)
         {
             // deliberately empty
+            ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnActivateFail(this, activator);
         }
         
         /// <summary>
