@@ -357,7 +357,7 @@ namespace NexusForever.WorldServer.Game.Spell
             }
 
             events.CancelEvents();
-            status = SpellStatus.Executing;
+            status = SpellStatus.Finishing;
 
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} cast was cancelled.");
         }
@@ -446,6 +446,8 @@ namespace NexusForever.WorldServer.Game.Spell
 
             if (parameters.ClientSideInteraction != null)
                 targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Target, parameters.ClientSideInteraction.ActivateUnit as UnitEntity));
+            else
+                targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Target, caster));
 
             foreach (TelegraphDamageEntry telegraphDamageEntry in parameters.SpellInfo.Telegraphs)
             {

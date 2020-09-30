@@ -7,10 +7,12 @@ using NexusForever.Shared.Game;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.Shared.Network.Message;
+using NexusForever.WorldServer.Game.CSI;
 using NexusForever.WorldServer.Game.Entity.Movement;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Map;
+using NexusForever.WorldServer.Game.Prerequisite;
 using NexusForever.WorldServer.Game.Reputation;
 using NexusForever.WorldServer.Game.Reputation.Static;
 using NexusForever.WorldServer.Game.Spell;
@@ -267,7 +269,31 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public virtual void OnActivateCast(Player activator, uint interactionId)
         {
-            // deliberately empty
+            Creature2Entry entry = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
+
+            uint spell4Id = 0;
+            for (int i = 0; i < entry.Spell4IdActivate.Length; i++)
+            {
+                if (spell4Id > 0u || i == entry.Spell4IdActivate.Length)
+                    break;
+
+                if (entry.PrerequisiteIdActivateSpells[i] > 0 && PrerequisiteManager.Instance.Meets(activator, entry.PrerequisiteIdActivateSpells[i]))
+                        spell4Id = entry.Spell4IdActivate[i];
+
+                if (spell4Id == 0u && entry.Spell4IdActivate[i] == 0u && i > 0)
+                    spell4Id = entry.Spell4IdActivate[i - 1];
+            }
+
+            if (spell4Id == 0)
+                throw new InvalidOperationException($"Spell4Id should not be 0. Unhandled Creature ActivateCast {CreatureId}");
+
+            SpellParameters parameters = new SpellParameters
+            {
+                PrimaryTargetId = Guid,
+                ClientSideInteraction = new ClientSideInteraction(activator, this, interactionId),
+                CastTimeOverride = entry.ActivateSpellCastTime,
+            };
+            activator.CastSpell(spell4Id, parameters);
         }
 
         /// <summary>
