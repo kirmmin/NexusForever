@@ -44,7 +44,6 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     }
                     case SetRotationCommand setRotation:
                         mover.Rotation = setRotation.Position.Vector;
-                        mover.MovementManager.SetRotation(setRotation.Position.Vector);
                         break;
                 }
             }
