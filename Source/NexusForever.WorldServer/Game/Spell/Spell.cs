@@ -365,6 +365,11 @@ namespace NexusForever.WorldServer.Game.Spell
                     CastResult     = result,
                     CancelCast     = true
                 });
+
+                if (result == CastResult.CasterMovement)
+                    player?.SpellManager.SetGlobalSpellCooldown(0d);
+
+                SendSpellCastResult(result);
             }
 
             events.CancelEvents();
@@ -564,7 +569,7 @@ namespace NexusForever.WorldServer.Game.Spell
         public bool IsMovingInterrupted()
         {
             // TODO: implement correctly
-            return parameters.SpellInfo.Entry.CastTime > 0;
+            return parameters.UserInitiatedSpellCast && parameters.SpellInfo.BaseInfo.SpellType.Id != 5 && parameters.SpellInfo.Entry.CastTime > 0;
         }
 
         /// <summary>
