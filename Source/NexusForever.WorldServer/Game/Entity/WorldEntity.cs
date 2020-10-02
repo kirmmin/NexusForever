@@ -72,7 +72,7 @@ namespace NexusForever.WorldServer.Game.Entity
         public float LeashRange { get; protected set; } = 50f;
         public MovementManager MovementManager { get; private set; }
 
-        public float AggroRange { get; private set; } = 15f;
+        public float RangeCheck { get; private set; } = 15f;
         protected readonly Dictionary<uint, WorldEntity> inRangeEntities = new Dictionary<uint, WorldEntity>();
 
         public uint Health
@@ -874,44 +874,47 @@ namespace NexusForever.WorldServer.Game.Entity
                 Stealthed = Stealthed
             }, true);
         }
-        
-        protected override void UpdateVision()
+
+        /// <summary>
+        /// Checks if the provided <see cref="WorldEntity"/> is at a range to trigger an event on this <see cref="WorldEntity"/>.
+        /// </summary>
+        public virtual void ApplyRangeTriggers(WorldEntity target)
         {
-            base.UpdateVision();
-
-            Map.Search(Position, 50f, new SearchCheckRange(Position, 50f), out List<GridEntity> intersectedEntities);
-
-            foreach (GridEntity entity in intersectedEntities)
+            if (!HasEnteredRange(target) && IsInRange(target))
             {
-                if (!(entity is WorldEntity we))
-                    continue;
-
-                if (!(this is Player))
-                {
-                    CheckForRangeTriggers(this, we);
-                    continue;
-                }
-
-                CheckForRangeTriggers(we, this);
+                inRangeEntities.TryAdd(target.Guid, target);
+                OnEnterRange(target);
             }
+            else if (!IsInRange(target))
+                RemoveFromRange(target);
         }
 
-        private void CheckForRangeTriggers(WorldEntity checker, WorldEntity target)
+        /// <summary>
+        /// Removes the provided <see cref="WorldEntity"/> from range and notifies this <see cref="WorldEntity"/>.
+        /// </summary>
+        public void RemoveFromRange(WorldEntity target)
         {
-            if (checker.IsInRange(target))
-                checker.OnEnterRange(target);
-            else if (checker.IsWatching(target) && !checker.IsInRange(target))
-                checker.OnExitRange(target);
+            if (!HasEnteredRange(target))
+                return;
+
+            inRangeEntities.Remove(target.Guid);
+            OnExitRange(target);
         }
 
-        public bool IsInRange(WorldEntity entity)
+        /// <summary>
+        /// Returns whether the provided <see cref="WorldEntity"/> is within this <see cref="WorldEntity"/>'s range.
+        /// </summary>
+        public bool IsInRange(WorldEntity target)
         {
-            return Position.GetDistance(entity.Position) < AggroRange;
+            return Position.GetDistance(target.Position) < RangeCheck;
         }
 
-        public bool IsWatching(WorldEntity entity)
+        /// <summary>
+        /// Returns whether the provided <see cref="WorldEntity"/> has entered this <see cref="WorldEntity"/>'s range.
+        /// </summary>
+        protected bool HasEnteredRange(WorldEntity target)
         {
-            return inRangeEntities.Keys.Contains(entity.Guid);
+            return inRangeEntities.Keys.Contains(target.Guid);
         }
     }
 }

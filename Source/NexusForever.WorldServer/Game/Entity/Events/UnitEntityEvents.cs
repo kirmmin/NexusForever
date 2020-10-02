@@ -84,5 +84,13 @@ namespace NexusForever.WorldServer.Game.Entity
                     break;
             }
         }
+
+        public override void OnRelocate(Vector3 vector)
+        {
+            base.OnRelocate(vector);
+
+            foreach (GridEntity entity in visibleEntities.Values)
+                CheckEntityRange(entity);
+        }
     }
 }
