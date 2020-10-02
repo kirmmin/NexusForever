@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NexusForever.Shared.Game;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
@@ -311,6 +312,34 @@ namespace NexusForever.WorldServer.Game.Entity
                     UnitId = Guid,
                     TargetId = currentTargetUnitId
                 });
+        }
+
+        public override void AddVisible(GridEntity entity)
+        {
+            base.AddVisible(entity);
+
+            CheckEntityRange(entity);
+        }
+
+        public override void RemoveVisible(GridEntity entity)
+        {
+            CheckEntityRange(entity);
+
+            base.RemoveVisible(entity);
+        }
+
+        private void CheckEntityRange(GridEntity entity)
+        {
+            if (!(entity is WorldEntity we))
+                return;
+
+            if (!(this is Player))
+            {
+                ApplyRangeTriggers(we);
+                return;
+            }
+
+            we.ApplyRangeTriggers(this);
         }
     }
 }

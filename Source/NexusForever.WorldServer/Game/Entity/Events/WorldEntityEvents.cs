@@ -98,7 +98,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public virtual void OnEnterRange(WorldEntity entity)
         {
-            inRangeEntities.TryAdd(entity.Guid, entity);
+            // deliberately empty
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public virtual void OnExitRange(WorldEntity entity)
         {
-            inRangeEntities.Remove(entity.Guid);
+            // deliberately empty
         }
 
         /// <summary>

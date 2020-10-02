@@ -103,11 +103,11 @@ namespace NexusForever.Shared
         }
 
         /// <summary>
-        /// Returns a <see cref="Vector3"/> representing the rotation in degrees.
+        /// Returns a <see cref="Vector3"/> representing Euler degrees rotation towards a target <see cref="Vector3"/>, given a <see cref="Vector3"/> representing position.
         /// </summary>
-        public static Vector3 GetRotationTo(this Vector3 start, Vector3 end)
+        public static Vector3 GetRotationTo(this Vector3 v, Vector3 targetVector)
         {
-            return new Vector3(start.GetAngle(end), 0f, 0f);
+            return new Vector3(v.GetAngle(targetVector), 0f, 0f);
         }
     }
 }
