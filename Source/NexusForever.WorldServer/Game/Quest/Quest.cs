@@ -335,6 +335,9 @@ namespace NexusForever.WorldServer.Game.Quest
 
         private bool AreAllRequiredObjectivesCompleted()
         {
+            if (objectives.Count == 1 && !objectives[0].IsComplete())
+                return false;
+
             foreach (QuestObjective objective in objectives)
             {
                 if ((objective.Entry.Flags & 0x02) != 0)
