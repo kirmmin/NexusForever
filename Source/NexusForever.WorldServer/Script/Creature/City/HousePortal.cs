@@ -2,7 +2,7 @@
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Housing;
 
-namespace NexusForever.WorldServer.Script.Creature
+namespace NexusForever.WorldServer.Script.Creature.City
 {
     [Script(26350)]
     public class HousePortal : CreatureScript
