@@ -1,4 +1,5 @@
-﻿using NexusForever.Shared.GameTable;
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
@@ -336,6 +337,22 @@ namespace NexusForever.WorldServer.Game.Prerequisite
                     log.Warn($"Unhandled {comparison} for {PrerequisiteType.TargetIsPlayer}!");
                     return false;
             }
+        }
+
+        [PrerequisiteCheck(PrerequisiteType.Unknown194)]
+        private static bool PrerequisiteCheckUnknown194(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        {
+            // TODO: Only used in Mount check prerequisites. Its use is unknown.
+
+            return true;
+        }
+
+        [PrerequisiteCheck(PrerequisiteType.Unknown195)]
+        private static bool PrerequisiteCheckUnknown195(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        {
+            // TODO: Only used in Mount check prerequisites. Its use is unknown.
+
+            return true;
         }
     }
 }

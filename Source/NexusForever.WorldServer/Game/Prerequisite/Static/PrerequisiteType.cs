@@ -32,6 +32,14 @@
         WorldReq            = 109,
         Stealth             = 116,
         SpellObj            = 129,
+        /// <summary>
+        /// Used for Mount checks
+        /// </summary>
+        Unknown194          = 194,
+        /// <summary>
+        /// Used for Mount checks
+        /// </summary>
+        Unknown195          = 195,
         SpellBaseId         = 214,
         Plane               = 232,
         Faction2            = 243,

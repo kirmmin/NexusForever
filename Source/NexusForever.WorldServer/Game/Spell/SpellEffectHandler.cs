@@ -158,6 +158,14 @@ namespace NexusForever.WorldServer.Game.Spell
             // FIXME: also cast 52539,Riding License - Riding Skill 1 - SWC - Tier 1,34464 -- upon further investigation, this appeared to only trigger for characters who were created earlier in the game's lifetime.
 
             // TODO: There are other Riding Skills which need to be added when the player has them as known effects.
+            player.CastSpell(52539, new SpellParameters
+            {
+                ParentSpellInfo        = parameters.SpellInfo,
+                RootSpellInfo          = parameters.RootSpellInfo,
+                UserInitiatedSpellCast = false,
+                IsProxy                = true
+            });
+
             uint mountSpeedSpell4Id = 0;
             switch (mount.MountType)
             {
@@ -174,9 +182,10 @@ namespace NexusForever.WorldServer.Game.Spell
             }
             player.CastSpell(mountSpeedSpell4Id, new SpellParameters
             {
-                ParentSpellInfo = parameters.SpellInfo,
-                RootSpellInfo = parameters.RootSpellInfo,
-                UserInitiatedSpellCast = false
+                ParentSpellInfo        = parameters.SpellInfo,
+                RootSpellInfo          = parameters.RootSpellInfo,
+                UserInitiatedSpellCast = false,
+                IsProxy                = true
             });
         }
 
