@@ -177,11 +177,18 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             if (!spell.IsClientSideInteraction)
                 throw new ArgumentNullException($"Spell missing a ClientSideInteraction.");
 
-            if (result.Result == 0)
-                spell.FailClientInteraction();
-
-            if (result.Result == 1)
-                spell.SucceedClientInteraction();
+            switch (result.Result)
+            {
+                case 0:
+                    spell.FailClientInteraction();
+                    break;
+                case 1:
+                    spell.SucceedClientInteraction();
+                    break;
+                case 2:
+                    spell.CancelCast(Game.Spell.Static.CastResult.ClientSideInteractionFail);
+                    break;
+            }
         }
 
         [MessageHandler(GameMessageOpcode.ClientPlayerMovementSpeedUpdate)]
