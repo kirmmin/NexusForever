@@ -914,6 +914,31 @@ namespace NexusForever.Database.Auth
                         Id   = 105,
                         Name = "Command: QuestActivate"
                     },
+                    new PermissionModel 
+                    {
+                        Id   = 106,
+                        Name = "Category: EntityThreat"
+                    },
+                    new PermissionModel
+                    {
+                        Id   = 107,
+                        Name = "Command: EntityThreatAdjust"
+                    },
+                    new PermissionModel
+                    {
+                        Id = 108,
+                        Name = "Command: EntityThreatList"
+                    },
+                    new PermissionModel
+                    {
+                        Id = 109,
+                        Name = "Command: EntityThreatClear"
+                    },
+                    new PermissionModel
+                    {
+                        Id = 110,
+                        Name = "Command: EntityThreatRemove"
+                    },
                     new PermissionModel
                     {
                         Id   = 10000,

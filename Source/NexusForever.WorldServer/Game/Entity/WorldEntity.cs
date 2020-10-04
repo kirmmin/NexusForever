@@ -26,7 +26,7 @@ using NexusForever.WorldServer.Script;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
-    public abstract class WorldEntity : GridEntity
+    public abstract partial class WorldEntity : GridEntity
     {
         public EntityType Type { get; }
         public EntityCreateFlag CreateFlags { get; set; }
@@ -250,22 +250,6 @@ namespace NexusForever.WorldServer.Game.Entity
                 stats.Add((Stat)statModel.Stat, new StatValue(statModel));
 
             BuildBaseProperties();
-        }
-
-        public override void OnAddToMap(BaseMap map, uint guid, Vector3 vector)
-        {
-            LeashPosition   = vector;
-            MovementManager = new MovementManager(this, vector, Rotation);
-            base.OnAddToMap(map, guid, vector);
-
-            if (Type != EntityType.Plug && Type != EntityType.Player)
-                ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnAddToMap(this);
-        }
-
-        public override void OnRemoveFromMap()
-        {
-            base.OnRemoveFromMap();
-            MovementManager = null;
         }
 
         /// <summary>

@@ -2,13 +2,14 @@
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.CSI;
+using NexusForever.WorldServer.Game.Combat;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
-using NexusForever.WorldServer.Game.Quest.Static;
-using NexusForever.WorldServer.Game.Spell;
+using System.Collections.Generic;
+using System.Linq;
 using NexusForever.WorldServer.Script;
-using System;
+using NexusForever.WorldServer.Game.Quest.Static;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -82,6 +83,22 @@ namespace NexusForever.WorldServer.Game.Entity
 
             if (Health > MaxHealth)
                 MaxHealth = Health;
+        }
+
+        public override void SelectTarget(IEnumerable<HostileEntity> hostiles = null)
+        {
+            base.SelectTarget(hostiles);
+
+            hostiles ??= ThreatManager.GetThreatList();
+
+            if (hostiles.Count() == 0)
+            {
+                SetTarget(0u);
+                return;
+            }
+
+            if (currentTargetUnitId != hostiles.First().HatedUnitId)
+                SetTarget(hostiles.First().HatedUnitId, hostiles.First().Threat);
         }
     }
 }
