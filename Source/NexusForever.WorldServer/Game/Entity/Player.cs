@@ -238,6 +238,7 @@ namespace NexusForever.WorldServer.Game.Entity
         private HashSet<Bone> deletedCharacterBones = new HashSet<Bone>();
 
         private bool firstTimeLoggingIn;
+        private bool enteringGame = true;
 
         public Player(WorldSession session, CharacterModel model)
             : base(EntityType.Player)
@@ -597,10 +598,6 @@ namespace NexusForever.WorldServer.Game.Entity
                 Position = new Position(vector)
             });
 
-            // if the player has no existing map they have just entered the world
-            // this check needs to happen before OnAddToMap as the player will have a map afterwards
-            bool initialLogin = Map == null;
-
             base.OnAddToMap(map, guid, vector);
             map.OnAddToMap(this);
 
@@ -616,7 +613,7 @@ namespace NexusForever.WorldServer.Game.Entity
             SendPacketsAfterAddToMap();
             Session.EnqueueMessageEncrypted(new ServerPlayerEnteredWorld());
 
-            if (initialLogin)
+            if (enteringGame)
                 OnLogin();
 
             IsLoading = false;
@@ -885,6 +882,8 @@ namespace NexusForever.WorldServer.Game.Entity
             string motd = WorldServer.RealmMotd;
             if (motd?.Length > 0)
                 SocialManager.Instance.SendMessage(Session, motd, "MOTD", ChatChannel.Realm);
+
+            enteringGame = false;
         }
 
         /// <summary>
