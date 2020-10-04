@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using NexusForever.Database.World.Model;
 using NexusForever.Shared.Network.Message;
+using NexusForever.WorldServer.Game.Combat;
 using NexusForever.WorldServer.Game.Entity.Movement;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Static;
@@ -15,7 +16,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
-    public abstract class WorldEntity : GridEntity
+    public abstract partial class WorldEntity : GridEntity
     {
         public EntityType Type { get; }
         public EntityCreateFlag CreateFlags { get; set; }
@@ -58,6 +59,21 @@ namespace NexusForever.WorldServer.Game.Entity
             set => SetStat(Stat.Sheathed, Convert.ToUInt32(value));
         }
 
+        public StandState StandState
+        {
+            get => (StandState)(GetStatInteger(Stat.StandState) ?? 0u);
+            set
+            {
+                SetStat(Stat.StandState, (uint)value);
+
+                EnqueueToVisible(new ServerEmote
+                {
+                    Guid = Guid,
+                    StandState = value
+                });
+            }
+        }
+
         /// <summary>
         /// Guid of the <see cref="WorldEntity"/> currently targeted.
         /// </summary>
@@ -97,19 +113,6 @@ namespace NexusForever.WorldServer.Game.Entity
 
             foreach (EntityStatModel statModel in model.EntityStat)
                 stats.Add((Stat)statModel.Stat, new StatValue(statModel));
-        }
-
-        public override void OnAddToMap(BaseMap map, uint guid, Vector3 vector)
-        {
-            LeashPosition   = vector;
-            MovementManager = new MovementManager(this, vector, Rotation);
-            base.OnAddToMap(map, guid, vector);
-        }
-
-        public override void OnRemoveFromMap()
-        {
-            base.OnRemoveFromMap();
-            MovementManager = null;
         }
 
         /// <summary>
@@ -156,24 +159,6 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             return entityCreatePacket;
-        }
-
-        // TODO: research the difference between a standard activation and cast activation
-
-        /// <summary>
-        /// Invoked when <see cref="WorldEntity"/> is activated.
-        /// </summary>
-        public virtual void OnActivate(Player activator)
-        {
-            // deliberately empty
-        }
-
-        /// <summary>
-        /// Invoked when <see cref="WorldEntity"/> is cast activated.
-        /// </summary>
-        public virtual void OnActivateCast(Player activator)
-        {
-            // deliberately empty
         }
 
         protected void SetProperty(Property property, float value, float baseValue = 0.0f)
