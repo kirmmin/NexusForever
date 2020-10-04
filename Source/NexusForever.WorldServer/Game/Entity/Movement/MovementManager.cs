@@ -29,6 +29,14 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         private readonly UpdateTimer splineGridUpdateTimer = new UpdateTimer(SplineGridUpdateTime);
 
         private bool isDirty;
+        private bool serverControlled = true;
+        private uint time = 1u;
+        private EntityCommand[] handledCommands = new EntityCommand[]
+        {
+            EntityCommand.SetPosition,
+            EntityCommand.SetRotation,
+            EntityCommand.SetPlatform
+        };
 
         /// <summary>
         /// Create a new <see cref="MovementManager"/> for supplied <see cref="WorldEntity"/>.
@@ -103,13 +111,13 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         /// <remarks>
         /// Be aware that this position doesn't always match the grid position (eg: when on a vehicle)
         /// </remarks>
-        public void SetPosition(Vector3 position)
+        public void SetPosition(Vector3 position, bool sendImmediately = true)
         {
             StopSpline();
             AddCommand(new SetPositionCommand
             {
                 Position = new Position(position)
-            }, !(owner is Player));
+            }, sendImmediately);
         }
 
         /// <summary>
@@ -118,37 +126,22 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         /// <remarks>
         /// Be aware that this rotation doesn't always match the entity rotation (eg: when on a vehicle)
         /// </remarks>
-        public void SetRotation(Vector3 rotation, bool blend = false)
+        public void SetRotation(Vector3 rotation, bool sendImmediately = true)
         {
             StopSpline();
             AddCommand(new SetRotationCommand
             {
-                Position = new Position(rotation),
-                Blend    = blend
-            }, !(owner is Player));
+                Position = new Position(rotation)
+            }, sendImmediately);
         }
 
         /// <summary>
         /// Get the rotation <see cref="Vector3"/> from <see cref="SetRotationCommand"/>.
         /// </summary>
-        /// <returns></returns>
         public Vector3 GetRotation()
         {
             SetRotationCommand command = GetCommand<SetRotationCommand>();
             return command?.Position.Vector ?? Vector3.Zero;
-        }
-
-        /// <summary>
-        /// Create a new <see cref="SetRotationFaceUnitCommand"/> with the supplied unit id.
-        /// </summary>
-        public void SetFaceUnit(uint unitId, bool blend = false)
-        {
-            StopSpline();
-            AddCommand(new SetRotationFaceUnitCommand
-            {
-                UnitId = unitId,
-                Blend  = blend
-            }, true);
         }
 
         /// <summary>
@@ -318,17 +311,19 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
             var serverEntityCommand = new ServerEntityCommand
             {
                 Guid             = owner.Guid,
-                Time             = 1u,
-                TimeReset        = true,
-                ServerControlled = true
+                Time             = time,
+                TimeReset        = serverControlled,
+                ServerControlled = serverControlled
             };
 
             foreach ((EntityCommand command, IEntityCommandModel entityCommand) in commands)
                 serverEntityCommand.Commands.Add((command, entityCommand));
 
             owner.EnqueueToVisible(serverEntityCommand, true);
+            ClearUnhandledCommands();
 
             isDirty = false;
+            serverControlled = true;
         }
 
         /// <summary>
@@ -376,6 +371,50 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
 
             // TODO: calculate speed based on entity being followed.
             LaunchGenerator(generator, 8f);
+        }
+
+        public void HandleClientEntityCommands(List<(EntityCommand, IEntityCommandModel)> commands, uint time)
+        {
+            foreach ((EntityCommand id, IEntityCommandModel command) in commands)
+            {
+                switch (command)
+                {
+                    case SetPositionCommand setPosition:
+                        {
+                            // TODO: Investigate a better way to check for spell cancellation. Comparing vectors every moment could be expensive.
+                            // There is a slight "judder" at the end of a player's movement, but the Vector difference is so small and they should be able to cast, but was getting blocked because the command is still sent.
+                            if (owner is Player player && player.IsCasting() && setPosition.Position.Vector.GetDistance(GetCommand<SetPositionCommand>().Position.Vector) > 0.005f)
+                                player.CancelSpellsOnMove();
+
+                            owner.Map.EnqueueRelocate(owner, setPosition.Position.Vector);
+                            break;
+                        }
+                    case SetRotationCommand setRotation:
+                        owner.Rotation = setRotation.Position.Vector;
+                        break;
+                }
+
+                AddCommand(command);
+            }
+
+            this.time = time;
+            serverControlled = false;
+            isDirty = true;
+            BroadcastCommands();
+        }
+
+        private void ClearUnhandledCommands()
+        {
+            if (serverControlled)
+                return;
+
+            foreach (EntityCommand command in commands.Keys.ToList())
+            {
+                if (handledCommands.Contains(command))
+                    continue;
+
+                commands.Remove(command);
+            }
         }
 
         private T GetCommand<T>() where T : IEntityCommandModel

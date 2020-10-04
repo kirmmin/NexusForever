@@ -139,6 +139,19 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         /// <summary>
+        /// Checks if this <see cref="UnitEntity"/> is currently casting a spell.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsCasting()
+        {
+            foreach (Spell.Spell spell in pendingSpells)
+                if (spell.IsCasting)
+                    return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// Cancel a <see cref="Spell"/> based on its casting id
         /// </summary>
         /// <param name="castingId">Casting ID of the spell to cancel</param>
@@ -168,15 +181,6 @@ namespace NexusForever.WorldServer.Game.Entity
             return spell != null;
         }
 
-        public bool IsCasting()
-        {
-            for (int i = 0; i < pendingSpells.Count; i++)
-                if (pendingSpells[i].IsCasting)
-                    return true;
-
-            return false;
-        }
-        
         /// <summary>
         /// Returns an active <see cref="Spell.Spell"/> that is affecting this <see cref="UnitEntity"/>
         /// </summary>
