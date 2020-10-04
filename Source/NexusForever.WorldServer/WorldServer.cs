@@ -112,11 +112,11 @@ namespace NexusForever.WorldServer
                 ResidenceManager.Instance.Update(lastTick);
                 BuybackManager.Instance.Update(lastTick);
                 GlobalQuestManager.Instance.Update(lastTick);                
-                CommandManager.Instance.Update(lastTick);
                 GlobalGuildManager.Instance.Update(lastTick);
+                GlobalContactManager.Instance.Update(lastTick);
 
                 // process commands after everything else in the tick has processed
-                GlobalContactManager.Instance.Update(lastTick);
+                CommandManager.Instance.Update(lastTick);
             });
 
             using (WorldServerEmbeddedWebServer.Initialise())
