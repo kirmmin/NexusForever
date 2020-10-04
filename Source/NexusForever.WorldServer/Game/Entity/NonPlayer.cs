@@ -1,9 +1,12 @@
 ﻿using NexusForever.Database.World.Model;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
+using NexusForever.WorldServer.Game.Combat;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -64,6 +67,22 @@ namespace NexusForever.WorldServer.Game.Entity
 
             for (uint i = 0u; i < levelEntry.UnitPropertyValue.Length; i++)
                 SetProperty((Property)i, values[i]);*/
+        }
+
+        public override void SelectTarget(IEnumerable<HostileEntity> hostiles = null)
+        {
+            base.SelectTarget(hostiles);
+
+            hostiles ??= ThreatManager.GetThreatList();
+
+            if (hostiles.Count() == 0)
+            {
+                SetTarget(0u);
+                return;
+            }
+
+            if (currentTargetUnitId != hostiles.First().HatedUnitId)
+                SetTarget(hostiles.First().HatedUnitId, hostiles.First().Threat);
         }
     }
 }
