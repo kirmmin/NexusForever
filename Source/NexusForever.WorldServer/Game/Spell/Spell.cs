@@ -192,7 +192,7 @@ namespace NexusForever.WorldServer.Game.Spell
                     return CastResult.SpellCooldown;
 
                 // this isn't entirely correct, research GlobalCooldownEnum
-                if (parameters.SpellInfo.Entry.GlobalCooldownEnum == 0 && player.SpellManager.GetGlobalSpellCooldown() > 0d)
+                if (parameters.SpellInfo.Entry.GlobalCooldownEnum == 0 && player.SpellManager.GetGlobalSpellCooldown() > 0d && !parameters.IsProxy && parameters.UserInitiatedSpellCast)
                 {
                     if (CastMethod != CastMethod.ChargeRelease)
                         return CastResult.SpellGlobalCooldown;

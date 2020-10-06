@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NexusForever.Database.World.Model;
 using NexusForever.Shared.Game;
 using NexusForever.Shared.GameTable;
@@ -361,35 +362,53 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             float baseValue = GetBasePropertyValue(property);
             float value = baseValue;
+            baseValue = GameTableManager.Instance.UnitProperty2.GetEntry((ulong)property).DefaultValue;
+            float itemValue = 0f;
 
-            foreach(KeyValuePair<ItemSlot, float> itemStats in GetItemProperties(property))
-                value += itemStats.Value;
+            foreach (KeyValuePair<ItemSlot, float> itemStats in GetItemProperties(property))
+                itemValue += itemStats.Value;
 
-            foreach (PropertyModifier spellModifier in GetSpellPropertyModifiers(property).OrderBy(e => e.ModifierType))
+            value += itemValue;
+
+            foreach (PropertyModifier spellModifier in GetSpellPropertyModifiers(property).OrderBy(e => e.Priority))
             {
-                if (spellModifier.ModifierType == ModifierType.SetBase)
+                // TODO: Investigated this a lot, and this was the best algorithm I could etermine from looking at a bunch of spell effects. 
+                // Should probably be checked in the client. But, the client didn't show up anything that was super obvious as the calculations came from server.
+                if (spellModifier.BaseValue != 0 && spellModifier.Value != 0)
                 {
-                    baseValue = spellModifier.Value;
-                    value = baseValue;
+                    // 1 + 0.15 = 1.15 * Amount
+                    // 1 + -0.15 = 0.85 * Amount
+                    // (dataBits02 + dataBits03) * Amount
+                    
+                    // TODO: Investigate how the client handles this, if it does at all. 1 _may_ be spellModifier.BaseValue, but unsure.
+                    value *= (1 + spellModifier.Value);
+                    continue;
                 }
 
-                if (spellModifier.ModifierType == ModifierType.AdjustPercent && spellModifier.Value > 0f)
+                if (spellModifier.Value != 0)
                 {
-                    baseValue *= spellModifier.Value + 1f;
-                    value = baseValue;
-                }
+                    // If a decimal, it's an overall mod.
+                    // dataBits03 * Amount
+                    if ((spellModifier.BaseValue % 1) > 0)
+                    {
+                        value *= spellModifier.Value;
+                        continue;
+                    }
 
-                if (spellModifier.ModifierType == ModifierType.SetValue)
-                {
-                    value = spellModifier.Value;
-                    break;
-                }
-
-                if (spellModifier.ModifierType == ModifierType.AdjustValue)
+                    // Otherwise, it's an addition of existing value and this value
                     value += spellModifier.Value;
+                    continue;
+                }
 
-                if (spellModifier.ModifierType == ModifierType.AdjustValueStack)
-                    value += spellModifier.Value * spellModifier.StackCount;
+                if (spellModifier.BaseValue != 0)
+                {
+                    // If a decimal, it's an overall mod.
+                    // dataBits02 * Amount{
+                    value *= spellModifier.BaseValue;
+                    continue;
+                }
+
+                // TODO: Both values are 0 - what do we do?!
             }
 
             return new PropertyValue(property, baseValue, value);
@@ -517,7 +536,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         private float GetBasePropertyValue(Property property)
         {
-            return BaseProperties.ContainsKey(property) ? BaseProperties[property] : default;
+            return BaseProperties.ContainsKey(property) ? BaseProperties[property] : GameTableManager.Instance.UnitProperty2.GetEntry((ulong)property).DefaultValue;
         }
 
         /// <summary>
