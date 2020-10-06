@@ -4,19 +4,22 @@ namespace NexusForever.WorldServer.Game.Entity
 {
     public class PropertyModifier
     {
-        public ModifierType ModifierType { get; private set; }
+        public uint Priority { get; private set; }
+        public float BaseValue { get; private set; }
         public float Value { get; private set; }
         public uint StackCount { get; private set; }
 
-        public PropertyModifier(ModifierType modifierType, float value)
+        public PropertyModifier(uint priority, float baseValue, float value)
         {
-            ModifierType = modifierType;
+            Priority = priority;
+            BaseValue = baseValue;
             Value = value;
         }
 
-        public PropertyModifier(ModifierType modifierType, float value, uint stackCount)
+        public PropertyModifier(uint priority, float baseValue, float value, uint stackCount)
         {
-            ModifierType = modifierType;
+            Priority = priority;
+            BaseValue = baseValue;
             Value = value;
             StackCount = stackCount;
         }

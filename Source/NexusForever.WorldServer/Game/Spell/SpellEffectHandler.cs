@@ -28,29 +28,19 @@ namespace NexusForever.WorldServer.Game.Spell
         [SpellEffectHandler(SpellEffectType.UnitPropertyModifier)]
         private void HandleEffectPropertyModifier(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
+            // TODO: Handle NPCs and other Entities.
+
             if (!(target is Player player))
                 return;
 
-            PropertyModifier modifier = null;
-
-            if (info.Entry.DataBits01 == 1) // Adjust value by percent
-                modifier = new PropertyModifier(ModifierType.AdjustPercent, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) * BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03));
-
-            if (info.Entry.DataBits01 == 2) // Override current value (mainly used by debuffs, and NPC buffs)
-                modifier = new PropertyModifier(ModifierType.SetValue, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02));
-
-            if (info.Entry.DataBits01 == 3) // Adjust current value
-            {
-                if (info.Entry.DataBits03 > 0u)
-                    modifier = new PropertyModifier(ModifierType.AdjustValue, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) * BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03));
-                else
-                    modifier = new PropertyModifier(ModifierType.SetBase, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02)); // 0 = Set Base
-            }
-
-            if (info.Entry.DataBits01 == 4) // Adjust current value per stack
-                modifier = new PropertyModifier(ModifierType.AdjustValueStack, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02) + BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03), 0); // TODO: Increase stack count as necessary
-
+            PropertyModifier modifier = new PropertyModifier(info.Entry.DataBits01, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02), BitConverter.Int32BitsToSingle((int)info.Entry.DataBits03));
             player.AddSpellModifierProperty((Property)info.Entry.DataBits00, parameters.SpellInfo.Entry.Id, modifier);
+
+            if (info.Entry.DurationTime > 0d)
+                events.EnqueueEvent(new SpellEvent(info.Entry.DurationTime / 1000d, () =>
+                {
+                    player.RemoveSpellProperty((Property)info.Entry.DataBits00, parameters.SpellInfo.Entry.Id);
+                }));
         }
 
         [SpellEffectHandler(SpellEffectType.Proxy)]
@@ -141,6 +131,7 @@ namespace NexusForever.WorldServer.Game.Spell
             player.Map.EnqueueAdd(mount, player.Position);
 
             // FIXME: also cast 52539,Riding License - Riding Skill 1 - SWC - Tier 1,34464 -- upon further investigation, this appeared to only trigger for characters who were created earlier in the game's lifetime.
+            // Expert - 52543
 
             // TODO: There are other Riding Skills which need to be added when the player has them as known effects.
             player.CastSpell(52539, new SpellParameters
