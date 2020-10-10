@@ -400,7 +400,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
             // Handle achievements for receiving item
             if (itemEntry != null)
-                player.AchievementManager.CheckAchievements(player, AchievementType.AccountItemLoot, itemEntry.Id, count: originalCount - count);
+                player?.AchievementManager.CheckAchievements(player, AchievementType.AccountItemLoot, itemEntry.Id, count: originalCount - count);
         }
 
         /// <summary>
