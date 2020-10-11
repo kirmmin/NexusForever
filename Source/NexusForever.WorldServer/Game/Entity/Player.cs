@@ -40,7 +40,7 @@ using NexusForever.WorldServer.Network.Message.Model.Shared;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
-    public class Player : UnitEntity, ISaveAuth, ISaveCharacter, ICharacter
+    public partial class Player : UnitEntity, ISaveAuth, ISaveCharacter, ICharacter
     {
 
         // TODO: move this to the config file
@@ -319,8 +319,6 @@ namespace NexusForever.WorldServer.Game.Entity
                 Bones.Add(bone.Bone);
                 characterBones.Add(new Bone(bone));
             }
-                
-
 
             BuildBaseProperties();
 
@@ -588,67 +586,6 @@ namespace NexusForever.WorldServer.Game.Entity
             return playerEntityModel;
         }
 
-        public override void OnAddToMap(BaseMap map, uint guid, Vector3 vector)
-        {
-            IsLoading = true;
-
-            Session.EnqueueMessageEncrypted(new ServerChangeWorld
-            {
-                WorldId  = (ushort)map.Entry.Id,
-                Position = new Position(vector)
-            });
-
-            base.OnAddToMap(map, guid, vector);
-            map.OnAddToMap(this);
-
-            // resummon vanity pet if it existed before teleport
-            if (pendingTeleport?.VanityPetId != null)
-            {
-                var vanityPet = new VanityPet(this, pendingTeleport.VanityPetId.Value);
-                map.EnqueueAdd(vanityPet, Position);
-            }
-
-            pendingTeleport = null;
-
-            SendPacketsAfterAddToMap();
-            Session.EnqueueMessageEncrypted(new ServerPlayerEnteredWorld());
-
-            if (enteringGame)
-                OnLogin();
-
-            IsLoading = false;
-        }
-
-        public override void OnRelocate(Vector3 vector)
-        {
-            base.OnRelocate(vector);
-            saveMask |= PlayerSaveMask.Location;
-
-            ZoneMapManager.OnRelocate(vector);
-        }
-
-        protected override void OnZoneUpdate()
-        {
-            if (Zone != null)
-            {
-                TextTable tt = GameTableManager.Instance.GetTextTable(Language.English);
-                SocialManager.Instance.SendMessage(Session, $"New Zone: ({Zone.Id}){tt.GetEntry(Zone.LocalizedTextIdName)}");
-
-                uint tutorialId = AssetManager.Instance.GetTutorialIdForZone(Zone.Id);
-                if (tutorialId > 0)
-                {
-                    Session.EnqueueMessageEncrypted(new ServerTutorial
-                    {
-                        TutorialId = tutorialId
-                    });
-                }
-
-                QuestManager.ObjectiveUpdate(QuestObjectiveType.EnterZone, Zone.Id, 1);
-            }
-
-            ZoneMapManager.OnZoneUpdate();
-        }
-
         private void SendPacketsAfterAddToMap()
         {
             SendInGameTime();
@@ -739,16 +676,6 @@ namespace NexusForever.WorldServer.Game.Entity
             //TODO: Store proficiencies in DB table and load from there. Do they change ever after creation? Perhaps something for use on custom servers?
             ClassEntry classEntry = GameTableManager.Instance.Class.GetEntry((ulong)Class);
             return (ItemProficiency)classEntry.StartingItemProficiencies;
-        }
-
-        public override void OnRemoveFromMap()
-        {
-            DestroyDependents();
-
-            base.OnRemoveFromMap();
-
-            if (pendingTeleport != null)
-                MapManager.Instance.AddToMap(this, pendingTeleport.Info, pendingTeleport.Vector);
         }
 
         public override void AddVisible(GridEntity entity)
@@ -875,15 +802,6 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 CleanupManager.Untrack(Session.Account);
             }
-        }
-
-        private void OnLogin()
-        {
-            string motd = WorldServer.RealmMotd;
-            if (motd?.Length > 0)
-                SocialManager.Instance.SendMessage(Session, motd, "MOTD", ChatChannel.Realm);
-
-            enteringGame = false;
         }
 
         /// <summary>
@@ -1256,6 +1174,18 @@ namespace NexusForever.WorldServer.Game.Entity
 
             // check if parent node has required reputation
             return GetDispositionFromReputation(node.Parent);
+        }
+
+        /// <summary>
+        /// Consumes Dash resource when called. Should be called directly by handler.
+        /// </summary>
+        public void HandleDash(DashDirection direction)
+        {
+            uint dashSpellId = AssetManager.Instance.GetDashSpell(direction);
+            CastSpell(dashSpellId, new Spell.SpellParameters
+            {
+                UserInitiatedSpellCast = false
+            });
         }
     }
 }
