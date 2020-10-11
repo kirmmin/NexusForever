@@ -380,6 +380,18 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     Stat  = (byte)Stat.StandState,
                     Value = 3
                 });
+                character.Stat.Add(new CharacterStatModel
+                {
+                    Id = character.Id,
+                    Stat = (byte)Stat.Sheathed,
+                    Value = 1
+                });
+                character.Stat.Add(new CharacterStatModel
+                {
+                    Id = character.Id,
+                    Stat = (byte)Stat.Resource0,
+                    Value = 500
+                });
 
                 // TODO: actually error check this
                 session.EnqueueEvent(new TaskEvent(DatabaseManager.Instance.CharacterDatabase.Save(c =>
