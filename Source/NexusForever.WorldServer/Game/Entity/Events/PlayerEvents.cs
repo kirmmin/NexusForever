@@ -112,14 +112,21 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             base.OnTickRegeneration();
 
-            float enduranceRemaining = GetStatFloat(Stat.Resource0).Value;
+            float resource3Remaining = GetStatFloat(Stat.Resource3) ?? 0f;
+            if (Class == Class.Stalker && resource3Remaining < GetPropertyValue(Property.ResourceMax3))
+            {
+                float resource3RegenAmount = GetPropertyValue(Property.ResourceMax3) * GetPropertyValue(Property.ResourceRegenMultiplier3);
+                SetStat(Stat.Resource3, (float)Math.Min(resource3Remaining + resource3RegenAmount, (float)GetPropertyValue(Property.ResourceMax3)));
+            }
+
+            float enduranceRemaining = GetStatFloat(Stat.Resource0) ?? 0f;
             if (enduranceRemaining < GetPropertyValue(Property.ResourceMax0))
             {
                 float enduranceRegenAmount = GetPropertyValue(Property.ResourceMax0) * GetPropertyValue(Property.ResourceRegenMultiplier0);
                 SetStat(Stat.Resource0, (float)Math.Min(enduranceRemaining + enduranceRegenAmount, (float)GetPropertyValue(Property.ResourceMax0)));
             }
 
-            float dashRemaining = (float)GetStatFloat(Stat.Dash).Value;
+            float dashRemaining = GetStatFloat(Stat.Dash) ?? 0f;
             if (dashRemaining < GetPropertyValue(Property.ResourceMax7))
             {
                 float dashRegenAmount = GetPropertyValue(Property.ResourceMax7) * GetPropertyValue(Property.ResourceRegenMultiplier7);
