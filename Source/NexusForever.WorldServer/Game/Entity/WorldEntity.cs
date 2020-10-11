@@ -26,7 +26,6 @@ namespace NexusForever.WorldServer.Game.Entity
 {
     public abstract class WorldEntity : GridEntity
     {
-
         public EntityType Type { get; }
         public EntityCreateFlag CreateFlags { get; set; }
 
