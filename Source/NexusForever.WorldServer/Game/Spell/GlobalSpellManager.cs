@@ -156,9 +156,6 @@ namespace NexusForever.WorldServer.Game.Spell
             foreach (FieldInfo field in typeof(CastResult).GetFields())
             {
                 IEnumerable<CastResultVitalAttribute> attributes = field.GetCustomAttributes<CastResultVitalAttribute>();
-                if (attributes.Count() == 0)
-                    continue;
-
                 foreach (CastResultVitalAttribute attribute in attributes)
                     builder.Add(attribute.Vital, (CastResult)field.GetValue(null));
             }

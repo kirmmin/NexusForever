@@ -122,13 +122,13 @@ namespace NexusForever.WorldServer.Game.Entity
                 if (vitalAttributes.Count() == 0)
                     continue;
 
-                VitalSetHandler @setterDelegate = (VitalSetHandler)Delegate.CreateDelegate(typeof(VitalSetHandler), null, property.GetSetMethod());
-                VitalGetHandler @getterDelegate = (VitalGetHandler)Delegate.CreateDelegate(typeof(VitalGetHandler), null, property.GetGetMethod());
+                VitalSetHandler vitalSetterDelegate = (VitalSetHandler)Delegate.CreateDelegate(typeof(VitalSetHandler), null, property.GetSetMethod());
+                VitalGetHandler vitalGetterDelegate = (VitalGetHandler)Delegate.CreateDelegate(typeof(VitalGetHandler), null, property.GetGetMethod());
 
                 foreach (VitalAttribute attribute in vitalAttributes)
                 {
-                    setterBuilder.Add(attribute.Vital, @setterDelegate);
-                    getterBuilder.Add(attribute.Vital, @getterDelegate);
+                    setterBuilder.Add(attribute.Vital, vitalSetterDelegate);
+                    getterBuilder.Add(attribute.Vital, vitalGetterDelegate);
                 }
             }
 
