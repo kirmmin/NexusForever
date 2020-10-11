@@ -21,6 +21,12 @@ namespace NexusForever.WorldServer.Game.Cinematic
             AddTransition(0, initialTransitionType, initialTransitionStart, initialTransitionMid, initialTransitionEnd);
         }
 
+        public Camera(uint spline, uint splineMode, uint delay, float speed, bool target = false, bool useRotation = true)
+        {
+            CameraSpline cameraSpline = new CameraSpline(delay, spline, splineMode, speed, target, useRotation);
+            CameraActions.Add(cameraSpline);
+        }
+
         public void AddAttach(uint delay, uint attachId, uint attachType = 0, bool useRotation = true)
         {
             CameraAttach cameraAttach = new CameraAttach(delay, attachId, this, attachType, useRotation);
