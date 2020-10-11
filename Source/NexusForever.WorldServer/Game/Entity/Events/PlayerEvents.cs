@@ -112,6 +112,13 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             base.OnTickRegeneration();
 
+            float enduranceRemaining = GetStatFloat(Stat.Resource0).Value;
+            if (enduranceRemaining < GetPropertyValue(Property.ResourceMax0))
+            {
+                float enduranceRegenAmount = GetPropertyValue(Property.ResourceMax0) * GetPropertyValue(Property.ResourceRegenMultiplier0);
+                SetStat(Stat.Resource0, (float)Math.Min(enduranceRemaining + enduranceRegenAmount, (float)GetPropertyValue(Property.ResourceMax0)));
+            }
+
             float dashRemaining = (float)GetStatFloat(Stat.Dash).Value;
             if (dashRemaining < GetPropertyValue(Property.ResourceMax7))
             {

@@ -302,14 +302,6 @@ namespace NexusForever.WorldServer.Game.Entity
 
             BuildBaseProperties();
 
-            SetStat(Stat.Sheathed, 1u);
-
-            // temp
-            SetStat(Stat.Dash, 200F);
-            // sprint
-            SetStat(Stat.Resource0, 500f);
-            SetStat(Stat.Shield, 450u);
-
             CharacterManager.Instance.RegisterPlayer(this);
             firstTimeLoggingIn = model.TimePlayedTotal == 0;
         }
