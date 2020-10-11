@@ -79,6 +79,9 @@ namespace NexusForever.WorldServer.Game.Entity
 
             for (uint i = 0u; i < levelEntry.UnitPropertyValue.Length; i++)
                 SetProperty((Property)i, values[i]);*/
+
+            if (Health > MaxHealth)
+                MaxHealth = Health;
         }
     }
 }
