@@ -281,6 +281,17 @@ namespace NexusForever.WorldServer.Game
 
         private void CacheItemInnateProperties()
         {
+            // Types
+            // 0 - Player
+            // 1 - Class
+            // 2 - Item
+            // Sub Types
+            // Type 1 - Class ID (Engineer, Medic, etc.)
+            // ModType
+            // 0 - Base Value
+            // 1 - Per Effective Level
+            // 2 - Value
+
             ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>>.Builder propFlat = ImmutableDictionary.CreateBuilder<ItemSlot, ImmutableDictionary<Property, float>>();
             ImmutableDictionary<ItemSlot, ImmutableDictionary<Property, float>>.Builder propScaling = ImmutableDictionary.CreateBuilder<ItemSlot, ImmutableDictionary<Property, float>>();
 

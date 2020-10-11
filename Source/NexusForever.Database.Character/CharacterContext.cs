@@ -1767,7 +1767,7 @@ namespace NexusForever.Database.Character
                         Property = 17,
                         ModType = 2,
                         Value = 1,
-                        Note = "Warrior - Base Kinetic Energy Regen"
+                        Note = "Class - Warrior - Base Kinetic Energy Regen"
                     },
                     new PropertyBaseModel
                     {
