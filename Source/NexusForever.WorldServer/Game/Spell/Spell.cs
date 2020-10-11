@@ -476,10 +476,12 @@ namespace NexusForever.WorldServer.Game.Spell
 
             targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Caster, caster));
 
-            if (parameters.ClientSideInteraction != null)
-                targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Target, parameters.ClientSideInteraction.ActivateUnit as UnitEntity));
-            else
-                targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Target, caster));
+            if (parameters.PrimaryTargetId > 0)
+            {
+                UnitEntity primaryTargetEntity = caster.GetVisible<UnitEntity>(parameters.PrimaryTargetId);
+                if (primaryTargetEntity != null)
+                    targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Target, primaryTargetEntity));
+            }
 
             foreach (TelegraphDamageEntry telegraphDamageEntry in parameters.SpellInfo.Telegraphs)
             {
