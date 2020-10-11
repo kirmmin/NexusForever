@@ -109,6 +109,7 @@ namespace NexusForever.Shared.Network.Message
         ServerCinematic0211             = 0x0211,
         ServerCinematic0212             = 0x0212,
         ServerCinematicActorAttach      = 0x0213,
+        ServerCinematicCameraSpline     = 0x0215,
         ServerCinematic0216             = 0x0216,
         ServerCinematicTransitionDurationSet = 0x0222,
         ServerCinematicVisualEffectEnd  = 0x0225,
