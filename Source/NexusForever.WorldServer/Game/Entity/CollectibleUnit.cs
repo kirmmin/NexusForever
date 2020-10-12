@@ -13,8 +13,6 @@ namespace NexusForever.WorldServer.Game.Entity
     [DatabaseEntity(EntityType.CollectableUnit)]
     public class CollectableUnit : UnitEntity
     {
-        public byte QuestChecklistIdx { get; private set; }
-
         public CollectableUnit()
             : base(EntityType.CollectableUnit)
         {
