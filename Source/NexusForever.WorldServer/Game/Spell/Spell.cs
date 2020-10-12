@@ -205,30 +205,9 @@ namespace NexusForever.WorldServer.Game.Spell
                 if (parameters.SpellInfo.Entry.PrerequisiteIdCasterCast > 0 && !PrerequisiteManager.Instance.Meets(player, parameters.SpellInfo.Entry.PrerequisiteIdCasterCast))
                     return CastResult.PrereqCasterCast;
 
-                for (int i = 0; i < parameters.SpellInfo.Entry.CasterInnateRequirements.Length; i++)
-                {
-                    uint innateRequirement = parameters.SpellInfo.Entry.CasterInnateRequirements[i];
-                    if (innateRequirement == 0)
-                        continue;
-
-                    switch (parameters.SpellInfo.Entry.CasterInnateRequirementEval[i])
-                    {
-                        case 2:
-                            if (caster.GetVitalValue((Vital)innateRequirement) < parameters.SpellInfo.Entry.CasterInnateRequirementValues[i])
-                                return GlobalSpellManager.Instance.GetFailedCastResultForVital((Vital)innateRequirement);
-                            break;
-                    }
-                }
-
-                for (int i = 0; i < parameters.SpellInfo.Entry.InnateCostTypes.Length; i++)
-                {
-                    uint innateCostType = parameters.SpellInfo.Entry.InnateCostTypes[i];
-                    if (innateCostType == 0)
-                        continue;
-
-                    if (caster.GetVitalValue((Vital)innateCostType) < parameters.SpellInfo.Entry.InnateCosts[i])
-                        return GlobalSpellManager.Instance.GetFailedCastResultForVital((Vital)innateCostType);
-                }
+                CastResult resourceConditions = CheckResourceConditions();
+                if (resourceConditions != CastResult.Ok)
+                    return resourceConditions;
             }
 
             return CastResult.Ok;
@@ -274,6 +253,36 @@ namespace NexusForever.WorldServer.Game.Spell
             // not sure if this should be for explicit and/or implicit targets
             if (parameters.SpellInfo.TargetCCConditions != null)
             {
+            }
+
+            return CastResult.Ok;
+        }
+
+        private CastResult CheckResourceConditions()
+        {
+            for (int i = 0; i < parameters.SpellInfo.Entry.CasterInnateRequirements.Length; i++)
+            {
+                uint innateRequirement = parameters.SpellInfo.Entry.CasterInnateRequirements[i];
+                if (innateRequirement == 0)
+                    continue;
+
+                switch (parameters.SpellInfo.Entry.CasterInnateRequirementEval[i])
+                {
+                    case 2:
+                        if (caster.GetVitalValue((Vital)innateRequirement) < parameters.SpellInfo.Entry.CasterInnateRequirementValues[i])
+                            return GlobalSpellManager.Instance.GetFailedCastResultForVital((Vital)innateRequirement);
+                        break;
+                }
+            }
+
+            for (int i = 0; i < parameters.SpellInfo.Entry.InnateCostTypes.Length; i++)
+            {
+                uint innateCostType = parameters.SpellInfo.Entry.InnateCostTypes[i];
+                if (innateCostType == 0)
+                    continue;
+
+                if (caster.GetVitalValue((Vital)innateCostType) < parameters.SpellInfo.Entry.InnateCosts[i])
+                    return GlobalSpellManager.Instance.GetFailedCastResultForVital((Vital)innateCostType);
             }
 
             return CastResult.Ok;

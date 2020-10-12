@@ -115,7 +115,7 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 // TODO: Validate prior to setting
                 float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax7));
-                SetStat(Stat.Dash, value);
+                SetStat(Stat.Dash, newVal);
             }
         }
 
@@ -131,7 +131,7 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 // TODO: Validate prior to setting
                 float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax1));
-                SetStat(Stat.Resource1, value);
+                SetStat(Stat.Resource1, newVal);
             }
         }
 
@@ -144,7 +144,7 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 // TODO: Validate prior to setting
                 float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax3));
-                SetStat(Stat.Resource3, value);
+                SetStat(Stat.Resource3, newVal);
             }
         }
 
@@ -157,7 +157,7 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 // TODO: Validate prior to setting
                 float newVal = Math.Clamp(value, 0f, GetPropertyValue(Property.ResourceMax4));
-                SetStat(Stat.Resource4, value);
+                SetStat(Stat.Resource4, newVal);
             }
         }
 
