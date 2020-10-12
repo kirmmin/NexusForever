@@ -20,6 +20,7 @@ using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Cinematic;
 using NexusForever.WorldServer.Game.Cinematic.Cinematics;
 using NexusForever.WorldServer.Game.Contact;
+using NexusForever.WorldServer.Game.Combat;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
@@ -684,6 +685,15 @@ namespace NexusForever.WorldServer.Game.Entity
                 {
                     Guid     = entity.Guid,
                     Unknown1 = 1
+                });
+            }
+
+            if (entity is UnitEntity unitEntity && unitEntity.InCombat) 
+            {
+                Session.EnqueueMessageEncrypted(new ServerUnitEnteredCombat
+                {
+                    UnitId = unitEntity.Guid,
+                    InCombat = unitEntity.InCombat
                 });
             }
         }

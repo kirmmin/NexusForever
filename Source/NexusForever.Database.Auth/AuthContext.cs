@@ -911,6 +911,31 @@ namespace NexusForever.Database.Auth
                     },
                     new PermissionModel
                     {
+                        Id   = 106,
+                        Name = "Category: EntityThreat"
+                    },
+                    new PermissionModel
+                    {
+                        Id   = 107,
+                        Name = "Command: EntityThreatAdjust"
+                    },
+                    new PermissionModel
+                    {
+                        Id = 108,
+                        Name = "Command: EntityThreatList"
+                    },
+                    new PermissionModel
+                    {
+                        Id = 109,
+                        Name = "Command: EntityThreatClear"
+                    },
+                    new PermissionModel
+                    {
+                        Id = 110,
+                        Name = "Command: EntityThreatRemove"
+                    },
+                    new PermissionModel
+                    {
                         Id   = 10000,
                         Name = "Other: InstantLogout"
                     },

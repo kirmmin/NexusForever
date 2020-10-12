@@ -4,18 +4,16 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.Server0908)]
-    public class Server0908 : IWritable
+    [Message(GameMessageOpcode.ServerEntityAggroSwitch)]
+    public class ServerEntityAggroSwitch : IWritable
     {
-        public uint CasterId { get; set; }
+        public uint UnitId { get; set; }
         public uint TargetId { get; set; }
-        public uint Unknown0 { get; set; }
 
         public void Write(GamePacketWriter writer)
         {
-            writer.Write(CasterId);
+            writer.Write(UnitId);
             writer.Write(TargetId);
-            writer.Write(Unknown0);
         }
     }
 }
