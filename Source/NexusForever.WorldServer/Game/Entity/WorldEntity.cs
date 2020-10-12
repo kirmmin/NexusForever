@@ -478,16 +478,6 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public void SetBaseProperty(Property property, float value)
         {
-            if (Map == null)
-            {
-                if (Properties.ContainsKey(property))
-                    Properties[property] = new PropertyValue(property, value, value);
-                else
-                    Properties.Add(property, new PropertyValue(property, value, value));
-
-                return;
-            }
-
             if (BaseProperties.ContainsKey(property))
                 BaseProperties[property] = value;
             else
