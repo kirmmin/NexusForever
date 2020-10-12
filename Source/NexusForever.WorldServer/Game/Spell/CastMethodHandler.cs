@@ -49,6 +49,13 @@ namespace NexusForever.WorldServer.Game.Spell
         {
             events.EnqueueEvent(new SpellEvent(parameters.SpellInfo.Entry.ChannelInitialDelay / 1000d, () =>
             {
+                CastResult checkResources = CheckResourceConditions();
+                if (checkResources != CastResult.Ok)
+                {
+                    CancelCast(checkResources);
+                    return;
+                }
+
                 Execute();
 
                 targets.ForEach(t => t.Effects.Clear());
@@ -61,6 +68,13 @@ namespace NexusForever.WorldServer.Game.Spell
             for (int i = 1; i <= numberOfPulses; i++)
                 events.EnqueueEvent(new SpellEvent((parameters.SpellInfo.Entry.ChannelInitialDelay + (parameters.SpellInfo.Entry.ChannelPulseTime * i)) / 1000d, () =>
                 {
+                    CastResult checkResources = CheckResourceConditions();
+                    if (checkResources != CastResult.Ok)
+                    {
+                        CancelCast(checkResources);
+                        return;
+                    }
+
                     Execute();
 
                     targets.ForEach(t => t.Effects.Clear());
