@@ -32,7 +32,7 @@ namespace NexusForever.WorldServer.Script.Creature
         {
             base.OnActivateFail(me, activator);
 
-            (me as UnitEntity).CastSpell(46051, new SpellParameters
+            (activator as UnitEntity).CastSpell(SPELL_PENALTY, new SpellParameters
             {
                 PrimaryTargetId = activator.Guid,
                 UserInitiatedSpellCast = false,
