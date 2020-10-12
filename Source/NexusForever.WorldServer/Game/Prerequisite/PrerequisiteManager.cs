@@ -59,7 +59,7 @@ namespace NexusForever.WorldServer.Game.Prerequisite
                 PrerequisiteComparison comparison = (PrerequisiteComparison)entry.PrerequisiteComparisonId[i];
                 if (!Meets(player, type, comparison, entry.Value[i], entry.ObjectId[i]))
                 {
-                    log.Trace($"Player {player.Name} failed prerequisite check {type}, {comparison}, {entry.Value[i]}, {entry.ObjectId[i]}");
+                    log.Trace($"Player {player.Name} failed prerequisite check ({prerequisiteId}) {type}, {comparison}, {entry.Value[i]}, {entry.ObjectId[i]}");
                     return false;
                 }
             }

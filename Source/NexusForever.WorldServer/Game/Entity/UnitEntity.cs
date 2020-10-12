@@ -4,6 +4,7 @@ using System.Linq;
 using NexusForever.Shared.Game;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
+using NexusForever.WorldServer.Game.AI;
 using NexusForever.WorldServer.Game.Combat;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Spell;
@@ -16,6 +17,8 @@ namespace NexusForever.WorldServer.Game.Entity
     public abstract partial class UnitEntity : WorldEntity
     {
         private readonly List<Spell.Spell> pendingSpells = new List<Spell.Spell>();
+        protected UnitAI AI { get; set; }
+        public UnitAI GetAI() => AI;
 
         private UpdateTimer regenTimer = new UpdateTimer(0.5d);
         
@@ -46,6 +49,15 @@ namespace NexusForever.WorldServer.Game.Entity
             : base(type)
         {
             ThreatManager = new ThreatManager(this);
+
+            InitialiseAI();
+        }
+
+        private void InitialiseAI()
+        {
+            // TODO: Allow for AI Types to be set from Database
+            if (this is NonPlayer)
+                AI = new UnitAI(this);
         }
 
         public override void Update(double lastTick)
@@ -60,6 +72,7 @@ namespace NexusForever.WorldServer.Game.Entity
             }
 
             ThreatManager.Update(lastTick);
+            AI?.Update(lastTick);
             
             regenTimer.Update(lastTick);
             if (regenTimer.HasElapsed)
@@ -239,6 +252,15 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         /// <summary>
+        /// Returns target <see cref="UnitEntity"/> if it exists.
+        /// </summary>
+        public bool GetCurrentTarget(out UnitEntity unitEntity)
+        {
+            unitEntity = GetVisible<UnitEntity>(currentTargetUnitId);
+            return unitEntity != null;
+        }
+
+        /// <summary>
         /// Returns whether or not this <see cref="UnitEntity"/> is an attackable target.
         /// </summary>
         public bool IsValidAttackTarget()
@@ -263,12 +285,9 @@ namespace NexusForever.WorldServer.Game.Entity
             SelectTarget();
         }
 
-        /// <summary>
-        /// Invoked when this <see cref="WorldEntity"/> is asked to select a target for an attack.
-        /// </summary>
-        public virtual void SelectTarget(IEnumerable<HostileEntity> hostiles = null)
+        protected virtual void SelectTarget(IEnumerable<HostileEntity> hostiles = null)
         {
-            // deliberately empty
+            // Deliberately empty
         }
 
         protected void SetTarget(uint targetUnitId, uint threatLevel = 0u)

@@ -71,10 +71,17 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             Sheathed = !inCombat;
 
-            if (inCombat)
-                StandState = Static.StandState.Stand;
-            else
-                StandState = Static.StandState.State0;
+            switch (inCombat)
+            {
+                case true:
+                    StandState = Static.StandState.Stand;
+                    AI?.OnEnterCombat();
+                    break;
+                case false:
+                    StandState = Static.StandState.State0;
+                    AI?.OnExitCombat();
+                    break;
+            }
         }
     }
 }

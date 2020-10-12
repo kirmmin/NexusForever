@@ -181,7 +181,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Update all <see cref="GridEntity"/>'s in vision range.
         /// </summary>
-        private void UpdateVision()
+        protected virtual void UpdateVision()
         {
             Map.Search(Position, Map.VisionRange, new SearchCheckRange(Position, Map.VisionRange), out List<GridEntity> intersectedEntities);
 
