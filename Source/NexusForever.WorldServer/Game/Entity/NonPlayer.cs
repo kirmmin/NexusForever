@@ -84,7 +84,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 SetProperty((Property)i, values[i]);*/
 
             if (Health > MaxHealth)
-                MaxHealth = Health;
+                Properties[Property.BaseHealth] = new PropertyValue(Property.BaseHealth, Health, Health);
         }
 
         public override void SelectTarget(IEnumerable<HostileEntity> hostiles = null)
