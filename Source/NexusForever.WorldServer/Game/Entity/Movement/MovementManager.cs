@@ -27,6 +27,7 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         private EntityCommand splineCommand;
         private SplinePath splinePath;
         private readonly UpdateTimer splineGridUpdateTimer = new(SplineGridUpdateTime);
+        private UpdateTimer chaseReUseTimer = new(0.25d, false);
 
         private bool isDirty;
         private bool serverControlled = true;
@@ -63,6 +64,9 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         public void Update(double lastTick)
         {
             BroadcastCommands();
+
+            if (chaseReUseTimer.IsTicking)
+                chaseReUseTimer.Update(lastTick);
 
             if (splinePath != null)
             {
@@ -129,6 +133,7 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         public void SetRotation(Vector3 rotation, bool sendImmediately = true)
         {
             StopSpline();
+            commands.Remove(EntityCommand.SetRotationDefaults);
             AddCommand(new SetRotationCommand
             {
                 Position = new Position(rotation)
@@ -292,11 +297,6 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
                 State = 0
             });
 
-            AddCommand(new SetRotationDefaultsCommand
-            {
-                Blend = false
-            });
-
             AddCommand(new SetRotationCommand
             {
                 Position = new Position(splinePath.GetPreviousPosition().GetRotationTo(position))
@@ -304,13 +304,13 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
 
             AddCommand(new SetPositionCommand
             {
-                Position = new Position(position)
+                Position = new Position(position),
+                Blend = true
             }, true);
 
             // TODO: calculate spline gradient to set rotation on end
 
             commands.Remove(splineCommand);
-            commands.Remove(EntityCommand.SetRotationDefaults);
             splinePath = null;
         }
 
@@ -363,6 +363,75 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         {
             List<Vector3> nodes = generator.CalculatePath();
             LaunchSpline(nodes, SplineType.Linear, mode, speed);
+        }
+
+        public void Chase(WorldEntity entity, float speed, float distance)
+        {
+            if (chaseReUseTimer.IsTicking && !chaseReUseTimer.HasElapsed)
+                return;
+
+            float currentDistance = entity.Position.GetDistance(owner.Position);
+            if (currentDistance <= distance)
+            {
+                if (splinePath == null)
+                    return;
+
+                StopSpline();
+                BroadcastCommands();
+
+                commands.Remove(EntityCommand.SetRotation);
+                commands.Remove(EntityCommand.SetRotationDefaults);
+                AddCommand(new SetRotationFaceUnitCommand
+                {
+                    UnitId = entity.Guid
+                }, true);
+                chaseReUseTimer.Reset(true);
+
+                return;
+            }
+
+            AddCommand(new SetRotationFaceUnitCommand
+            {
+                UnitId = entity.Guid,
+                Blend = true
+            });
+
+            var generator = new DirectMovementGenerator
+            {
+                Begin = splinePath?.GetPosition() ?? owner.Position,
+                Final = entity.Position,
+                Map = entity.Map
+            };
+            
+            LaunchGenerator(generator, speed);
+        }
+
+        public void MoveTo(Vector3 location, float speed)
+        {
+            float currentDistance = location.GetDistance(owner.Position);
+            if (currentDistance < 0.5f)
+            {
+                StopSpline();
+                BroadcastCommands();
+                return;
+            }
+
+            AddCommand(new SetRotationFaceUnitCommand
+            {
+                UnitId = 0
+            });
+            AddCommand(new SetRotationDefaultsCommand
+            {
+                Blend = true
+            });
+
+            var generator = new DirectMovementGenerator
+            {
+                Begin = splinePath?.GetPosition() ?? owner.Position,
+                Final = location,
+                Map = owner.Map
+            };
+            LaunchGenerator(generator, speed);
         }
 
         public void Follow(WorldEntity entity, float distance)

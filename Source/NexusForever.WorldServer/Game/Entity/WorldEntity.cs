@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NexusForever.Database.World.Model;
+using NexusForever.Shared;
 using NexusForever.Shared.Game;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
@@ -14,6 +14,7 @@ using NexusForever.WorldServer.Game.Entity.Movement;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Map;
+using NexusForever.WorldServer.Game.Map.Search;
 using NexusForever.WorldServer.Game.Prerequisite;
 using NexusForever.WorldServer.Game.Reputation;
 using NexusForever.WorldServer.Game.Reputation.Static;
@@ -70,11 +71,17 @@ namespace NexusForever.WorldServer.Game.Entity
         public float LeashRange { get; protected set; } = 15f;
         public MovementManager MovementManager { get; private set; }
 
+        public float AggroRange { get; private set; } = 15f;
+        protected readonly Dictionary<uint, WorldEntity> inRangeEntities = new Dictionary<uint, WorldEntity>();
+
         public uint Health
         {
             get => GetStatInteger(Stat.Health) ?? 0u;
             set
             {
+                if (value == GetStatInteger(Stat.Health))
+                    return;
+
                 SetStat(Stat.Health, Math.Clamp(value, 0u, MaxHealth)); // TODO: Confirm MaxHealth is actually the maximum health would be at.
                 EnqueueToVisible(new ServerEntityHealthUpdate
                 {
@@ -313,65 +320,6 @@ namespace NexusForever.WorldServer.Game.Entity
 
             return entityCreatePacket;
         }
-
-        // TODO: research the difference between a standard activation and cast activation
-
-        /// <summary>
-        /// Invoked when <see cref="WorldEntity"/> is activated.
-        /// </summary>
-        public virtual void OnInteract(Player activator)
-        {
-            // deliberately empty
-        }
-
-        /// <summary>
-        /// Invoked when <see cref="WorldEntity"/> is cast activated.
-        /// </summary>
-        public virtual void OnActivateCast(Player activator, uint interactionId)
-        {
-            Creature2Entry entry = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
-
-            uint spell4Id = 0;
-            for (int i = 0; i < entry.Spell4IdActivate.Length; i++)
-            {
-                if (spell4Id > 0u || i == entry.Spell4IdActivate.Length)
-                    break;
-
-                if (entry.PrerequisiteIdActivateSpells[i] > 0 && PrerequisiteManager.Instance.Meets(activator, entry.PrerequisiteIdActivateSpells[i]))
-                        spell4Id = entry.Spell4IdActivate[i];
-
-                if (spell4Id == 0u && entry.Spell4IdActivate[i] == 0u && i > 0)
-                    spell4Id = entry.Spell4IdActivate[i - 1];
-            }
-
-            if (spell4Id == 0)
-                throw new InvalidOperationException($"Spell4Id should not be 0. Unhandled Creature ActivateCast {CreatureId}");
-
-            SpellParameters parameters = new SpellParameters
-            {
-                PrimaryTargetId = Guid,
-                ClientSideInteraction = new ClientSideInteraction(activator, this, interactionId),
-                CastTimeOverride = (int)entry.ActivateSpellCastTime,
-            };
-            activator.CastSpell(spell4Id, parameters);
-        }
-
-        /// <summary>
-        /// Invoked when <see cref="WorldEntity"/>'s activate succeeds.
-        /// </summary>
-        public virtual void OnActivateSuccess(Player activator)
-        {
-            // deliberately empty
-        }
-
-        /// <summary>
-        /// Invoked when <see cref="WorldEntity"/>'s activation fails.
-        /// </summary>
-        public virtual void OnActivateFail(Player activator)
-        {
-            // deliberately empty
-            ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnActivateFail(this, activator);
-        }
         
         /// <summary>
         /// Used to build the <see cref="ServerEntityPropertiesUpdate"/> from all modified <see cref="Property"/>
@@ -608,7 +556,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public float GetPropertyValue(Property property)
         {
-            return Properties.ContainsKey(property) ? Properties[property].Value : default;
+            return Properties.ContainsKey(property) ? Properties[property].Value : GameTableManager.Instance.UnitProperty2.GetEntry((ulong)property).DefaultValue;
         }
 
         /// <summary>
@@ -934,6 +882,45 @@ namespace NexusForever.WorldServer.Game.Entity
                 UnitId = Guid,
                 Stealthed = Stealthed
             }, true);
+        }
+        
+        protected override void UpdateVision()
+        {
+            base.UpdateVision();
+
+            Map.Search(Position, 50f, new SearchCheckRange(Position, 50f), out List<GridEntity> intersectedEntities);
+
+            foreach (GridEntity entity in intersectedEntities)
+            {
+                if (!(entity is WorldEntity we))
+                    continue;
+
+                if (!(this is Player))
+                {
+                    CheckForRangeTriggers(this, we);
+                    continue;
+                }
+
+                CheckForRangeTriggers(we, this);
+            }
+        }
+
+        private void CheckForRangeTriggers(WorldEntity checker, WorldEntity target)
+        {
+            if (checker.IsInRange(target))
+                checker.OnEnterRange(target);
+            else if (checker.IsWatching(target) && !checker.IsInRange(target))
+                checker.OnExitRange(target);
+        }
+
+        public bool IsInRange(WorldEntity entity)
+        {
+            return Position.GetDistance(entity.Position) < AggroRange;
+        }
+
+        public bool IsWatching(WorldEntity entity)
+        {
+            return inRangeEntities.Keys.Contains(entity.Guid);
         }
     }
 }

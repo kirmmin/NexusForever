@@ -94,6 +94,9 @@ namespace NexusForever.Shared
             return new Vector3(x, v.Y, z);
         }
 
+        /// <summary>
+        /// Returns the distance between this <see cref="Vector3"/> and a target <see cref="Vector3"/>.
+        /// </summary>
         public static float GetDistance(this Vector3 v1, Vector3 v2)
         {
             return MathF.Sqrt(MathF.Pow(v1.X - v2.X, 2) + MathF.Pow(v1.Z - v2.Z, 2));

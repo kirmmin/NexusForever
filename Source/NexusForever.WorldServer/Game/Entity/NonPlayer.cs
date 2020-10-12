@@ -1,15 +1,21 @@
 ﻿using NexusForever.Database.World.Model;
+using NexusForever.Shared;
+using NexusForever.Shared.Game;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
+using NexusForever.WorldServer.Game.AI;
 using NexusForever.WorldServer.Game.CSI;
 using NexusForever.WorldServer.Game.Combat;
+using NexusForever.WorldServer.Game.Entity.Movement.Generator;
 using NexusForever.WorldServer.Game.Entity.Network;
 using NexusForever.WorldServer.Game.Entity.Network.Model;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.Quest.Static;
+using NexusForever.WorldServer.Script;
 using System.Collections.Generic;
 using System.Linq;
-using NexusForever.WorldServer.Script;
-using NexusForever.WorldServer.Game.Quest.Static;
+using System.Numerics;
+using NexusForever.WorldServer.Game.Spell;
 
 namespace NexusForever.WorldServer.Game.Entity
 {
@@ -17,6 +23,10 @@ namespace NexusForever.WorldServer.Game.Entity
     public class NonPlayer : UnitEntity
     {
         public VendorInfo VendorInfo { get; private set; }
+
+        private readonly UpdateTimer engageTimer = new UpdateTimer(3, false);
+        private Vector3 originalRotation = Vector3.Zero;
+        private uint tempTargetId = 0u;
 
         public NonPlayer()
             : base(EntityType.NonPlayer)
@@ -36,6 +46,21 @@ namespace NexusForever.WorldServer.Game.Entity
             CalculateProperties();
 
             ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnCreate(this);
+        }
+
+        public override void Update(double lastTick)
+        {
+            base.Update(lastTick);
+
+            if (engageTimer.IsTicking)
+            {
+                engageTimer.Update(lastTick);
+                if (engageTimer.HasElapsed)
+                {
+                    EngageTimerElapsed();
+                    engageTimer.Reset(false);
+                }
+            }
         }
 
         protected override IEntityModel BuildEntityModel()
@@ -85,7 +110,74 @@ namespace NexusForever.WorldServer.Game.Entity
                 Properties[Property.BaseHealth] = new PropertyValue(Property.BaseHealth, Health, Health);
         }
 
-        public override void SelectTarget(IEnumerable<HostileEntity> hostiles = null)
+        public override void OnEnterRange(WorldEntity entity)
+        {
+            base.OnEnterRange(entity);
+
+            // TODO: Remove example code below
+            if (!(entity is Player))
+                return;
+
+            if (tempTargetId > 0u || InCombat)
+                return;
+
+            if (AI != null && AI.IsLeashing())
+                return;
+
+            if (GetDispositionTo(entity.Faction1) > Reputation.Static.Disposition.Hostile)
+                return;
+
+            originalRotation = Rotation;
+            MovementManager.SetRotation(Position.GetRotationTo(entity.Position), true);
+            tempTargetId = entity.Guid;
+
+            CastSpell(41368, new SpellParameters
+            {
+                UserInitiatedSpellCast = false
+            });
+
+            engageTimer.Resume();
+        }
+
+        public override void OnExitRange(WorldEntity entity)
+        {
+            base.OnExitRange(entity);
+
+            // TODO: Remove example code below
+            if (!(entity is Player))
+                return;
+
+            if (tempTargetId > 0 && tempTargetId != entity.Guid)
+                return;
+
+            if (InCombat)
+                return;
+
+            if (AI != null && AI.IsLeashing())
+                return;
+            
+            if (tempTargetId == entity.Guid)
+            {
+                MovementManager.SetRotation(originalRotation, true);
+                tempTargetId = 0u;
+                engageTimer.Reset(false);
+            }
+        }
+
+        private void EngageTimerElapsed()
+        {
+            UnitEntity target = GetVisible<UnitEntity>(tempTargetId);
+            if (tempTargetId == 0u || target == null)
+            {
+                AI.ExitCombat();
+                return;
+            }
+
+            tempTargetId = 0u;
+            ThreatManager.AddThreat(target, 1);
+        }
+
+        protected override void SelectTarget(IEnumerable<HostileEntity> hostiles = null)
         {
             base.SelectTarget(hostiles);
 

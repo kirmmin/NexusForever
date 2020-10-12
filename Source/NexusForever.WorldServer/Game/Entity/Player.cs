@@ -643,6 +643,14 @@ namespace NexusForever.WorldServer.Game.Entity
                     Guid     = entity.Guid,
                     Unknown1 = 1
                 });
+            } 
+            else
+            {
+                EnqueueToVisible(new ServerEmote
+                {
+                    Guid = Guid,
+                    StandState = (entity as WorldEntity).StandState
+                });
             }
 
             if (entity is UnitEntity unitEntity && unitEntity.InCombat) 

@@ -29,7 +29,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             if (session.Player.IsEmoting)
                 session.Player.IsEmoting = false;
 
-            mover.MovementManager.HandleClientEntityCommands(entityCommand.Commands, entityCommand.Time);
+            mover?.MovementManager.HandleClientEntityCommands(entityCommand.Commands, entityCommand.Time);
         }
 
         [MessageHandler(GameMessageOpcode.ClientActivateUnit)]
