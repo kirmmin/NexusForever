@@ -13,6 +13,11 @@ namespace NexusForever.WorldServer.Game.Entity
 {
     public partial class Player
     {
+        private double medicTickTimer;
+        private float medicRefillRate = 4f;
+        private float spellPowerRefillRate = 4f;
+        private float warriorDecayRate = 150f;
+
         private void OnLogin()
         {
             string motd = WorldServer.RealmMotd;
@@ -123,6 +128,32 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 float dashRegenAmount = GetPropertyValue(Property.ResourceMax7) * GetPropertyValue(Property.ResourceRegenMultiplier7);
                 SetStat(Stat.Dash, (float)Math.Min(dashRemaining + dashRegenAmount, (float)GetPropertyValue(Property.ResourceMax7)));
+            }
+
+            if (Class == Class.Spellslinger)
+            {
+                if (Resource4 < GetPropertyValue(Property.ResourceMax4))
+                    Resource4 += (float)(spellPowerRefillRate * 0.5f);
+            }
+
+            if (InCombat)
+                return;
+
+            switch (Class)
+            {
+                case Class.Warrior:
+                    if (Resource1 > 0f)
+                        Resource1 -= (float)(warriorDecayRate * 0.5f);
+                    break;
+                case Class.Medic:
+                    medicTickTimer += 0.5f;
+                    if (medicTickTimer > 1d)
+                    {
+                        if (Resource1 < GetPropertyValue(Property.ResourceMax1))
+                            Resource1 += medicRefillRate;
+                        medicTickTimer = 0d;
+                    }
+                    break;
             }
         }
     }

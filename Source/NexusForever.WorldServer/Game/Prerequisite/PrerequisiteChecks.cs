@@ -133,6 +133,7 @@ namespace NexusForever.WorldServer.Game.Prerequisite
                 case PrerequisiteComparison.NotEqual:
                     return player.GetActiveSpell(s => s.Spell4Id == value) == null;
                 default:
+                    log.Warn($"Unhandled PrerequisiteComparison {comparison} for {PrerequisiteType.Spell}!");
                     return false;
             }
         }

@@ -50,7 +50,7 @@ namespace NexusForever.WorldServer.Game.Prerequisite
             if (entry == null)
                 throw new ArgumentException();
 
-            if (((PrerequisiteEntryFlag)entry.Flags & PrerequisiteEntryFlag.EvaluateAND) != 0)
+            if ((PrerequisiteEntryFlag)entry.Flags == PrerequisiteEntryFlag.EvaluateAND)
                 return MeetsEvaluateAnd(player, prerequisiteId, entry);
 
             if (((PrerequisiteEntryFlag)entry.Flags & PrerequisiteEntryFlag.EvaluateOR) != 0)
