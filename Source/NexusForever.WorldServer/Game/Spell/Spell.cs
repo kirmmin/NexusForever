@@ -137,8 +137,6 @@ namespace NexusForever.WorldServer.Game.Spell
             CastResult result = CheckCast();
             if (result != CastResult.Ok)
             {
-                log.Trace($"Spell {parameters.SpellInfo.Entry.Id} failed to cast {result}.");
-
                 SendSpellCastResult(result);
                 status = SpellStatus.Failed;
                 return;
@@ -146,8 +144,9 @@ namespace NexusForever.WorldServer.Game.Spell
 
             if (parameters.UserInitiatedSpellCast) // Skip following checks and logic if this was not cast directly by the entity
             {
+                // TODO: Handle all GlobalCooldownEnums. It looks like it's just a "Type" that the GCD is stored against. Each spell checks the GCD for its type.
                 if (caster is Player player)
-                    if (parameters.SpellInfo.GlobalCooldown != null && !parameters.IsProxy)
+                    if (parameters.SpellInfo.GlobalCooldown != null && parameters.SpellInfo.Entry.GlobalCooldownEnum == 0 && !parameters.IsProxy)
                         player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
             }
 
@@ -193,7 +192,10 @@ namespace NexusForever.WorldServer.Game.Spell
                     return CastResult.SpellCooldown;
 
                 // this isn't entirely correct, research GlobalCooldownEnum
-                if (parameters.SpellInfo.Entry.GlobalCooldownEnum == 0 && player.SpellManager.GetGlobalSpellCooldown() > 0d && !parameters.IsProxy && parameters.UserInitiatedSpellCast)
+                if (parameters.SpellInfo.Entry.GlobalCooldownEnum == 0 && 
+                    player.SpellManager.GetGlobalSpellCooldown() > 0d && 
+                    !parameters.IsProxy && 
+                    parameters.UserInitiatedSpellCast)
                 {
                     if (CastMethod != CastMethod.ChargeRelease)
                         return CastResult.SpellGlobalCooldown;
@@ -217,17 +219,10 @@ namespace NexusForever.WorldServer.Game.Spell
             if (!(caster is Player player))
                 return CastResult.Ok;
 
-            // TODO
-            if (parameters.SpellInfo.CasterCastPrerequisites != null)
+            // Runners override the Caster Check, allowing the Caster to Cast the spell due to this Prerequisite being met
+            if (parameters.SpellInfo.CasterCastPrerequisite != null && !CheckRunnerOverride(player))
             {
-                bool casterCastSuccess = false;
-                foreach (PrerequisiteEntry casterCastPrereqEntry in parameters.SpellInfo.CasterCastPrerequisites)
-                {
-                    if (PrerequisiteManager.Instance.Meets(player, casterCastPrereqEntry.Id))
-                        casterCastSuccess = true;
-                }
-                
-                if (parameters.SpellInfo.CasterCastPrerequisites.Count > 0 && !casterCastSuccess)
+                if (!PrerequisiteManager.Instance.Meets(player, parameters.SpellInfo.CasterCastPrerequisite.Id))
                     return CastResult.PrereqCasterCast;
             }
 
@@ -248,6 +243,15 @@ namespace NexusForever.WorldServer.Game.Spell
             return CastResult.Ok;
         }
 
+        private bool CheckRunnerOverride(Player player)
+        {
+            foreach (PrerequisiteEntry runnerPrereq in parameters.SpellInfo.PrerequisiteRunners)
+                if (PrerequisiteManager.Instance.Meets(player, runnerPrereq.Id))
+                    return true;
+            
+            return false;
+        }
+
         private CastResult CheckCCConditions()
         {
             // TODO: this just looks like a mask for CCState enum
@@ -265,6 +269,13 @@ namespace NexusForever.WorldServer.Game.Spell
 
         private CastResult CheckResourceConditions()
         {
+            if (!(caster is Player player))
+                return CastResult.Ok;
+
+            bool runnerOveride = CheckRunnerOverride(player);
+            if (runnerOveride)
+                return CastResult.Ok;
+
             for (int i = 0; i < parameters.SpellInfo.Entry.CasterInnateRequirements.Length; i++)
             {
                 uint innateRequirement = parameters.SpellInfo.Entry.CasterInnateRequirements[i];
@@ -351,10 +362,13 @@ namespace NexusForever.WorldServer.Game.Spell
             CastResult result = CheckCast();
             if (result != CastResult.Ok)
             {
-                SendSpellCastResult(result);
-                return;
+                if (CastMethod == CastMethod.RapidTap && result != CastResult.PrereqCasterCast)
+                {
+                    SendSpellCastResult(result);
+                    return;
+                }
             }
-
+            
             Spell thresholdSpell = InitialiseThresholdSpell();
             thresholdSpell.Cast();
             thresholdSpells.Add(thresholdSpell);
@@ -662,6 +676,8 @@ namespace NexusForever.WorldServer.Game.Spell
             if (castResult == CastResult.Ok)
                 return;
 
+            log.Trace($"Spell {parameters.SpellInfo.Entry.Id} failed to cast {castResult}.");
+            
             if (caster is Player player && !player.IsLoading)
             {
                 player.Session.EnqueueMessageEncrypted(new ServerSpellCastResult

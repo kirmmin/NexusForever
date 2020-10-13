@@ -8,7 +8,7 @@ namespace NexusForever.WorldServer.Game.Spell.Static
     {
         SpellBase, 
         Spell4,
-        Unknown, 
+        SpellGroupId,
         SpellCooldownId
     }
 }
