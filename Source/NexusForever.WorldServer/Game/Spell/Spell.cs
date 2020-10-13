@@ -204,9 +204,6 @@ namespace NexusForever.WorldServer.Game.Spell
 
                 if (parameters.CharacterSpell?.MaxAbilityCharges > 0 && parameters.CharacterSpell?.AbilityCharges == 0)
                     return CastResult.SpellNoCharges;
-                    
-                if (parameters.SpellInfo.Entry.PrerequisiteIdCasterCast > 0 && !PrerequisiteManager.Instance.Meets(player, parameters.SpellInfo.Entry.PrerequisiteIdCasterCast))
-                    return CastResult.PrereqCasterCast;
 
                 CastResult resourceConditions = CheckResourceConditions();
                 if (resourceConditions != CastResult.Ok)
@@ -222,11 +219,15 @@ namespace NexusForever.WorldServer.Game.Spell
             if (!(caster is Player player))
                 return CastResult.Ok;
 
-            if (parameters.SpellInfo.CasterCastPrerequisite != null && !CheckRunnerOverride(player))
+            bool casterCastSuccess = false;
+            foreach (PrerequisiteEntry casterCastPrereqEntry in parameters.SpellInfo.CasterCastPrerequisites)
             {
-                if (!PrerequisiteManager.Instance.Meets(player, parameters.SpellInfo.CasterCastPrerequisite.Id))
-                    return CastResult.PrereqCasterCast;
+                if (PrerequisiteManager.Instance.Meets(player, casterCastPrereqEntry.Id))
+                    casterCastSuccess = true;
             }
+            
+            if (parameters.SpellInfo.CasterCastPrerequisites.Count > 0 && !casterCastSuccess)
+                return CastResult.PrereqCasterCast;
 
             // not sure if this should be for explicit and/or implicit targets
             if (parameters.SpellInfo.TargetCastPrerequisites != null)
@@ -243,15 +244,6 @@ namespace NexusForever.WorldServer.Game.Spell
             }
 
             return CastResult.Ok;
-        }
-
-        private bool CheckRunnerOverride(Player player)
-        {
-            foreach (PrerequisiteEntry runnerPrereq in parameters.SpellInfo.PrerequisiteRunners)
-                if (PrerequisiteManager.Instance.Meets(player, runnerPrereq.Id))
-                    return true;
-
-            return false;
         }
 
         private CastResult CheckCCConditions()

@@ -16,12 +16,11 @@ namespace NexusForever.WorldServer.Game.Spell
         public Spell4CCConditionsEntry TargetCCConditions { get; }
         public SpellCoolDownEntry GlobalCooldown { get; }
         public Spell4StackGroupEntry StackGroup { get; }
-        public PrerequisiteEntry CasterCastPrerequisite { get; }
+        public List<PrerequisiteEntry> CasterCastPrerequisites { get; } = new List<PrerequisiteEntry>();
         public PrerequisiteEntry TargetCastPrerequisites { get; }
         public PrerequisiteEntry CasterPersistencePrerequisites { get; }
         public PrerequisiteEntry TargetPersistencePrerequisites { get; }
         public Spell4VisualGroupEntry VisualGroup { get; }
-        public List<PrerequisiteEntry> PrerequisiteRunners { get; } = new();
 
         public List<TelegraphDamageEntry> Telegraphs { get; }
         public List<Spell4EffectsEntry> Effects { get; }
@@ -51,9 +50,6 @@ namespace NexusForever.WorldServer.Game.Spell
             Thresholds = GlobalSpellManager.Instance.GetSpell4ThresholdEntries(spell4Entry.Id).ToList();
             Phases = GlobalSpellManager.Instance.GetSpellPhaseEntries(spell4Entry.Id).ToList();
 
-            foreach (uint runnerId in spell4Entry.PrerequisiteIdRunners.Where(r => r != 0))
-                PrerequisiteRunners.Add(GameTableManager.Instance.Prerequisite.GetEntry(runnerId));
-
             if (VisualGroup != null)
                 foreach (uint visual in VisualGroup.Spell4VisualIdVisuals.Where(i => i != 0).ToList())
                 {
@@ -61,6 +57,12 @@ namespace NexusForever.WorldServer.Game.Spell
                     if (visualEntry != null)
                         Visuals.Add(visualEntry);
                 }
+
+            // Add all Prerequisites that allow the Caster to cast this Spell
+            if (spell4Entry.PrerequisiteIdCasterCast > 0)
+                CasterCastPrerequisites.Add(GameTableManager.Instance.Prerequisite.GetEntry(spell4Entry.PrerequisiteIdCasterCast));
+            foreach (uint runnerId in spell4Entry.PrerequisiteIdRunners.Where(i => i > 0))
+                CasterCastPrerequisites.Add(GameTableManager.Instance.Prerequisite.GetEntry(runnerId));
         }
     }
 }
