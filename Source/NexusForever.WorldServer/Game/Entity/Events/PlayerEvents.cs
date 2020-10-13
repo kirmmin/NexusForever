@@ -16,6 +16,7 @@ namespace NexusForever.WorldServer.Game.Entity
         private double medicTickTimer;
         private float medicRefillRate = 4f;
         private float spellPowerRefillRate = 4f;
+        private double warriorBuilderTimer;
         private float warriorDecayRate = 150f;
 
         private void OnLogin()
@@ -130,29 +131,55 @@ namespace NexusForever.WorldServer.Game.Entity
                 SetStat(Stat.Dash, (float)Math.Min(dashRemaining + dashRegenAmount, (float)GetPropertyValue(Property.ResourceMax7)));
             }
 
-            if (Class == Class.Spellslinger)
-            {
-                if (Resource4 < GetPropertyValue(Property.ResourceMax4))
-                    Resource4 += (float)(spellPowerRefillRate * 0.5f);
-            }
-
-            if (InCombat)
-                return;
-
             switch (Class)
             {
                 case Class.Warrior:
-                    if (Resource1 > 0f)
-                        Resource1 -= (float)(warriorDecayRate * 0.5f);
+                    if (InCombat)
+                    {
+                        warriorBuilderTimer += 0.5f;
+                        if (warriorBuilderTimer > 3d)
+                        {
+                            if (Resource1 > 0f)
+                                Resource1 -= (float)(warriorDecayRate * 0.5f);
+
+                            if (Resource1 < float.Epsilon)
+                                warriorBuilderTimer = 0f;
+                        }
+                    }
+                    else
+                    {
+                        if (Resource1 > 0f)
+                            Resource1 -= (float)(warriorDecayRate * 0.5f);
+                    }
+                    break;
+                case Class.Spellslinger:
+                    if (Resource4 < GetPropertyValue(Property.ResourceMax4))
+                        Resource4 += (float)(spellPowerRefillRate * 0.5f);
                     break;
                 case Class.Medic:
-                    medicTickTimer += 0.5f;
-                    if (medicTickTimer > 1d)
+                    if (!InCombat)
                     {
-                        if (Resource1 < GetPropertyValue(Property.ResourceMax1))
-                            Resource1 += medicRefillRate;
-                        medicTickTimer = 0d;
+                        medicTickTimer += 0.5f;
+                        if (medicTickTimer > 1d)
+                        {
+                            if (Resource1 < GetPropertyValue(Property.ResourceMax1))
+                                Resource1 += medicRefillRate;
+                            medicTickTimer = 0d;
+                        }
                     }
+                    break;
+            }
+        }
+
+        protected override void OnStatChange(Stat stat, float newVal, float previousVal)
+        {
+            base.OnStatChange(stat, newVal, previousVal);
+
+            switch (stat)
+            {
+                case Stat.Resource1:
+                    if (Class == Class.Warrior && newVal >= previousVal)
+                        warriorBuilderTimer = 0f;
                     break;
             }
         }

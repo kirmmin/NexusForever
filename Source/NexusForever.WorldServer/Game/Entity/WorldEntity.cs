@@ -616,8 +616,12 @@ namespace NexusForever.WorldServer.Game.Entity
             if (attribute?.Type != StatType.Float)
                 throw new ArgumentException();
 
+            float previousValue = 0f;
             if (stats.TryGetValue(stat, out StatValue statValue))
+            {
+                previousValue = statValue.Value;
                 statValue.Value = value;
+            }
             else
             {
                 statValue = new StatValue(stat, value);
@@ -632,6 +636,8 @@ namespace NexusForever.WorldServer.Game.Entity
                     Stat   = statValue
                 }, true);
             }
+
+            OnStatChange(stat, value, previousValue);
         }
 
         /// <summary>
@@ -643,8 +649,12 @@ namespace NexusForever.WorldServer.Game.Entity
             if (attribute?.Type != StatType.Integer)
                 throw new ArgumentException();
 
+            float previousValue = 0f;
             if (stats.TryGetValue(stat, out StatValue statValue))
+            {
+                previousValue = statValue.Value;
                 statValue.Value = value;
+            }
             else
             {
                 statValue = new StatValue(stat, value);
@@ -659,6 +669,8 @@ namespace NexusForever.WorldServer.Game.Entity
                     Stat   = statValue
                 }, true);
             }
+
+            OnStatChange(stat, value, previousValue);
         }
 
         /// <summary>
