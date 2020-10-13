@@ -50,6 +50,17 @@ namespace NexusForever.WorldServer.Game.Prerequisite
             if (entry == null)
                 throw new ArgumentException();
 
+            if (((PrerequisiteEntryFlag)entry.Flags & PrerequisiteEntryFlag.EvaluateAND) != 0)
+                return MeetsEvaluateAnd(player, prerequisiteId, entry);
+
+            if (((PrerequisiteEntryFlag)entry.Flags & PrerequisiteEntryFlag.EvaluateOR) != 0)
+                return MeetsEvaluateOr(player, prerequisiteId, entry);
+
+            return false;
+        }
+
+        private bool MeetsEvaluateAnd(Player player, uint prerequisiteId, PrerequisiteEntry entry)
+        {
             for (int i = 0; i < entry.PrerequisiteTypeId.Length; i++)
             {
                 var type = (PrerequisiteType)entry.PrerequisiteTypeId[i];
@@ -65,6 +76,27 @@ namespace NexusForever.WorldServer.Game.Prerequisite
             }
 
             return true;
+        }
+
+        private bool MeetsEvaluateOr(Player player, uint prerequisiteId, PrerequisiteEntry entry)
+        {
+            bool succeeds = false;
+
+            for (int i = 0; i < entry.PrerequisiteTypeId.Length; i++)
+            {
+                if (succeeds)
+                    break;
+
+                var type = (PrerequisiteType)entry.PrerequisiteTypeId[i];
+                if (type == PrerequisiteType.None)
+                    continue;
+
+                PrerequisiteComparison comparison = (PrerequisiteComparison)entry.PrerequisiteComparisonId[i];
+                if (Meets(player, type, comparison, entry.Value[i], entry.ObjectId[i]))
+                    succeeds = true;
+            }
+
+            return succeeds;
         }
 
         private bool Meets(Player player, PrerequisiteType type, PrerequisiteComparison comparison, uint value, uint objectId)
