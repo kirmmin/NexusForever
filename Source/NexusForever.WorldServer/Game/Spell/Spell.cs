@@ -147,8 +147,9 @@ namespace NexusForever.WorldServer.Game.Spell
                 return;
             }
 
+            // TODO: Handle all GlobalCooldownEnums. It looks like it's just a "Type" that the GCD is stored against. Each spell checks the GCD for its type.
             if (caster is Player player)
-                if (parameters.SpellInfo.GlobalCooldown != null && !parameters.IsProxy)
+                if (parameters.SpellInfo.GlobalCooldown != null && parameters.SpellInfo.Entry.GlobalCooldownEnum == 0 && !parameters.IsProxy)
                     player.SpellManager.SetGlobalSpellCooldown(parameters.SpellInfo.GlobalCooldown.CooldownTime / 1000d);
 
             log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has started initating.");  
@@ -196,7 +197,10 @@ namespace NexusForever.WorldServer.Game.Spell
                     return CastResult.SpellCooldown;
 
                 // this isn't entirely correct, research GlobalCooldownEnum
-                if (parameters.SpellInfo.Entry.GlobalCooldownEnum == 0 && player.SpellManager.GetGlobalSpellCooldown() > 0d && !parameters.IsProxy && parameters.UserInitiatedSpellCast)
+                if (parameters.SpellInfo.Entry.GlobalCooldownEnum == 0 && 
+                    player.SpellManager.GetGlobalSpellCooldown() > 0d && 
+                    !parameters.IsProxy && 
+                    parameters.UserInitiatedSpellCast)
                 {
                     if (CastMethod != CastMethod.ChargeRelease)
                         return CastResult.SpellGlobalCooldown;
@@ -263,6 +267,9 @@ namespace NexusForever.WorldServer.Game.Spell
 
         private CastResult CheckResourceConditions()
         {
+            if (!(caster is Player player))
+                return CastResult.Ok;
+
             for (int i = 0; i < parameters.SpellInfo.Entry.CasterInnateRequirements.Length; i++)
             {
                 uint innateRequirement = parameters.SpellInfo.Entry.CasterInnateRequirements[i];
@@ -349,8 +356,11 @@ namespace NexusForever.WorldServer.Game.Spell
             CastResult result = CheckCast();
             if (result != CastResult.Ok)
             {
-                SendSpellCastResult(result);
-                return;
+                if (CastMethod == CastMethod.RapidTap && result != CastResult.PrereqCasterCast)
+                {
+                    SendSpellCastResult(result);
+                    return;
+                }
             }
 
             Spell thresholdSpell = InitialiseThresholdSpell();

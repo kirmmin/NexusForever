@@ -526,6 +526,7 @@ namespace NexusForever.Shared.GameTable
         [GameData]
         public GameTable<Spell4EffectsEntry> Spell4Effects { get; private set; }
 
+        [GameData]
         public GameTable<Spell4GroupListEntry> Spell4GroupList { get; private set; }
 
         [GameData]

@@ -337,6 +337,9 @@ namespace NexusForever.WorldServer.Game.Spell
                 case EffectModifySpellCooldownType.Spell4:
                     player.SpellManager.SetSpellCooldown(info.Entry.DataBits01, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02));
                     break;
+                case EffectModifySpellCooldownType.SpellGroupId:
+                    player.SpellManager.SetSpellCooldownByGroupId(info.Entry.DataBits01, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02));
+                    break;
                 case EffectModifySpellCooldownType.SpellCooldownId:
                     player.SpellManager.SetSpellCooldownByCooldownId(info.Entry.DataBits01, BitConverter.Int32BitsToSingle((int)info.Entry.DataBits02));
                     break;

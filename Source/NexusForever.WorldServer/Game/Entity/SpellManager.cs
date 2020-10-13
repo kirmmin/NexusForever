@@ -324,6 +324,9 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public void SetSpellCooldownByCooldownId(uint spell4CooldownId, double newCooldown)
         {
+            if (newCooldown < 0d)
+                throw new ArgumentOutOfRangeException();
+
             foreach (uint spell4 in spellCooldowns.Keys.ToList())
             {
                 Spell4Entry spell4Entry = GameTableManager.Instance.Spell4.GetEntry(spell4);
@@ -362,6 +365,32 @@ namespace NexusForever.WorldServer.Game.Entity
                         TimeRemaining = (uint)(cooldown * 1000u)
                     }
                 });
+            }
+        }
+
+        /// <summary>
+        /// Update all spell cooldowns that share a given group ID
+        /// </summary>
+        public void SetSpellCooldownByGroupId(uint groupId, double cooldown)
+        {
+            if (cooldown < 0d)
+                throw new ArgumentOutOfRangeException();
+
+            foreach (uint spell4 in spellCooldowns.Keys.ToList())
+            {
+                Spell4Entry spell4Entry = GameTableManager.Instance.Spell4.GetEntry(spell4);
+                if (spell4Entry == null)
+                    throw new InvalidOperationException($"Spell4 with ID ({spell4}) does not exist.");
+
+                if (spell4Entry.Spell4GroupListId == 0u)
+                    continue;
+
+                Spell4GroupListEntry spell4GroupListEntry = GameTableManager.Instance.Spell4GroupList.GetEntry(spell4Entry.Spell4GroupListId);
+                if (spell4GroupListEntry == null)
+                    throw new InvalidOperationException($"Spell4 Group List with ID ({spell4Entry.Spell4GroupListId}) does not exist.");
+
+                if (spell4GroupListEntry.SpellGroupIds.Contains(groupId))
+                    SetSpellCooldown(spell4, cooldown);
             }
         }
 
