@@ -70,7 +70,7 @@ namespace NexusForever.WorldServer.Game.Prerequisite
                 PrerequisiteComparison comparison = (PrerequisiteComparison)entry.PrerequisiteComparisonId[i];
                 if (!Meets(player, type, comparison, entry.Value[i], entry.ObjectId[i]))
                 {
-                    log.Trace($"Player {player.Name} failed prerequisite check ({prerequisiteId}) {type}, {comparison}, {entry.Value[i]}, {entry.ObjectId[i]}");
+                    log.Trace($"Player {player.Name} failed prerequisite AND check ({prerequisiteId}) {type}, {comparison}, {entry.Value[i]}, {entry.ObjectId[i]}");
                     return false;
                 }
             }
@@ -95,6 +95,9 @@ namespace NexusForever.WorldServer.Game.Prerequisite
                 if (Meets(player, type, comparison, entry.Value[i], entry.ObjectId[i]))
                     succeeds = true;
             }
+
+            if (!succeeds)
+                log.Trace($"Player {player.Name} failed prerequisite OR check ({prerequisiteId})");
 
             return succeeds;
         }

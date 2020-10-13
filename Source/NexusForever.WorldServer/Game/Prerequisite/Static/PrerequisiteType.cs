@@ -26,6 +26,7 @@
         /// </summary>
         AMP                 = 50,
         Path                = 52,
+        Vital               = 73,
         /// <summary>
         /// Checks for an objectId. Used in the "RavelSignal" SpellEffectType at minimum. Error: World requirement not met
         /// </summary>

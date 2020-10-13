@@ -200,10 +200,8 @@ namespace NexusForever.WorldServer.Game.Spell
                 }
 
                 if (parameters.CharacterSpell?.MaxAbilityCharges > 0 && parameters.CharacterSpell?.AbilityCharges == 0)
-                    return CastResult.SpellNoCharges;
-                    
-                if (parameters.SpellInfo.Entry.PrerequisiteIdCasterCast > 0 && !PrerequisiteManager.Instance.Meets(player, parameters.SpellInfo.Entry.PrerequisiteIdCasterCast))
-                    return CastResult.PrereqCasterCast;
+                    return CastResult.SpellNoCharges;                    
+                
 
                 CastResult resourceConditions = CheckResourceConditions();
                 if (resourceConditions != CastResult.Ok)
@@ -222,7 +220,14 @@ namespace NexusForever.WorldServer.Game.Spell
             // TODO
             if (parameters.SpellInfo.CasterCastPrerequisites != null)
             {
-                if (!PrerequisiteManager.Instance.Meets(player, parameters.SpellInfo.Entry.PrerequisiteIdCasterCast))
+                bool casterCastSuccess = false;
+                foreach (PrerequisiteEntry casterCastPrereqEntry in parameters.SpellInfo.CasterCastPrerequisites)
+                {
+                    if (PrerequisiteManager.Instance.Meets(player, casterCastPrereqEntry.Id))
+                        casterCastSuccess = true;
+                }
+                
+                if (parameters.SpellInfo.CasterCastPrerequisites.Count > 0 && !casterCastSuccess)
                     return CastResult.PrereqCasterCast;
             }
 

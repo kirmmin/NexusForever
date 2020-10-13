@@ -354,5 +354,28 @@ namespace NexusForever.WorldServer.Game.Prerequisite
 
             return true;
         }
+
+        [PrerequisiteCheck(PrerequisiteType.Vital)]
+        private static bool PrerequisiteCheckVital(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        {
+            switch (comparison)
+            {
+                case PrerequisiteComparison.Equal:
+                    return player.GetVitalValue((Vital)objectId) == value;
+                case PrerequisiteComparison.NotEqual:
+                    return player.GetVitalValue((Vital)objectId) != value;
+                case PrerequisiteComparison.GreaterThanOrEqual:
+                    return player.GetVitalValue((Vital)objectId) >= value;
+                case PrerequisiteComparison.GreaterThan:
+                    return player.GetVitalValue((Vital)objectId) > value;
+                case PrerequisiteComparison.LessThanOrEqual:
+                    return player.GetVitalValue((Vital)objectId) <= value;
+                case PrerequisiteComparison.LessThan:
+                    return player.GetVitalValue((Vital)objectId) < value;
+                default:
+                    log.Warn($"Unhandled {comparison} for {PrerequisiteType.Vital}!");
+                    return false;
+            }
+        }
     }
 }
