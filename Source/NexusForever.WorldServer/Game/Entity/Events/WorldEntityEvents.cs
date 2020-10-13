@@ -107,5 +107,13 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             inRangeEntities.Remove(entity.Guid);
         }
+
+        /// <summary>
+        /// Invoked when a <see cref="Stat"/> value is updated
+        /// </summary>
+        protected virtual void OnStatChange(Stat stat, float newVal, float previousVal)
+        {
+            // deliberately empty
+        }
     }
 }
