@@ -1,17 +1,16 @@
-using System.Linq;
-using NexusForever.Shared.Network;
-using NexusForever.Shared.Network.Message;
-using NexusForever.WorldServer.Game.Entity;
-using NexusForever.WorldServer.Game.Entity.Network;
-using NexusForever.WorldServer.Game.Entity.Network.Command;
-using NexusForever.WorldServer.Game.Spell;
-using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
-using NexusForever.WorldServer.Game.Quest.Static;
+using NexusForever.Shared.Network;
+using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game;
-using NLog;
+using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.Quest.Static;
+using NexusForever.WorldServer.Game.Spell;
+using NexusForever.WorldServer.Network.Message.Model;
 using System;
+using System.Linq;
+using NLog;
 
 namespace NexusForever.WorldServer.Network.Message.Handler
 {
@@ -180,7 +179,26 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientDash)]
         public static void HandleClientDash(WorldSession session, ClientDash clientDash)
         {
-            session.Player.HandleDash(clientDash.Direction);
+            uint dashSpell4Id = 0;
+            switch (clientDash.Direction)
+            {
+                case DashDirection.Forward:
+                    dashSpell4Id = 25295;
+                    break;
+                case DashDirection.Backward:
+                    dashSpell4Id = 25296;
+                    break;
+                case DashDirection.Left:
+                    dashSpell4Id = 25293;
+                    break;
+                case DashDirection.Right:
+                    dashSpell4Id = 25294;
+                    break;
+            }
+            session.Player.CastSpell(dashSpell4Id, new SpellParameters
+            {
+                UserInitiatedSpellCast = false
+            });
         }
     }
 }

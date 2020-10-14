@@ -1185,17 +1185,5 @@ namespace NexusForever.WorldServer.Game.Entity
             // check if parent node has required reputation
             return GetDispositionFromReputation(node.Parent);
         }
-
-        /// <summary>
-        /// Consumes Dash resource when called. Should be called directly by handler.
-        /// </summary>
-        public void HandleDash(DashDirection direction)
-        {
-            uint dashSpellId = AssetManager.Instance.GetDashSpell(direction);
-            CastSpell(dashSpellId, new Spell.SpellParameters
-            {
-                UserInitiatedSpellCast = false
-            });
-        }
     }
 }
