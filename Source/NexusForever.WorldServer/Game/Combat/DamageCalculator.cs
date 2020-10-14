@@ -138,7 +138,7 @@ namespace NexusForever.WorldServer.Game.Combat
         private uint GetDamageAfterArmorMitigation(UnitEntity victim, DamageType damageType, uint damage)
         {
             GameFormulaEntry armorFormulaEntry = GameTableManager.Instance.GameFormula.GetEntry(1234);
-            float maximumArmorMitigation = (float)(armorFormulaEntry.Dataint01 * 0.10);
+            float maximumArmorMitigation = (float)(armorFormulaEntry.Dataint01 * 0.01);
             float mitigationPct = (armorFormulaEntry.Datafloat0 / victim.Level * armorFormulaEntry.Datafloat01) * victim.GetPropertyValue(Property.Armor) / 100;
 
             if (damageType == DamageType.Physical)
@@ -149,7 +149,7 @@ namespace NexusForever.WorldServer.Game.Combat
                 mitigationPct += victim.GetPropertyValue(Property.DamageMitigationPctOffsetMagic);
 
             if (mitigationPct > 0f)
-                damage *= (uint)(1f - Math.Clamp(mitigationPct, 0f, maximumArmorMitigation));
+                damage = (uint)Math.Round(damage * (1f - Math.Clamp(mitigationPct, 0f, maximumArmorMitigation)));
 
             return damage;
         }
