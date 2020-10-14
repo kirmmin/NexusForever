@@ -215,7 +215,7 @@ namespace NexusForever.WorldServer.Game.Spell
 
         private CastResult CheckPrerequisites()
         {
-            // TODO: Figure out if non Player entities should adhere to same rules
+            // TODO: Remove below line and evaluate PreReq's for Non-Player Entities
             if (!(caster is Player player))
                 return CastResult.Ok;
 

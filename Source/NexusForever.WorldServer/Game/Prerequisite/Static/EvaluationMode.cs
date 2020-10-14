@@ -4,8 +4,7 @@ using System.Text;
 
 namespace NexusForever.WorldServer.Game.Prerequisite.Static
 {
-    [Flags]
-    public enum PrerequisiteEntryFlag
+    public enum EvaluationMode
     {
         EvaluateAND,
         EvaluateOR,

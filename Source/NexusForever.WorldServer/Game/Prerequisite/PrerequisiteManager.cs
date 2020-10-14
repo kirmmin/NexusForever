@@ -49,14 +49,17 @@ namespace NexusForever.WorldServer.Game.Prerequisite
             PrerequisiteEntry entry = GameTableManager.Instance.Prerequisite.GetEntry(prerequisiteId);
             if (entry == null)
                 throw new ArgumentException();
-
-            if ((PrerequisiteEntryFlag)entry.Flags == PrerequisiteEntryFlag.EvaluateAND)
-                return MeetsEvaluateAnd(player, prerequisiteId, entry);
-
-            if (((PrerequisiteEntryFlag)entry.Flags & PrerequisiteEntryFlag.EvaluateOR) != 0)
-                return MeetsEvaluateOr(player, prerequisiteId, entry);
-
-            return false;
+            
+            switch ((EvaluationMode)entry.Flags)
+            {
+                case EvaluationMode.EvaluateAND:
+                    return MeetsEvaluateAnd(player, prerequisiteId, entry);
+                case EvaluationMode.EvaluateOR:
+                    return MeetsEvaluateOr(player, prerequisiteId, entry);
+                default:
+                    log.Trace($"Unhandled EvaluationMode {entry.Flags}");
+                    return false;
+            }
         }
 
         private bool MeetsEvaluateAnd(Player player, uint prerequisiteId, PrerequisiteEntry entry)
@@ -80,26 +83,19 @@ namespace NexusForever.WorldServer.Game.Prerequisite
 
         private bool MeetsEvaluateOr(Player player, uint prerequisiteId, PrerequisiteEntry entry)
         {
-            bool succeeds = false;
-
             for (int i = 0; i < entry.PrerequisiteTypeId.Length; i++)
             {
-                if (succeeds)
-                    break;
-
                 var type = (PrerequisiteType)entry.PrerequisiteTypeId[i];
                 if (type == PrerequisiteType.None)
                     continue;
 
                 PrerequisiteComparison comparison = (PrerequisiteComparison)entry.PrerequisiteComparisonId[i];
                 if (Meets(player, type, comparison, entry.Value[i], entry.ObjectId[i]))
-                    succeeds = true;
+                    return true;
             }
 
-            if (!succeeds)
-                log.Trace($"Player {player.Name} failed prerequisite OR check ({prerequisiteId})");
-
-            return succeeds;
+            log.Trace($"Player {player.Name} failed prerequisite OR check ({prerequisiteId})");
+            return false;
         }
 
         private bool Meets(Player player, PrerequisiteType type, PrerequisiteComparison comparison, uint value, uint objectId)
