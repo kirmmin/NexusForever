@@ -193,6 +193,8 @@ namespace NexusForever.WorldServer.Game.Entity
 
             player.Level = newLevel;
 
+            player.BuildBaseProperties();
+
             // Grant Rewards for level up
             player.SpellManager.GrantSpells();
             // Unlock LAS slots

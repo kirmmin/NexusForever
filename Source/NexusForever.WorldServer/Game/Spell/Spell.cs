@@ -385,7 +385,7 @@ namespace NexusForever.WorldServer.Game.Spell
         public void CancelCast(CastResult result)
         {
             if (!IsCasting && !HasThresholdToCast)
-                throw new InvalidOperationException();
+                return;
 
             if (HasThresholdToCast && thresholdSpells.Count > 0)
                 if (thresholdSpells[0].IsCasting)

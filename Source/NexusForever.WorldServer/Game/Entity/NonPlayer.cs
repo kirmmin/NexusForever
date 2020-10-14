@@ -85,7 +85,13 @@ namespace NexusForever.WorldServer.Game.Entity
             Creature2Entry creatureEntry = GameTableManager.Instance.Creature2.GetEntry(CreatureId);
 
             // TODO: research this some more
-            /*float[] values = new float[200];
+            List<Property> propertiesToBuild = new List<Property>
+            {
+                Property.AssaultRating,
+                Property.SupportRating
+            };
+
+            float[] values = new float[200];
 
             CreatureLevelEntry levelEntry = GameTableManager.Instance.CreatureLevel.GetEntry(6);
             for (uint i = 0u; i < levelEntry.UnitPropertyValue.Length; i++)
@@ -103,8 +109,8 @@ namespace NexusForever.WorldServer.Game.Entity
             for (uint i = 0u; i < tierEntry.UnitPropertyMultiplier.Length; i++)
                 values[i] *= archeTypeEntry.UnitPropertyMultiplier[i];
 
-            for (uint i = 0u; i < levelEntry.UnitPropertyValue.Length; i++)
-                SetProperty((Property)i, values[i]);*/
+            foreach (Property property in propertiesToBuild)
+                Properties[property] = new PropertyValue(property, values[(int)property], values[(int)property]);
 
             if (Health > MaxHealth)
                 Properties[Property.BaseHealth] = new PropertyValue(Property.BaseHealth, Health, Health);
