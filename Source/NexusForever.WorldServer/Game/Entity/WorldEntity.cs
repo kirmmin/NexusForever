@@ -312,9 +312,9 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Used to build the <see cref="ServerEntityPropertiesUpdate"/> from all modified <see cref="Property"/>
         /// </summary>
-        private ServerEntityPropertiesUpdate BuildPropertyUpdates()
+        private ServerEntityPropertiesUpdate BuildPropertyUpdates(bool forceUpdate = false)
         {
-            if (!HasPendingPropertyChanges)
+            if (!HasPendingPropertyChanges && !forceUpdate)
                 return null;
             
             ServerEntityPropertiesUpdate propertyUpdatePacket = new ServerEntityPropertiesUpdate()
@@ -403,8 +403,13 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public virtual void BuildBaseProperties()
         {
-            foreach (Property property in BaseProperties.Keys)
-                BuildPropertyUpdates();
+            ServerEntityPropertiesUpdate propertiesUpdate = BuildPropertyUpdates(true);
+
+            if (!(this is Player player))
+                return;
+
+            if (!player.IsLoading)
+                player.EnqueueToVisible(propertiesUpdate, true);
         }
 
         public bool HasPendingPropertyChanges => DirtyProperties.Count != 0;
