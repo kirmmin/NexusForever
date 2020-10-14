@@ -144,9 +144,9 @@ namespace NexusForever.WorldServer.Game.Prerequisite
             switch (comparison)
             {
                 case PrerequisiteComparison.Equal:
-                    return false; // TODO: Return true if Player is in Combat
+                    return player.InCombat == true; // TODO: Return true if Player is in Combat
                 case PrerequisiteComparison.NotEqual:
-                    return true; // TODO: Return ture if Player is NOT in Combat.
+                    return player.InCombat != true; // TODO: Return ture if Player is NOT in Combat.
                 default:
                     return false;
             }
