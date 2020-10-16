@@ -18,8 +18,6 @@ namespace NexusForever.WorldServer.Game.AI
     {
         protected UnitEntity me;
 
-        private Vector3 originalLocation = Vector3.Zero;
-        private Vector3 originalRotation = Vector3.Zero;
         private bool resettingFromCombat = false;
 
         public bool IsLeashing() => resettingFromCombat;
@@ -33,6 +31,9 @@ namespace NexusForever.WorldServer.Game.AI
         private bool attackIndex;
         private UpdateTimer autoTimer = new UpdateTimer(1.5d);
 
+        private UpdateTimer combatTimer = new UpdateTimer(6d, false);
+        private Spell4Entry specialAbility = GameTableManager.Instance.Spell4.GetEntry(55311);
+
         public UnitAI(UnitEntity unit)
         {
             me = unit;
@@ -40,38 +41,81 @@ namespace NexusForever.WorldServer.Game.AI
 
         public virtual void Update(double lastTick)
         {
-            autoTimer.Update(lastTick);
-
-            if (me.InCombat)
+            if (me.IsAlive)
             {
-                if (resettingFromCombat)
-                    return;
+                autoTimer.Update(lastTick);
 
-                if (!me.GetCurrentTarget(out UnitEntity victim))
+                if (HasVictim(out UnitEntity victim))
                 {
-                    resettingFromCombat = true;
-                    return;
+                    if (resettingFromCombat)
+                        return;
+
+                    if (IsOutsideBoundary())
+                        return;
+
+                    if (me.IsCasting())
+                        return;
+
+                    if (combatTimer.IsTicking || combatTimer.HasElapsed)
+                    {
+                        combatTimer.Update(lastTick);
+
+                        if (combatTimer.HasElapsed)
+                        {
+                            if (me.Position.GetDistance(victim.Position) <= specialAbility.TargetMaxRange)
+                            {
+                                me.MovementManager?.StopSpline();
+                                me.MovementManager?.BroadcastCommands();
+                                me.MovementManager?.SetRotation(me.Position.GetRotationTo(victim.Position));
+                                me.CastSpell(specialAbility.Id, new SpellParameters
+                                {
+                                    PrimaryTargetId = victim.Guid
+                                });
+                                combatTimer.Reset();
+                                return;
+                            }
+                        }
+                    }
+
+                    me.MovementManager?.Chase(victim, me.GetPropertyValue(Property.MoveSpeedMultiplier) * 7f, MAX_ATTACK_RANGE);
+
+                    DoAutoAttack();
                 }
 
-                if (WillLeash())
-                    return;
-
-                me.MovementManager?.Chase(victim, me.GetPropertyValue(Property.MoveSpeedMultiplier) * 7f, MAX_ATTACK_RANGE);
-
-                DoAutoAttack();
-            }
-
-            if (resettingFromCombat)
-            {
-                me.MovementManager?.MoveTo(originalLocation, me.GetPropertyValue(Property.MoveSpeedMultiplier) * 10f * 1.5f);
-                if (me.Position.GetDistance(originalLocation) < 1f)
-                    Reset();
+                if (resettingFromCombat)
+                {
+                    if (me.MovementManager?.MoveTo(me.LeashPosition, me.GetPropertyValue(Property.MoveSpeedMultiplier) * 10f * 1.5f) ?? true)
+                        Reset();
+                }
             }
         }
 
-        private bool WillLeash()
+        /// <summary>
+        /// Returns whether this <see cref="UnitEntity"/> has a target victim to attack. This checks the threat list's highest entity and returns it if one exists.
+        /// </summary>
+        protected virtual bool HasVictim(out UnitEntity victim)
         {
-            if (originalLocation.GetDistance(me.Position) > 80f)
+            victim = null;
+
+            if (!me.InCombat)
+                return false;
+
+            if (me.GetCurrentVictim(out victim))
+                if (victim.IsAlive)
+                    return true;
+
+            ExitCombat();
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if this <see cref="UnitEntity"/> is beyond Leash Range and will return.
+        /// </summary>
+        /// <remarks>This can be overridden or updated to account for things like room boundaries, or non radial checks.</remarks>
+        protected virtual bool IsOutsideBoundary()
+        {
+            if (me.Position.GetDistance(me.LeashPosition) > me.LeashRange)
             {
                 ExitCombat();
                 return true;
@@ -80,23 +124,23 @@ namespace NexusForever.WorldServer.Game.AI
             return false;
         }
 
-        private void Reset()
-        {
-            originalLocation = Vector3.Zero;
-            me.MovementManager?.SetRotation(originalRotation);
-            me.Health = me.MaxHealth;
-            resettingFromCombat = false;
-        }
-
         public void ExitCombat()
         {
+            combatTimer.Reset(false);
             resettingFromCombat = true;
             me.ThreatManager.ClearThreatList();
         }
 
+        private void Reset()
+        {
+            me.MovementManager?.SetRotation(me.LeashRotation, true);
+            me.Health = me.MaxHealth;
+            resettingFromCombat = false;
+        }
+
         public virtual void OnEnterCombat()
         {
-            originalLocation = me.Position;
+            combatTimer.Reset(true);
         }
 
         public virtual void OnExitCombat()
@@ -109,7 +153,7 @@ namespace NexusForever.WorldServer.Game.AI
             if (me.IsCasting() || !me.InCombat || !me.IsAlive)
                 return;
 
-            if (!me.GetCurrentTarget(out UnitEntity victim))
+            if (!me.GetCurrentVictim(out UnitEntity victim))
                 return;
 
             uint spell4Id = autoAttacks[Convert.ToInt32(attackIndex)];
@@ -130,5 +174,6 @@ namespace NexusForever.WorldServer.Game.AI
             attackIndex = !attackIndex;
             autoTimer.Reset(true);
         }
+
     }
 }

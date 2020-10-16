@@ -14,6 +14,16 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         protected virtual void OnTickRegeneration()
         {
+            if (!IsAlive)
+                return;
+            // TODO: This should probably get moved to a Calculation Library/Manager at some point. There will be different timers on Stat refreshes, but right now the timer is hardcoded to every 0.25s.
+            // Probably worth considering an Attribute-grouped Class that allows us to run differentt regeneration methods & calculations for each stat.
+
+            if (Health < MaxHealth)
+                Health += (uint)(MaxHealth / 200f);
+
+            if (Shield < MaxShieldCapacity)
+                Shield += (uint)(MaxShieldCapacity * GetPropertyValue(Property.ShieldRegenPct) * regenTimer.Duration);
         }
 
         public override void OnRemoveFromMap()
@@ -29,9 +39,6 @@ namespace NexusForever.WorldServer.Game.Entity
         /// </summary>
         public virtual void OnThreatAddTarget(HostileEntity hostile)
         {
-            if (this is Player)
-                return;
-
             if (currentTargetUnitId == 0u)
                 SetTarget(hostile.HatedUnitId, hostile.Threat);
         }
@@ -64,11 +71,13 @@ namespace NexusForever.WorldServer.Game.Entity
             switch (inCombat)
             {
                 case true:
-                    StandState = Static.StandState.Stand;
+                    LeashPosition = Position;
+                    LeashRotation = Rotation;
+                    StandState = StandState.Stand;
                     AI?.OnEnterCombat();
                     break;
                 case false:
-                    StandState = Static.StandState.State0;
+                    StandState = StandState.State0;
                     AI?.OnExitCombat();
                     break;
             }

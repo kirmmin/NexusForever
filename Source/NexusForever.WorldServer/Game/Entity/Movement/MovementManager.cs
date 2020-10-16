@@ -130,13 +130,16 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         /// <remarks>
         /// Be aware that this rotation doesn't always match the entity rotation (eg: when on a vehicle)
         /// </remarks>
-        public void SetRotation(Vector3 rotation, bool sendImmediately = true)
+        public void SetRotation(Vector3 rotation, bool blend = false, bool sendImmediately = true)
         {
             StopSpline();
+
             commands.Remove(EntityCommand.SetRotationDefaults);
+            commands.Remove(EntityCommand.SetRotationFaceUnit);
             AddCommand(new SetRotationCommand
             {
-                Position = new Position(rotation)
+                Position = new Position(rotation),
+                Blend    = blend
             }, sendImmediately);
         }
 
@@ -166,10 +169,10 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         /// <summary>
         /// Get the unit id from <see cref="SetRotationFaceUnitCommand"/>.
         /// </summary>
-        public uint? GetFaceUnit()
+        public uint GetFaceUnit()
         {
             SetRotationFaceUnitCommand command = GetCommand<SetRotationFaceUnitCommand>();
-            return command?.UnitId > 0 ? command?.UnitId : null;
+            return command?.UnitId > 0 ? command.UnitId : 0u;
         }
 
         /// <summary>
@@ -297,6 +300,11 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
                 State = 0
             });
 
+            AddCommand(new SetRotationFaceUnitCommand
+            {
+                UnitId = 0
+            });
+
             AddCommand(new SetRotationCommand
             {
                 Position = new Position(splinePath.GetPreviousPosition().GetRotationTo(position))
@@ -370,11 +378,23 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
             if (chaseReUseTimer.IsTicking && !chaseReUseTimer.HasElapsed)
                 return;
 
-            float currentDistance = entity.Position.GetDistance(owner.Position);
+            float currentDistance = owner.Position.GetDistance(entity.Position);
             if (currentDistance <= distance)
             {
                 if (splinePath == null)
+                {
+                    //System.Diagnostics.Debug.Assert(GetFaceUnit() == 0);
+                    if (GetFaceUnit() != entity.Guid)
+                    {
+                        commands.Remove(EntityCommand.SetRotation);
+                        commands.Remove(EntityCommand.SetRotationDefaults);
+                        AddCommand(new SetRotationFaceUnitCommand
+                        {
+                            UnitId = entity.Guid
+                        }, true);
+                    }
                     return;
+                }
 
                 StopSpline();
                 BroadcastCommands();
@@ -406,20 +426,29 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
             LaunchGenerator(generator, speed);
         }
 
-        public void MoveTo(Vector3 location, float speed)
+        /// <summary>
+        /// Move the <see cref="WorldEntity"/> owner to the specified location. 
+        /// </summary>
+        /// <returns>Returns true when the <see cref="WorldEntity"/> has reached the location.</returns>
+        public bool MoveTo(Vector3 location, float speed)
         {
             float currentDistance = location.GetDistance(owner.Position);
-            if (currentDistance < 0.5f)
+            if (currentDistance < 0.2f)
             {
                 StopSpline();
+
+                commands.Remove(EntityCommand.SetRotationFaceUnit);
+                commands.Remove(EntityCommand.SetRotationDefaults);
+                System.Diagnostics.Debug.Assert(GetFaceUnit() == 0);
                 BroadcastCommands();
-                return;
+                return true;
             }
 
             AddCommand(new SetRotationFaceUnitCommand
             {
                 UnitId = 0
             });
+
             AddCommand(new SetRotationDefaultsCommand
             {
                 Blend = true
@@ -432,6 +461,8 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
                 Map = owner.Map
             };
             LaunchGenerator(generator, speed);
+
+            return false;
         }
 
         public void Follow(WorldEntity entity, float distance)

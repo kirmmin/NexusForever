@@ -20,7 +20,10 @@ namespace NexusForever.WorldServer.Game.Spell
         private static readonly ILogger log = LogManager.GetCurrentClassLogger();
 
         public uint CastingId { get; }
-        public bool IsCasting => parameters.UserInitiatedSpellCast && status == SpellStatus.Casting || ((CastMethod == CastMethod.Channeled || CastMethod == CastMethod.ChanneledField) && (status == SpellStatus.Casting || status == SpellStatus.Executing));
+        public bool IsCasting => 
+            parameters.UserInitiatedSpellCast && status == SpellStatus.Casting || 
+            ((CastMethod == CastMethod.Channeled || CastMethod == CastMethod.ChanneledField) && (status == SpellStatus.Casting || status == SpellStatus.Executing)) ||
+            (!(caster is Player) && (status == SpellStatus.Initiating || status == SpellStatus.Casting || status == SpellStatus.Executing));
         public bool IsFinished => status == SpellStatus.Finished;
         public bool IsFailed => status == SpellStatus.Failed;
         public bool IsWaiting => status == SpellStatus.Waiting;
@@ -514,14 +517,14 @@ namespace NexusForever.WorldServer.Game.Spell
             foreach (TelegraphDamageEntry telegraphDamageEntry in parameters.SpellInfo.Telegraphs)
             {
                 Telegraph telegraph = null;
-                if (parameters.PrimaryTargetId > 0)
-                {
-                    UnitEntity primaryTargetEntity = caster.GetVisible<UnitEntity>(parameters.PrimaryTargetId);
-                    if (primaryTargetEntity != null)
-                        telegraph = new Telegraph(telegraphDamageEntry, caster, primaryTargetEntity.Position, primaryTargetEntity.Rotation);
-                }
-                else
-                    telegraph = new Telegraph(telegraphDamageEntry, caster, caster.Position, caster.Rotation);
+                //if (parameters.PrimaryTargetId > 0)
+                //{
+                //    UnitEntity primaryTargetEntity = caster.GetVisible<UnitEntity>(parameters.PrimaryTargetId);
+                //    if (primaryTargetEntity != null)
+                //        telegraph = new Telegraph(telegraphDamageEntry, caster, primaryTargetEntity.Position, primaryTargetEntity.Rotation);
+                //}
+                //else
+                telegraph = new Telegraph(telegraphDamageEntry, caster, caster.Position, caster.Rotation);
 
                 foreach (UnitEntity entity in telegraph.GetTargets())
                     targets.Add(new SpellTargetInfo(SpellEffectTargetFlags.Telegraph, entity));

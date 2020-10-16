@@ -396,5 +396,13 @@ namespace NexusForever.WorldServer.Game.Spell
             Vital vital = (Vital)info.Entry.DataBits00;
             target.ModifyVital(vital, info.Entry.DataBits01);
         }
+
+        [SpellEffectHandler(SpellEffectType.NpcExecutionDelay)]
+        private void HandleEffectNpcExecutionDelay(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+            events.EnqueueEvent(new SpellEvent(info.Entry.DurationTime / 1000d, () =>
+            {
+            }));
+        }
     }
 }
