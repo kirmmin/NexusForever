@@ -20,6 +20,7 @@ namespace NexusForever.WorldServer.Game.Entity
         public override void OnAddToMap(BaseMap map, uint guid, Vector3 vector)
         {
             LeashPosition = vector;
+            LeashRotation = Rotation;
             MovementManager = new MovementManager(this, vector, Rotation);
             base.OnAddToMap(map, guid, vector);
 

@@ -254,7 +254,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Returns target <see cref="UnitEntity"/> if it exists.
         /// </summary>
-        public bool GetCurrentTarget(out UnitEntity unitEntity)
+        public bool GetCurrentVictim(out UnitEntity unitEntity)
         {
             unitEntity = GetVisible<UnitEntity>(currentTargetUnitId);
             return unitEntity != null;
@@ -292,7 +292,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         protected void SetTarget(uint targetUnitId, uint threatLevel = 0u)
         {
-            if (currentTargetUnitId == targetUnitId)
+            if (this is Player || currentTargetUnitId == targetUnitId)
                 return;
 
             currentTargetUnitId = targetUnitId;

@@ -121,6 +121,9 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             base.OnEnterRange(entity);
 
+            if (!IsAlive)
+                return;
+
             // TODO: Remove example code below
             if (!(entity is Player))
                 return;
@@ -150,6 +153,9 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             base.OnExitRange(entity);
 
+            if (!IsAlive)
+                return;
+
             // TODO: Remove example code below
             if (!(entity is Player))
                 return;
@@ -165,7 +171,7 @@ namespace NexusForever.WorldServer.Game.Entity
             
             if (tempTargetId == entity.Guid)
             {
-                MovementManager.SetRotation(originalRotation, true);
+                MovementManager.SetRotation(originalRotation, blend: true);
                 tempTargetId = 0u;
                 engageTimer.Reset(false);
             }

@@ -68,7 +68,8 @@ namespace NexusForever.WorldServer.Game.Entity
         public ushort WorldSocketId { get; private set; }
 
         public Vector3 LeashPosition { get; protected set; }
-        public float LeashRange { get; protected set; } = 15f;
+        public Vector3 LeashRotation { get; protected set; }
+        public float LeashRange { get; protected set; } = 50f;
         public MovementManager MovementManager { get; private set; }
 
         public float AggroRange { get; private set; } = 15f;
