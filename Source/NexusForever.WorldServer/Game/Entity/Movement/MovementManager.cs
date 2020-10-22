@@ -149,6 +149,22 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         /// <returns></returns>
         public Vector3 GetRotation()
         {
+            // Entity is moving along a spline, make sure we return the rotation based on current direction between previous and next point
+            if (splinePath == null)
+            {
+                Vector3 position = splinePath.GetPosition();
+                return splinePath.GetPreviousPosition().GetRotationTo(position);
+            }
+
+            // Entity is using FaceUnit command, return rotation to unit
+            if (GetFaceUnit() != 0u)
+            {
+                WorldEntity targetEntity = owner.Map?.GetEntity<WorldEntity>(GetFaceUnit());
+                if (targetEntity != null)
+                    return owner.Position.GetRotationTo(targetEntity.Position);
+            }
+
+            // Assumed that no other type of rotation is in effect or needs to be calculated, so return rotation from RotationCommand
             SetRotationCommand command = GetCommand<SetRotationCommand>();
             return command?.Position.Vector ?? Vector3.Zero;
         }
