@@ -30,9 +30,10 @@ namespace NexusForever.WorldServer.Game.AI
         };
         private bool attackIndex;
         private UpdateTimer autoTimer = new UpdateTimer(1.5d);
-
         private UpdateTimer combatTimer = new UpdateTimer(6d, false);
         private Spell4Entry specialAbility = GameTableManager.Instance.Spell4.GetEntry(55311);
+
+        private double executionTimer = 0d;
 
         public UnitAI(UnitEntity unit)
         {
@@ -56,6 +57,17 @@ namespace NexusForever.WorldServer.Game.AI
                     if (me.IsCasting())
                         return;
 
+                    me.MovementManager?.Chase(victim, me.GetPropertyValue(Property.MoveSpeedMultiplier) * 7f, MAX_ATTACK_RANGE);
+
+                    if (executionTimer > 0d)
+                    {
+                        executionTimer -= lastTick;
+                        if (executionTimer < double.Epsilon)
+                            executionTimer = 0d;
+                        else
+                            return;
+                    }
+                    
                     if (combatTimer.IsTicking || combatTimer.HasElapsed)
                     {
                         combatTimer.Update(lastTick);
@@ -76,8 +88,6 @@ namespace NexusForever.WorldServer.Game.AI
                             }
                         }
                     }
-
-                    me.MovementManager?.Chase(victim, me.GetPropertyValue(Property.MoveSpeedMultiplier) * 7f, MAX_ATTACK_RANGE);
 
                     DoAutoAttack();
                 }
@@ -175,5 +185,15 @@ namespace NexusForever.WorldServer.Game.AI
             autoTimer.Reset(true);
         }
 
+        /// <summary>
+        /// For use by the NpcExecutionDelay <see cref="SpellEffectType"/> that delays this entity's AI Update loop.
+        /// </summary>
+        public void AddExecutionDelay(double delay)
+        {
+            delay /= 1000d;
+
+            if (delay > executionTimer)
+                executionTimer = delay;
+        }
     }
 }

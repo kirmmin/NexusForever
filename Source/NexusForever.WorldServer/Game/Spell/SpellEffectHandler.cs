@@ -400,9 +400,10 @@ namespace NexusForever.WorldServer.Game.Spell
         [SpellEffectHandler(SpellEffectType.NpcExecutionDelay)]
         private void HandleEffectNpcExecutionDelay(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
-            events.EnqueueEvent(new SpellEvent(info.Entry.DurationTime / 1000d, () =>
-            {
-            }));
+            if (target is Player)
+                throw new NotImplementedException($"Can only apply execution delay to non-Players");
+
+            target.GetAI()?.AddExecutionDelay(info.Entry.DurationTime);
         }
     }
 }

@@ -143,7 +143,8 @@ namespace NexusForever.WorldServer.Game.Entity
 
             CastSpell(41368, new SpellParameters
             {
-                UserInitiatedSpellCast = false
+                UserInitiatedSpellCast = false,
+                IsProxy = true
             });
 
             engageTimer.Resume();
