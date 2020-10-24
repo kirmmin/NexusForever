@@ -20,10 +20,7 @@ namespace NexusForever.WorldServer.Game.Spell
         private static readonly ILogger log = LogManager.GetCurrentClassLogger();
 
         public uint CastingId { get; }
-        public bool IsCasting => 
-            parameters.UserInitiatedSpellCast && status == SpellStatus.Casting || 
-            ((CastMethod == CastMethod.Channeled || CastMethod == CastMethod.ChanneledField) && (status == SpellStatus.Casting || status == SpellStatus.Executing)) ||
-            (!(caster is Player) && (status == SpellStatus.Initiating || status == SpellStatus.Casting || status == SpellStatus.Executing));
+        public bool IsCasting => _IsCasting();
         public bool IsFinished => status == SpellStatus.Finished;
         public bool IsFailed => status == SpellStatus.Failed;
         public bool IsWaiting => status == SpellStatus.Waiting;
@@ -659,6 +656,34 @@ namespace NexusForever.WorldServer.Game.Spell
             parameters.ClientSideInteraction.TriggerFail();
 
             CancelCast(CastResult.ClientSideInteractionFail);
+        }
+
+        private bool _IsCasting()
+        {
+            if (parameters.IsProxy)
+                return false;
+
+            if (!(caster is Player) && status == SpellStatus.Initiating)
+                return true;
+
+            bool PassEntityChecks()
+            {
+                if (caster is Player)
+                    return parameters.UserInitiatedSpellCast;
+
+                return true;
+            }
+
+            switch (CastMethod)
+            {
+                case CastMethod.Channeled:
+                case CastMethod.ChanneledField:
+                case CastMethod.Multiphase:
+                    return PassEntityChecks() && (status == SpellStatus.Casting || status == SpellStatus.Executing);
+                case CastMethod.Normal:
+                default:
+                    return PassEntityChecks() && status == SpellStatus.Casting;
+            }
         }
 
         private void SendSpellCastResult(CastResult castResult)

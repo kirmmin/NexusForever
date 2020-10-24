@@ -39,6 +39,12 @@ namespace NexusForever.WorldServer.Game.Spell
                     Execute();
 
                     targets.ForEach(t => t.Effects.Clear());
+
+                    if (i == parameters.SpellInfo.Phases.Count - 1)
+                    {
+                        status = SpellStatus.Finishing;
+                        log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has finished executing.");
+                    }
                 }));
             }
         }

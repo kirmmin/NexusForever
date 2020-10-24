@@ -150,7 +150,7 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         public Vector3 GetRotation()
         {
             // Entity is moving along a spline, make sure we return the rotation based on current direction between previous and next point
-            if (splinePath == null)
+            if (splinePath != null)
             {
                 Vector3 position = splinePath.GetPosition();
                 return splinePath.GetPreviousPosition().GetRotationTo(position);
