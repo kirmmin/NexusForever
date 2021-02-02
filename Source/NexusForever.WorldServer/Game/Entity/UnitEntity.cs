@@ -264,6 +264,17 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        protected bool CanAttack(UnitEntity target)
+        {
+            if (!target.IsValidAttackTarget() || !IsValidAttackTarget())
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
         /// Returns whether or not this <see cref="UnitEntity"/> is an attackable target.
         /// </summary>
         public bool IsValidAttackTarget()
