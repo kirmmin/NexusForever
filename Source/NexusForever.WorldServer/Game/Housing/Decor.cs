@@ -244,12 +244,13 @@ namespace NexusForever.WorldServer.Game.Housing
         /// <summary>
         /// Move <see cref="Decor"/> to supplied position.
         /// </summary>
-        public void Move(DecorType type, Vector3 position, Quaternion rotation, float scale)
+        public void Move(DecorType type, Vector3 position, Quaternion rotation, float scale, uint plotIndex)
         {
-            Type     = type;
-            Position = position;
-            Rotation = rotation;
-            Scale    = scale;
+            Type      = type;
+            Position  = position;
+            Rotation  = rotation;
+            Scale     = scale;
+            PlotIndex = plotIndex;
         }
 
         /// <summary>
@@ -257,7 +258,7 @@ namespace NexusForever.WorldServer.Game.Housing
         /// </summary>
         public void Crate()
         {
-            Move(DecorType.Crate, Vector3.Zero, Quaternion.Identity, 0f);
+            Move(DecorType.Crate, Vector3.Zero, Quaternion.Identity, 0f, int.MaxValue);
             DecorParentId = 0u;
         }
     }
