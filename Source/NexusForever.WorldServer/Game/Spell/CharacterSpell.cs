@@ -77,21 +77,22 @@ namespace NexusForever.WorldServer.Game.Spell
             if (MaxAbilityCharges == 0u)
                 return;
 
-            rechargeTimer  = new UpdateTimer(SpellInfo.Entry.AbilityRechargeTime / 1000d);
+            rechargeTimer  = new(SpellInfo.Entry.AbilityRechargeTime / 1000d, false);
             AbilityCharges = MaxAbilityCharges;
             SendChargeUpdate();
         }
 
         public void Update(double lastTick)
         {
-            if (MaxAbilityCharges > 0 && AbilityCharges < MaxAbilityCharges)
+            //if (MaxAbilityCharges > 0 && AbilityCharges < MaxAbilityCharges)
+            if (MaxAbilityCharges > 0 && rechargeTimer.IsTicking)
             {
                 rechargeTimer.Update(lastTick);
                 if (rechargeTimer.HasElapsed)
                 {
                     AbilityCharges = Math.Clamp(AbilityCharges + SpellInfo.Entry.AbilityRechargeCount, 0u, MaxAbilityCharges);
                     SendChargeUpdate();
-                    rechargeTimer.Reset();
+                    rechargeTimer.Reset(AbilityCharges < MaxAbilityCharges);
                 }
             }
         }
@@ -147,6 +148,8 @@ namespace NexusForever.WorldServer.Game.Spell
         /// </summary>
         public void Cast()
         {
+            Owner.SpellManager.SetAsContinuousCast(null);
+
             if (Owner.HasSpell(BaseInfo.GetSpellInfo(Tier).Entry.Id, out Spell spell))
             {
                 if ((spell.CastMethod == CastMethod.RapidTap || spell.CastMethod == CastMethod.ChargeRelease) && !spell.IsFinished)
@@ -156,7 +159,6 @@ namespace NexusForever.WorldServer.Game.Spell
                 }
             }
 
-            Owner.SpellManager.SetAsContinuousCast(null);
             CastSpell();
         }
 
@@ -179,6 +181,11 @@ namespace NexusForever.WorldServer.Game.Spell
             else
                 Owner.SpellManager.SetAsContinuousCast(null);
 
+            CastSpell();
+        }
+
+        private void CastSpell()
+        {
             if (Owner.HasSpell(BaseInfo.GetSpellInfo(Tier).Entry.Id, out Spell spell))
             {
                 if ((spell.CastMethod == CastMethod.RapidTap || spell.CastMethod == CastMethod.ChargeRelease) && !spell.IsFinished)
@@ -188,11 +195,6 @@ namespace NexusForever.WorldServer.Game.Spell
                 }
             }
 
-            CastSpell();
-        }
-
-        private void CastSpell()
-        {
             Owner.CastSpell(new SpellParameters
             {
                 CharacterSpell         = this,
@@ -206,7 +208,10 @@ namespace NexusForever.WorldServer.Game.Spell
             if (AbilityCharges == 0)
                 throw new SpellException("No charges available.");
 
+            // TODO: Ability Charges are affected by ModifyCooldown spell effect. Needs to be handled to adjust Charge timer. Possibly move charges to SpellManager.
             AbilityCharges -= 1;
+            if (!rechargeTimer.IsTicking)
+                rechargeTimer.Reset(true);
             SendChargeUpdate();
         }
 

@@ -28,7 +28,7 @@ namespace NexusForever.WorldServer.Game.Spell
             damage += DamageCalculator.Instance.GetBaseDamageForSpell(caster, info.Entry.ParameterType02, info.Entry.ParameterValue02);
             damage += DamageCalculator.Instance.GetBaseDamageForSpell(caster, info.Entry.ParameterType03, info.Entry.ParameterValue03);
 
-            DamageCalculator.Instance.CalculateDamage(caster, target, this, ref info, (DamageType)info.Entry.DamageType, damage);
+            DamageCalculator.Instance.CalculateDamage(caster, target, this, info, (DamageType)info.Entry.DamageType, damage);
             // TODO: Deal damage
         }
 

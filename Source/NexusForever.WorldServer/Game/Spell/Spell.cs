@@ -99,6 +99,7 @@ namespace NexusForever.WorldServer.Game.Spell
             {
                 // spell effects have finished 
                 status = SpellStatus.Finished;
+                SendSpellFinish();
                 caster.RemoveEffect(CastingId);
                 log.Trace($"Spell {parameters.SpellInfo.Entry.Id} has finished.");
 
@@ -118,8 +119,6 @@ namespace NexusForever.WorldServer.Game.Spell
                         if (CastMethod != CastMethod.ChargeRelease)
                             SetCooldown();
                     }
-
-                SendSpellFinish();
             }
         }
 
@@ -166,8 +165,6 @@ namespace NexusForever.WorldServer.Game.Spell
             {
                 SendSpellStart();
                 InitialiseCastMethod();
-
-                events.EnqueueEvent(new SpellEvent(castTime, Execute));
             }
 
             status = SpellStatus.Casting;
@@ -211,7 +208,11 @@ namespace NexusForever.WorldServer.Game.Spell
 
                 CastResult resourceConditions = CheckResourceConditions();
                 if (resourceConditions != CastResult.Ok)
+                {
                     return resourceConditions;
+                    if (parameters.UserInitiatedSpellCast && caster is Player playerCaster)
+                        playerCaster.SpellManager.SetAsContinuousCast(null);
+                }
             }
 
             return CastResult.Ok;
@@ -223,15 +224,12 @@ namespace NexusForever.WorldServer.Game.Spell
             if (!(caster is Player player))
                 return CastResult.Ok;
 
-            bool casterCastSuccess = false;
-            foreach (PrerequisiteEntry casterCastPrereqEntry in parameters.SpellInfo.CasterCastPrerequisites)
+            // Runners override the Caster Check, allowing the Caster to Cast the spell due to this Prerequisite being met
+            if (parameters.SpellInfo.CasterCastPrerequisite != null && !CheckRunnerOverride(player))
             {
-                if (PrerequisiteManager.Instance.Meets(player, casterCastPrereqEntry.Id))
-                    casterCastSuccess = true;
+                if (!PrerequisiteManager.Instance.Meets(player, parameters.SpellInfo.CasterCastPrerequisite.Id))
+                    return CastResult.PrereqCasterCast;
             }
-            
-            if (parameters.SpellInfo.CasterCastPrerequisites.Count > 0 && !casterCastSuccess)
-                return CastResult.PrereqCasterCast;
 
             // not sure if this should be for explicit and/or implicit targets
             if (parameters.SpellInfo.TargetCastPrerequisites != null)
@@ -248,6 +246,15 @@ namespace NexusForever.WorldServer.Game.Spell
             }
 
             return CastResult.Ok;
+        }
+
+        private bool CheckRunnerOverride(Player player)
+        {
+            foreach (PrerequisiteEntry runnerPrereq in parameters.SpellInfo.PrerequisiteRunners)
+                if (PrerequisiteManager.Instance.Meets(player, runnerPrereq.Id))
+                    return true;
+
+            return false;
         }
 
         private CastResult CheckCCConditions()
@@ -268,6 +275,10 @@ namespace NexusForever.WorldServer.Game.Spell
         private CastResult CheckResourceConditions()
         {
             if (!(caster is Player player))
+                return CastResult.Ok;
+
+            bool runnerOveride = CheckRunnerOverride(player);
+            if (runnerOveride)
                 return CastResult.Ok;
 
             for (int i = 0; i < parameters.SpellInfo.Entry.CasterInnateRequirements.Length; i++)
@@ -426,9 +437,12 @@ namespace NexusForever.WorldServer.Game.Spell
                 SetCooldown();
             }
 
+            targets.ForEach(t => t.Effects.Clear());
+
             SelectTargets();
             ExecuteEffects();
-            HandleVisual();
+            // TODO: Below is not working properly. Investigate.
+            //HandleVisual();
 
             SendSpellGo();
 
@@ -569,10 +583,10 @@ namespace NexusForever.WorldServer.Game.Spell
                         effectTarget.Effects.Add(info);
 
                         // TODO: if there is an unhandled exception in the handler, there will be an infinite loop on Execute()
-                        events.EnqueueEvent(new SpellEvent(spell4EffectsEntry.DelayTime / 1000d, () =>
-                        {
+                        //events.EnqueueEvent(new SpellEvent(spell4EffectsEntry.DelayTime / 1000d, () =>
+                        //{
                             handler.Invoke(this, effectTarget.Entity, info);
-                        }));
+                        //}));
                     }
 
                     // Add durations for each effect so that when the Effect timer runs out, the Spell can Finish.

@@ -38,7 +38,7 @@ namespace NexusForever.WorldServer.Game.Spell
                     currentPhase = (byte)spellPhase.OrderIndex;
                     Execute();
 
-                    targets.ForEach(t => t.Effects.Clear());
+                    //targets.ForEach(t => t.Effects.Clear());
 
                     if (i == parameters.SpellInfo.Phases.Count - 1)
                     {

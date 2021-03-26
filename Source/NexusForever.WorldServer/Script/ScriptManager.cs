@@ -36,11 +36,11 @@ namespace NexusForever.WorldServer.Script
                 object instance = Activator.CreateInstance(type);
                 foreach (ScriptAttribute attribute in type.GetCustomAttributes<ScriptAttribute>())
                 {
-                    if (type is CreatureScript)
-                        creatureDict.TryAdd(type.GetCustomAttribute<ScriptAttribute>().Id, instance as CreatureScript);
+                    if (type.IsSubclassOf(typeof(CreatureScript)))
+                        creatureDict.TryAdd(attribute.Id, instance as CreatureScript);
 
-                    if (type is PlugScript)
-                        plugDict.TryAdd(type.GetCustomAttribute<ScriptAttribute>().Id, instance as PlugScript);
+                    if (type.IsSubclassOf(typeof(PlugScript)))
+                        plugDict.TryAdd(attribute.Id, instance as PlugScript);
                 }
             }
 

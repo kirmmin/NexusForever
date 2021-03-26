@@ -65,12 +65,14 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             base.Update(lastTick);
 
-            foreach (Spell.Spell spell in pendingSpells.ToArray())
-            {
-                spell.Update(lastTick);
-                if (spell.IsFinished)
-                    pendingSpells.Remove(spell);
-            }
+            if (pendingSpells.Count > 0)
+                for (int i = pendingSpells.Count - 1; i >= 0; i--)
+                {
+                    Spell.Spell spell = pendingSpells[i];
+                    spell.Update(lastTick);
+                }
+
+            pendingSpells.RemoveAll(s => s.IsFinished);
 
             regenTimer.Update(lastTick);
             if (regenTimer.HasElapsed)

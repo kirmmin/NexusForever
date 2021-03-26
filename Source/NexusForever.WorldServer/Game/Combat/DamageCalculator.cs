@@ -38,7 +38,7 @@ namespace NexusForever.WorldServer.Game.Combat
             UnitEntity attacker, 
             UnitEntity victim,
             Spell.Spell spell,
-            ref SpellTargetInfo.SpellTargetEffectInfo info,
+            SpellTargetInfo.SpellTargetEffectInfo info,
             DamageType damageType, 
             uint damage)
         {

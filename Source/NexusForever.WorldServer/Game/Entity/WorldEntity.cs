@@ -38,9 +38,9 @@ namespace NexusForever.WorldServer.Game.Entity
             set
             {
                 if (this is Player || MovementManager == null)
-                    rotation = Rotation; // TODO: Emit rotations nearby if Player and no client command emitted?
-                else
-                    MovementManager?.SetRotation(value);
+                    rotation = value; // TODO: Emit rotations nearby if Player and no client command emitted?
+                
+                MovementManager?.SetRotation(value);
             } 
         }
         private Vector3 rotation = Vector3.Zero;
@@ -223,10 +223,6 @@ namespace NexusForever.WorldServer.Game.Entity
         public uint ControllerGuid { get; set; }
 
         protected readonly Dictionary<Stat, StatValue> stats = new();
-        /// <summary>
-        /// Initial stab at a timer to regenerate Health & Shield values.
-        /// </summary>
-        private UpdateTimer statUpdateTimer = new UpdateTimer(0.25); // TODO: Long-term this should be absorbed into individual timers for each Stat regeneration method
 
         private readonly Dictionary<ItemSlot, ItemVisual> itemVisuals = new();
 
@@ -267,13 +263,6 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             MovementManager.Update(lastTick);
 
-            statUpdateTimer.Update(lastTick);
-            if (statUpdateTimer.HasElapsed)
-            {
-                HandleStatUpdate(lastTick);
-
-                statUpdateTimer.Reset();
-            }
 
             var propertyUpdatePacket = BuildPropertyUpdates();
             if (propertyUpdatePacket == null)
@@ -697,21 +686,6 @@ namespace NexusForever.WorldServer.Game.Entity
         protected void SetStat<T>(Stat stat, T value) where T : Enum, IConvertible
         {
             SetStat(stat, value.ToUInt32(null));
-        }
-
-        /// <summary>
-        /// Handles regeneration of Stat Values. Used to provide a hook into the Update method, for future implementation.
-        /// </summary>
-        private void HandleStatUpdate(double lastTick)
-        {
-            // TODO: This should probably get moved to a Calculation Library/Manager at some point. There will be different timers on Stat refreshes, but right now the timer is hardcoded to every 0.25s.
-            // Probably worth considering an Attribute-grouped Class that allows us to run differentt regeneration methods & calculations for each stat.
-
-            if (Health < MaxHealth)
-                Health += (uint)(MaxHealth / 200f);
-
-            if (Shield < MaxShieldCapacity)
-                Shield += (uint)(MaxShieldCapacity * GetPropertyValue(Property.ShieldRegenPct) * statUpdateTimer.Duration);
         }
 
         /// <summary>

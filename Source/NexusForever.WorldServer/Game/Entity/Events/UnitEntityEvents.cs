@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Text;
 using NexusForever.WorldServer.Game.Combat;
 using NexusForever.WorldServer.Game.Entity.Movement;
+using NexusForever.WorldServer.Game.Entity.Static;
 using NexusForever.WorldServer.Game.Map;
 
 namespace NexusForever.WorldServer.Game.Entity
@@ -73,11 +74,11 @@ namespace NexusForever.WorldServer.Game.Entity
                 case true:
                     LeashPosition = Position;
                     LeashRotation = Rotation;
-                    StandState = StandState.Stand;
+                    StandState = Static.StandState.Stand;
                     AI?.OnEnterCombat();
                     break;
                 case false:
-                    StandState = StandState.State0;
+                    StandState = Static.StandState.State0;
                     AI?.OnExitCombat();
                     break;
             }
