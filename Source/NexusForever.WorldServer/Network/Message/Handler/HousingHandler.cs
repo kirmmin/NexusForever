@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using NexusForever.Shared;
 using NexusForever.Shared.Game.Events;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
@@ -173,7 +174,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
 
                 // teleport player to correct residence instance
                 ResidenceEntrance entrance = ResidenceManager.Instance.GetResidenceEntrance(residence);
-                session.Player.TeleportTo(entrance.Entry, entrance.Position, 0u, residence.Id);
+                session.Player.TeleportTo(entrance.Entry, entrance.Position, entrance.Rotation.ToEulerDegrees(), 0u, residence.Id);
             }));
         }
 

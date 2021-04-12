@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using NexusForever.Shared;
 using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Command.Context;
@@ -88,7 +89,7 @@ namespace NexusForever.WorldServer.Command.Handler
             }
 
             ResidenceEntrance entrance = ResidenceManager.Instance.GetResidenceEntrance(residence);
-            target.TeleportTo(entrance.Entry, entrance.Position, 0u, residence.Id);
+            target.TeleportTo(entrance.Entry, entrance.Position, entrance.Rotation.ToEulerDegrees(), 0u, residence.Id);
         }
     }
 }

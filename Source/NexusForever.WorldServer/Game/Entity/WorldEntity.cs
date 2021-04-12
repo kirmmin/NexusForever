@@ -19,7 +19,12 @@ namespace NexusForever.WorldServer.Game.Entity
     {
         public EntityType Type { get; }
         public EntityCreateFlag CreateFlags { get; set; }
-        public Vector3 Rotation { get; set; } = Vector3.Zero;
+        public Vector3 Rotation
+        {
+            get => (this is Player || MovementManager == null) ? rotation : MovementManager.GetRotation();
+            set => rotation = value; // Modifying the rotation directly should not invoke the MovementManager
+        }
+        private Vector3 rotation = Vector3.Zero;
         public Dictionary<Property, PropertyValue> Properties { get; } = new Dictionary<Property, PropertyValue>();
 
         public uint EntityId { get; protected set; }

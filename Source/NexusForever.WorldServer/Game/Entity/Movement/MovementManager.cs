@@ -128,6 +128,21 @@ namespace NexusForever.WorldServer.Game.Entity.Movement
         }
 
         /// <summary>
+        /// Get the rotation <see cref="Vector3"/> from <see cref="SetRotationCommand"/>.
+        /// </summary>
+        /// <returns></returns>
+        public Vector3 GetRotation()
+        {
+            // TODO: Return rotation when entity is moving along a spline.
+
+            // TODO: Entity is using FaceUnit command, return rotation to unit
+
+            // Assumed that no other type of rotation is in effect or needs to be calculated, so return rotation from RotationCommand
+            SetRotationCommand command = GetCommand<SetRotationCommand>();
+            return command?.Position.Vector ?? Vector3.Zero;
+        }
+
+        /// <summary>
         /// Get the platform unit id from <see cref="SetPlatformCommand"/>.
         /// </summary>
         public uint? GetPlatform()

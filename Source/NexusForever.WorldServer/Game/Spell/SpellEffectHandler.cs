@@ -85,9 +85,14 @@ namespace NexusForever.WorldServer.Game.Spell
             if (locationEntry == null)
                 return;
 
-            if (target is Player player)
-                if (player.CanTeleport())
-                    player.TeleportTo((ushort)locationEntry.WorldId, locationEntry.Position0, locationEntry.Position1, locationEntry.Position2);
+            if (!(target is Player player))
+                return;
+
+            if (!player.CanTeleport())
+                return;
+
+            var rotation = new Quaternion(locationEntry.Facing0, locationEntry.Facing0, locationEntry.Facing2, locationEntry.Facing3);
+            player.TeleportTo((ushort)locationEntry.WorldId, locationEntry.Position0, locationEntry.Position1, locationEntry.Position2, rotation.ToEulerDegrees());
         }
 
         [SpellEffectHandler(SpellEffectType.FullScreenEffect)]
@@ -115,8 +120,7 @@ namespace NexusForever.WorldServer.Game.Spell
                 return;
 
             var rotation = new Quaternion(worldLocation.Facing0, worldLocation.Facing0, worldLocation.Facing2, worldLocation.Facing3);
-            player.Rotation = rotation.ToEulerDegrees();
-            player.TeleportTo((ushort)worldLocation.WorldId, worldLocation.Position0, worldLocation.Position1, worldLocation.Position2);
+            player.TeleportTo((ushort)worldLocation.WorldId, worldLocation.Position0, worldLocation.Position1, worldLocation.Position2, rotation.ToEulerDegrees());
         }
 
         [SpellEffectHandler(SpellEffectType.LearnDyeColor)]

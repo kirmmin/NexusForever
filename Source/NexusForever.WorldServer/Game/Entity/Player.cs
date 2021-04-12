@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using NexusForever.Database.Auth;
 using NexusForever.Database.Character;
 using NexusForever.Database.Character.Model;
+using NexusForever.Shared;
 using NexusForever.Shared.Configuration;
 using NexusForever.Shared.Database;
 using NexusForever.Shared.Game;
@@ -349,6 +350,15 @@ namespace NexusForever.WorldServer.Game.Entity
                     model.LocationZ = Position.Z;
                     entity.Property(p => p.LocationZ).IsModified = true;
 
+                    model.RotationX = Rotation.X;
+                    entity.Property(p => p.RotationX).IsModified = true;
+
+                    model.RotationY = Rotation.Y;
+                    entity.Property(p => p.RotationY).IsModified = true;
+
+                    model.RotationZ = Rotation.Z;
+                    entity.Property(p => p.RotationZ).IsModified = true;
+
                     model.WorldId = (ushort)Map.Entry.Id;
                     entity.Property(p => p.WorldId).IsModified = true;
 
@@ -450,7 +460,9 @@ namespace NexusForever.WorldServer.Game.Entity
             Session.EnqueueMessageEncrypted(new ServerChangeWorld
             {
                 WorldId  = (ushort)map.Entry.Id,
-                Position = new Position(vector)
+                Position = new Position(vector),
+                Yaw      = Rotation.X,
+                Pitch    = Rotation.Z
             });
 
             // this must come before OnAddToMap
@@ -742,6 +754,32 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         /// <summary>
+        /// Teleport <see cref="Player"/> to supplied location, with an orientation provided in degrees.
+        /// </summary>
+        /// <remarks>The orientation is the same as the last value in game when you do the /loc command.</remarks>
+        public void TeleportTo(ushort worldId, float x, float y, float z, float orientation, uint instanceId = 0u, ulong residenceId = 0ul)
+        {
+            WorldEntry entry = GameTableManager.Instance.World.GetEntry(worldId);
+            if (entry == null)
+                throw new ArgumentException();
+
+            TeleportTo(entry, new Vector3(x, y, z), new Vector3(orientation.NormaliseDegrees().ToRadians(), 0f, 0f), instanceId, residenceId);
+        }
+
+        /// <summary>
+        /// Teleport <see cref="Player"/> to supplied location, with a rotation provided.
+        /// </summary>
+        /// <remarks>The <see cref="Vector3"/> provided for rotation must be in radians.</remarks>
+        public void TeleportTo(ushort worldId, float x, float y, float z, Vector3 rotation, uint instanceId = 0u, ulong residenceId = 0ul)
+        {
+            WorldEntry entry = GameTableManager.Instance.World.GetEntry(worldId);
+            if (entry == null)
+                throw new ArgumentException();
+
+            TeleportTo(entry, new Vector3(x, y, z), rotation, instanceId, residenceId);
+        }
+
+        /// <summary>
         /// Teleport <see cref="Player"/> to supplied location.
         /// </summary>
         public void TeleportTo(ushort worldId, float x, float y, float z, uint instanceId = 0u, ulong residenceId = 0ul)
@@ -750,13 +788,13 @@ namespace NexusForever.WorldServer.Game.Entity
             if (entry == null)
                 throw new ArgumentException();
 
-            TeleportTo(entry, new Vector3(x, y, z), instanceId, residenceId);
+            TeleportTo(entry, new Vector3(x, y, z), instanceId: instanceId, residenceId: residenceId);
         }
 
         /// <summary>
         /// Teleport <see cref="Player"/> to supplied location.
         /// </summary>
-        public void TeleportTo(WorldEntry entry, Vector3 vector, uint instanceId = 0u, ulong residenceId = 0ul)
+        public void TeleportTo(WorldEntry entry, Vector3 vector, Vector3 rotation = new Vector3(), uint instanceId = 0u, ulong residenceId = 0ul)
         {
             if (!CanTeleport())
                 throw new InvalidOperationException($"Player {CharacterId} tried to teleport when they're already teleporting.");
@@ -771,6 +809,8 @@ namespace NexusForever.WorldServer.Game.Entity
             {
                 // TODO: don't remove player from map if it's the same as destination
             }
+
+            Rotation = rotation;
 
             // store vanity pet summoned before teleport so it can be summoned again after being added to the new map
             uint? vanityPetId = null;
