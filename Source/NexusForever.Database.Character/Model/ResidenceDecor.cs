@@ -17,6 +17,8 @@
         public float Qw { get; set; }
         public ulong DecorParentId { get; set; }
         public ushort ColourShiftId { get; set; }
+        public uint HookBagIndex { get; set; }
+        public uint HookIndex { get; set; }
 
         public ResidenceModel Residence { get; set; }
     }

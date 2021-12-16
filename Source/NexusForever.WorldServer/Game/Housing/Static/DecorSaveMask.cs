@@ -17,6 +17,7 @@ namespace NexusForever.WorldServer.Game.Housing.Static
         Scale              = 0x0020,
         DecorParentId      = 0x0040,
         ColourShiftId      = 0x0080,
-        PlotIndex          = 0x0100
+        PlotIndex          = 0x0100,
+        Hooks              = 0x0200
     }
 }

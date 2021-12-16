@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -38,7 +39,7 @@ namespace NexusForever.WorldServer.Game.Map
 
         protected readonly ConcurrentQueue<IGridAction> pendingActions = new();
 
-        private readonly QueuedCounter entityCounter = new();
+        protected readonly QueuedCounter entityCounter = new();
         protected readonly Dictionary<uint /*guid*/, GridEntity> entities = new();
         private EntityCache entityCache;
 
@@ -169,6 +170,10 @@ namespace NexusForever.WorldServer.Game.Map
             }
         }
 
+        public virtual void OnRemoveFromMap(Player player)
+        {
+        }
+
         /// <summary>
         /// Returns if <see cref="GridEntity"/> can be added to <see cref="BaseMap"/>.
         /// </summary>
@@ -231,7 +236,7 @@ namespace NexusForever.WorldServer.Game.Map
         /// <summary>
         /// Return all <see cref="GridEntity"/>'s from <see cref="Vector3"/> in range that satisfy <see cref="ISearchCheck"/>.
         /// </summary>
-        public void Search(Vector3 vector, float radius, ISearchCheck check, out List<GridEntity> intersectedEntities)
+        public virtual void Search(Vector3 vector, float radius, ISearchCheck check, out List<GridEntity> intersectedEntities, GridEntity searcher = null)
         {
             // negative radius is unlimited distance
             if (radius < 0)

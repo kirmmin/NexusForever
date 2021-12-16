@@ -10,6 +10,7 @@ namespace NexusForever.Database.Character.Model
         public byte PropertyInfoId { get; set; }
         public string Name { get; set; }
         public byte PrivacyLevel { get; set; }
+        public ushort ResidenceInfoId { get; set; }
         public ushort WallpaperId { get; set; }
         public ushort RoofDecorInfoId { get; set; }
         public ushort EntrywayDecorInfoId { get; set; }

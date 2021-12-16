@@ -44,9 +44,9 @@ namespace NexusForever.WorldServer.Network.Message.Model
                 writer.WriteStringWide(Name);
                 writer.Write(PropertyInfoId, 32u);
                 writer.Write(ResidenceInfoId);
-                writer.Write(Roof);
                 writer.Write(WallpaperExterior);
                 writer.Write(Entryway);
+                writer.Write(Roof);
                 writer.Write(Door);
                 writer.Write(Sky);
                 writer.Write(Music);

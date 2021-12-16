@@ -174,7 +174,7 @@ namespace NexusForever.WorldServer.Game.Map
         /// <summary>
         /// Get an existing instance with supplied id.
         /// </summary>
-        protected virtual T GetInstance(ulong instanceId)
+        public virtual T GetInstance(ulong instanceId)
         {
             return instances.TryGetValue(instanceId, out T map) ? map : default;
         }

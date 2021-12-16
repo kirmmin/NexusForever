@@ -7,6 +7,8 @@
         KillCreatureGroup = 2,
         QuestComplete     = 3,
         MapComplete       = 53,
-        ItemConsume       = 80
+        ItemConsume       = 80,
+        HousePlugCount    = 111,
+        HousePlugType     = 114,
     }
 }

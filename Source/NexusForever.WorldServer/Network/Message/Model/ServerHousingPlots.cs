@@ -18,7 +18,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
             public uint[] HousingContributionTotals { get; } = new uint[5];
             public uint[] HousingDecayTotals { get; } = new uint[5];
             public uint HousingUpkeepCharges{ get; set; }
-            public float HousingUpkeepTime{ get; set; }
+            public float HousingUpkeepTime { get; set; } = -152595.9375f;
             public byte BuildState { get; set; }
             public uint BuildStage { get; set; }
             public float BuildBonus { get; set; }

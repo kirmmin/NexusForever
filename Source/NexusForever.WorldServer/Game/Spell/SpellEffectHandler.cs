@@ -5,6 +5,7 @@ using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Entity;
 using NexusForever.WorldServer.Game.Entity.Static;
+using NexusForever.WorldServer.Game.Housing;
 using NexusForever.WorldServer.Game.Map;
 using NexusForever.WorldServer.Game.Spell.Static;
 using NexusForever.WorldServer.Network.Message.Model;
@@ -210,6 +211,16 @@ namespace NexusForever.WorldServer.Game.Spell
 
         [SpellEffectHandler(SpellEffectType.Fluff)]
         private void HandleEffectFluff(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+        }
+
+        [SpellEffectHandler(SpellEffectType.HousingTeleport)]
+        private void HandleEffectHousingTeleport(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+        }
+
+        [SpellEffectHandler(SpellEffectType.HousingEscape)]
+        private void HandleEffectHousingEscape(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
         }
     }

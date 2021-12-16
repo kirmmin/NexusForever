@@ -1963,6 +1963,10 @@ namespace NexusForever.Database.Character
                     .HasColumnType("tinyint(3) unsigned")
                     .HasDefaultValue(0);
 
+                entity.Property(e => e.ResidenceInfoId)
+                    .HasColumnName("residenceInfoId")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.ResourceSharing)
                     .HasColumnName("resourceSharing")
                     .HasColumnType("tinyint(3) unsigned")
@@ -2028,6 +2032,16 @@ namespace NexusForever.Database.Character
 
                 entity.Property(e => e.DecorType)
                     .HasColumnName("decorType")
+                    .HasColumnType("int(10) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.HookBagIndex)
+                    .HasColumnName("hookBagIndex")
+                    .HasColumnType("int(10) unsigned")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.HookIndex)
+                    .HasColumnName("hookIndex")
                     .HasColumnType("int(10) unsigned")
                     .HasDefaultValue(0);
 

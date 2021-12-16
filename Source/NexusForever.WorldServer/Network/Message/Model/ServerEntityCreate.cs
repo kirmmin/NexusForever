@@ -49,7 +49,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
         {
             public byte Type { get; set; }
             public bool Unknown0 { get; set; }
-            public ulong ActivePropId { get; set; }
+            public long ActivePropId { get; set; }
             public ushort SocketId { get; set; }
 
             public void Write(GamePacketWriter writer)

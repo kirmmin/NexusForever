@@ -10,6 +10,7 @@ using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Quest.Static;
 using NexusForever.WorldServer.Game;
 using NLog;
+using NexusForever.WorldServer.Game.Map;
 
 namespace NexusForever.WorldServer.Network.Message.Handler
 {
@@ -88,13 +89,13 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         public static void HandleClientEntityInteraction(WorldSession session, ClientEntityInteract entityInteraction)
         {
             WorldEntity entity = session.Player.GetVisible<WorldEntity>(entityInteraction.Guid);
-            if (entity != null)
-            {
-                session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateEntity, entity.CreatureId, 1u);
-                session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.TalkTo, entity.CreatureId, 1u);
-                foreach (uint targetGroupId in AssetManager.Instance.GetTargetGroupsForCreatureId(entity.CreatureId) ?? Enumerable.Empty<uint>())
-                    session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.TalkToTargetGroup, targetGroupId, 1u);
-            }
+            if (entity == null)
+                return;
+
+            session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateEntity, entity.CreatureId, 1u);
+            session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.TalkTo, entity.CreatureId, 1u);
+            foreach (uint targetGroupId in AssetManager.Instance.GetTargetGroupsForCreatureId(entity.CreatureId) ?? Enumerable.Empty<uint>())
+                session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.TalkToTargetGroup, targetGroupId, 1u);
 
             switch (entityInteraction.Event)
             {
