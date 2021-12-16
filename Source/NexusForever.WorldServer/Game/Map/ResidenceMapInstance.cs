@@ -40,23 +40,6 @@ namespace NexusForever.WorldServer.Game.Map
                 AddResidence(childResidence.Residence);
         }
 
-        /// <summary>
-        /// Invoked each world tick with the delta since the previous tick occurred.
-        /// </summary>
-        public override void Update(double lastTick)
-        {
-            base.Update(lastTick);
-
-            foreach (Residence residence in residences.Values.ToArray())
-            {
-                foreach (Plot plot in residence.GetPlots())
-                    plot.Update(lastTick);
-            }
-
-            foreach (Decor decor in decorEntities.Values.Where(d => d.Type != DecorType.Crate))
-                decor.Entity?.Update(lastTick);
-        }
-
         private void AddResidence(Residence residence)
         {
             residences.Add(residence.Id, residence);
@@ -125,10 +108,33 @@ namespace NexusForever.WorldServer.Game.Map
             });
         }
 
+        /// <summary>
+        /// Invoked each world tick with the delta since the previous tick occurred.
+        /// </summary>
+        public override void Update(double lastTick)
+        {
+            base.Update(lastTick);
+
+            foreach (Residence residence in residences.Values.ToArray())
+            {
+                foreach (Plot plot in residence.GetPlots())
+                    plot.Update(lastTick);
+            }
+
+            foreach (Decor decor in decorEntities.Values.Where(d => d.Type != DecorType.Crate))
+                decor.Entity?.Update(lastTick);
+        }
+
         protected override void OnUnload()
         {
             foreach (Residence residence in residences.Values.ToList())
                 RemoveResidence(residence);
+
+            foreach (Decor decor in decorEntities.Values.ToList())
+            {
+                decor.SetEntity(null);
+                decorEntities.Remove(decor.DecorId);
+            }
         }
 
         public void SendResidences(Player player = null)
@@ -767,6 +773,8 @@ namespace NexusForever.WorldServer.Game.Map
 
                     temporaryDecor.Entity.InitialiseTemporaryEntity();
                 }
+                else if (!(temporaryDecor.Entity.Position == propRequest.Position))
+                    SetDecorEntityProperties(temporaryDecor, temporaryDecor.Entity, propRequest.Position, propRequest.Rotation);
 
                 SendDecorEntityRequestMessages(player, temporaryDecor);
                 return;
@@ -861,6 +869,13 @@ namespace NexusForever.WorldServer.Game.Map
             entity.Rotation = rotation.ToEulerDegrees();
             entity.SetPosition(position);
             entity.IsDecorEntity = true;
+            if (entity.Guid > 0)
+            {
+                // Re-Initiailise because stuff changed
+                entity.InitialiseTemporaryEntity();
+                return entity;
+            }
+
             entity.SetGuid(entityCounter.Dequeue());
 
             //if (!(decor is TemporaryDecor) && CalculateWorldCoordinates(decor.Position) != position)
@@ -907,6 +922,9 @@ namespace NexusForever.WorldServer.Game.Map
 
             if (propRequestDecor.Type == DecorType.Crate)
                 return; // TODO: Draw Entity temporarily when the Player is placing from Crate
+
+            if (propRequestDecor is TemporaryDecor)
+                return;
 
             if (propRequestDecor.Entity != null)
             {

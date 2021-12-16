@@ -528,9 +528,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                 return;
 
             if (!(session.Player.Map is ResidenceMapInstance residenceMap))
-                throw new InvalidPacketValueException();
-
-            //log.Info($"{propRequest.Operation}");
+                return;
 
             switch (propRequest.Operation)
             {
@@ -550,47 +548,55 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientHousingEnterInside)]
         public static void HandleHousingEnterinside(WorldSession session, ClientHousingEnterInside enterInside)
         {
+            if (session.Player == null || session.Player.Map == null)
+                return;
+
             if (!(session.Player.Map is ResidenceMapInstance residenceMap))
-                throw new InvalidPacketValueException();
+                return;
 
-            //if (!session.Player.CanUseHousingDoors())
-            //{
-            //    session.EnqueueMessageEncrypted(new ServerHousingResult
-            //    {
-            //        RealmId = WorldServer.RealmId,
-            //        ResidenceId = residenceMap.residence.Id,
-            //        PlayerName = session.Player.Name,
-            //        Result = HousingResult.Failed
-            //    });
-            //    return;
-            //}
+            if (session.Player.Map.Entry.Id != 1229)
+                return;
 
-            //if (session.Player.HouseOutsideLocation != Vector3.Zero || session.Player.Position.Y < -720f)
-            //{
-            //    Vector3 location = session.Player.HouseOutsideLocation;
-            //    session.Player.HouseOutsideLocation = Vector3.Zero;
-            //    if (location == Vector3.Zero)
-            //    {
-            //        ResidenceEntrance entrance = GlobalResidenceManager.Instance.GetResidenceEntrance(residenceMap.residence);
-            //        session.Player.TeleportTo(entrance.Entry, entrance.Position, 0u, residenceId: residenceMap.residence.Id);
-            //    }
-            //    else
-            //    {
-            //        session.Player.MovementManager.SetRotation(new Vector3(-90f, 0f, 0f));
-            //        session.Player.MovementManager.SetPosition(location);
-            //    }
-            //    return;
-            //}
+            Residence residence = GlobalResidenceManager.Instance.GetResidence(enterInside.ResidenceId);
 
-            //Vector3 teleportPosition = GlobalResidenceManager.Instance.GetResidenceInsideLocation(residenceMap.ResidenceInfoId);
-            //if (teleportPosition != Vector3.Zero)
-            //{
-            //    session.Player.HouseOutsideLocation = session.Player.Position;
-            //    session.Player.MovementManager.SetRotation(new Vector3(90f, 0f, 0f));
-            //    session.Player.MovementManager.SetPosition(teleportPosition);
-            //}
-            //else
-            //    session.Player.SendSystemMessage("Unknown teleport location.");
+            if (!session.Player.CanUseHousingDoors() || residence.ResidenceInfoEntry == null)
+            {
+                session.EnqueueMessageEncrypted(new ServerHousingResult
+                {
+                    RealmId = WorldServer.RealmId,
+                    ResidenceId = enterInside.ResidenceId,
+                    PlayerName = session.Player.Name,
+                    Result = HousingResult.Failed
+                });
+                return;
+            }
+
+            if (session.Player.HouseOutsideLocation != Vector3.Zero || session.Player.Position.Y < -720f)
+            {
+                Vector3 location = session.Player.HouseOutsideLocation;
+                session.Player.HouseOutsideLocation = Vector3.Zero;
+                if (location == Vector3.Zero)
+                {
+                    ResidenceEntrance entrance = GlobalResidenceManager.Instance.GetResidenceEntrance(residence.PropertyInfoId);
+                    session.Player.TeleportTo(entrance.Entry, entrance.Position, instanceId: enterInside.ResidenceId);
+                }
+                else
+                {
+                    session.Player.MovementManager.SetRotation(new Vector3(-90f, 0f, 0f));
+                    session.Player.MovementManager.SetPosition(location);
+                }
+                return;
+            }
+
+            Vector3 teleportPosition = GlobalResidenceManager.Instance.GetResidenceInsideLocation(residence.ResidenceInfoEntry.Id);
+            if (teleportPosition != Vector3.Zero)
+            {
+                session.Player.HouseOutsideLocation = session.Player.Position;
+                session.Player.MovementManager.SetRotation(new Vector3(90f, 0f, 0f));
+                session.Player.MovementManager.SetPosition(teleportPosition);
+            }
+            else
+                session.Player.SendSystemMessage("Unknown teleport location.");
         }
 
         [MessageHandler(GameMessageOpcode.ClientHousingRemodelInterior)]

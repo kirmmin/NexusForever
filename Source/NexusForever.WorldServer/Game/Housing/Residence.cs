@@ -33,7 +33,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.GuildOwner;
             }
         }
-
         private ulong? guildOwnerId;
 
         public PropertyInfoId PropertyInfoId
@@ -47,7 +46,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 UpdatePlots();
             }
         }
-
         private PropertyInfoId propertyInfoId;
 
         public string Name
@@ -59,7 +57,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.Name;
             }
         }
-
         private string name;
 
         public ResidencePrivacyLevel PrivacyLevel
@@ -74,7 +71,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.PrivacyLevel;
             }
         }
-
         private ResidencePrivacyLevel privacyLevel;
 
         public ushort Wallpaper
@@ -89,7 +85,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.Wallpaper;
             }
         }
-
         private ushort wallpaperId;
 
         public ushort Roof
@@ -104,7 +99,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.Roof;
             }
         }
-
         private ushort roofDecorInfoId;
 
         public ushort Entryway
@@ -119,7 +113,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.Entryway;
             }
         }
-
         private ushort entrywayDecorInfoId;
 
         public ushort Door
@@ -134,7 +127,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.Door;
             }
         }
-
         private ushort doorDecorInfoId;
 
         public ushort Music
@@ -153,7 +145,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.Music;
             }
         }
-
         private ushort musicId;
 
         public ushort Ground
@@ -172,7 +163,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.Ground;
             }
         }
-
         private ushort groundWallpaperId;
 
         public ushort Sky
@@ -191,7 +181,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.Sky;
             }
         }
-
         private ushort skyWallpaperId;
 
         public ResidenceFlags Flags
@@ -203,7 +192,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.Flags;
             }
         }
-
         private ResidenceFlags flags;
 
         public byte ResourceSharing
@@ -215,7 +203,6 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.ResourceSharing;
             }
         }
-
         private byte resourceSharing;
 
         public byte GardenSharing
@@ -227,10 +214,18 @@ namespace NexusForever.WorldServer.Game.Housing
                 saveMask |= ResidenceSaveMask.GardenSharing;
             }
         }
-
         private byte gardenSharing;
 
-        public HousingResidenceInfoEntry ResidenceInfoEntry { get; private set; }
+        public HousingResidenceInfoEntry ResidenceInfoEntry
+        {
+            get => residenceInfoEntry;
+            set
+            {
+                residenceInfoEntry = value;
+                saveMask |= ResidenceSaveMask.ResidenceInfo;
+            }
+        }
+        private HousingResidenceInfoEntry residenceInfoEntry;
 
         private ResidenceSaveMask saveMask;
 
@@ -289,7 +284,7 @@ namespace NexusForever.WorldServer.Game.Housing
             Type = model.OwnerId.HasValue ? ResidenceType.Residence : ResidenceType.Community;
 
             if (model.ResidenceInfoId > 0)
-                ResidenceInfoEntry  = GameTableManager.Instance.HousingResidenceInfo.GetEntry(model.ResidenceInfoId);
+                residenceInfoEntry  = GameTableManager.Instance.HousingResidenceInfo.GetEntry(model.ResidenceInfoId);
 
             foreach (ResidenceDecor decorModel in model.Decor)
             {
@@ -391,7 +386,8 @@ namespace NexusForever.WorldServer.Game.Housing
                         SkyWallpaperId      = skyWallpaperId,
                         Flags               = (ushort)flags,
                         ResourceSharing     = resourceSharing,
-                        GardenSharing       = gardenSharing
+                        GardenSharing       = gardenSharing,
+                        ResidenceInfoId     = (ushort)ResidenceInfoEntry.Id
                     });
                 }
                 else
@@ -464,7 +460,6 @@ namespace NexusForever.WorldServer.Game.Housing
                         model.GardenSharing = GardenSharing;
                         entity.Property(p => p.GardenSharing).IsModified = true;
                     }
-
                     if ((saveMask & ResidenceSaveMask.GuildOwner) != 0)
                     {
                         model.GuildOwnerId = GuildOwnerId;
@@ -474,6 +469,11 @@ namespace NexusForever.WorldServer.Game.Housing
                     {
                         model.PropertyInfoId = (byte)PropertyInfoId;
                         entity.Property(p => p.PropertyInfoId).IsModified = true;
+                    }
+                    if ((saveMask & ResidenceSaveMask.ResidenceInfo) != 0)
+                    {
+                        model.ResidenceInfoId = (ushort)ResidenceInfoEntry.Id;
+                        entity.Property(p => p.ResidenceInfoId).IsModified = true;
                     }
                 }
 
@@ -508,6 +508,7 @@ namespace NexusForever.WorldServer.Game.Housing
                 Type              = Type,
                 Name              = Name,
                 PropertyInfoId    = PropertyInfoId,
+                ResidenceInfoId   = (ResidenceInfoEntry?.Id ?? 0u),
                 WallpaperExterior = Wallpaper,
                 Entryway          = Entryway,
                 Roof              = Roof,
