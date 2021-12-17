@@ -9,7 +9,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
     public class ClientHousingRemodelInterior : IReadable
     {
         public uint[] Unknown0 { get; private set; } = new uint[6];
-        public List<DecorUpdate> Remodels { get; private set; } = new List<DecorUpdate>();
+        public List<DecorInfo> Remodels { get; private set; } = new List<DecorInfo>();
 
         public void Read(GamePacketReader reader)
         {
@@ -18,7 +18,7 @@ namespace NexusForever.WorldServer.Network.Message.Model
 
             for (int i = 0; i < Unknown0.Length; i++)
             {
-                var decor = new DecorUpdate();
+                var decor = new DecorInfo();
                 decor.Read(reader);
                 Remodels.Add(decor);
             }

@@ -605,7 +605,7 @@ namespace NexusForever.WorldServer.Network.Message.Handler
             if (!(session.Player.Map is ResidenceMapInstance residenceMap))
                 throw new InvalidPacketValueException();
 
-            //residenceMap.DecorUpdate(session.Player, remodelInterior);
+            residenceMap.DecorUpdate(session.Player, remodelInterior);
         }
     }
 }

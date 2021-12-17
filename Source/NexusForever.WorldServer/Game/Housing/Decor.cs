@@ -195,17 +195,17 @@ namespace NexusForever.WorldServer.Game.Housing
         /// </summary>
         public Decor(Residence residence, ulong decorId, HousingWallpaperInfoEntry entry, uint hookBagIndex, uint hookIndex)
         {
-            Residence = residence;
-            DecorId = decorId;
+            Residence   = residence;
+            DecorId     = decorId;
             decorInfoId = entry.Id;
-            type = DecorType.InteriorDecoration;
-            position = Vector3.Zero;
-            rotation = Quaternion.Identity;
+            type        = DecorType.InteriorDecoration;
+            position    = Vector3.Zero;
+            rotation    = Quaternion.Identity;
             HookBagIndex = hookBagIndex;
-            HookIndex = hookIndex;
-            plotIndex = 0;
+            HookIndex   = hookIndex;
+            plotIndex   = 0;
             
-            saveMask = DecorSaveMask.Create;
+            saveMask    = DecorSaveMask.Create;
         }
 
         /// <summary>
@@ -242,7 +242,7 @@ namespace NexusForever.WorldServer.Game.Housing
                 {
                     Id            = Id,
                     DecorId       = DecorId,
-                    DecorInfoId   = Entry?.Id ?? DecorInfoId,
+                    DecorInfoId   = DecorInfoId,
                     DecorType     = (uint)Type,
                     PlotIndex     = PlotIndex,
                     X             = Position.X,
@@ -376,9 +376,11 @@ namespace NexusForever.WorldServer.Game.Housing
                 Scale         = Scale,
                 Position      = Position,
                 Rotation      = Rotation,
-                DecorInfoId   = Entry.Id,
+                DecorInfoId   = DecorInfoId,
                 ParentDecorId = DecorParentId,
-                ColourShift   = ColourShiftId
+                ColourShift   = ColourShiftId,
+                HookBagIndex  = HookBagIndex,
+                HookIndex     = HookIndex
             };
         }
 

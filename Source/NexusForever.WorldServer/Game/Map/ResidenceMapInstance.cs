@@ -321,6 +321,39 @@ namespace NexusForever.WorldServer.Game.Map
         }
 
         /// <summary>
+        /// Update <see cref="Decor"/> for the House Interior, this is called directly from a packet handler.
+        /// </summary>
+        public void DecorUpdate(Player player, ClientHousingRemodelInterior remodelInterior)
+        {
+            foreach (DecorInfo update in remodelInterior.Remodels)
+            {
+                if (update.TargetResidence.ResidenceId == 0u)
+                    continue;
+
+                if (!residences.TryGetValue(update.TargetResidence.ResidenceId, out Residence residence)
+                || !residence.CanModifyResidence(player))
+                    continue;
+                    
+                Decor decor = residence.GetInteriorDecor(update.HookIndex);
+                if (decor != null && update.DecorInfoId == 0u)
+                {
+                    DecorDelete(residence, update);
+                    continue;
+                }
+
+                if (decor != null && update.DecorInfoId != decor.DecorInfoId)
+                    DecorDelete(residence, update);
+
+                if (update.DecorInfoId == 0u)
+                    continue;
+
+                decor = residence.DecorCreateHooked(update);
+                decor.Type = update.DecorType;
+                SendDecorUpdate(decor);
+            }
+        }
+
+        /// <summary>
         /// Create and add <see cref="Decor"/> from supplied <see cref="HousingDecorInfoEntry"/> to your crate.
         /// </summary>
         public void DecorCreate(Residence residence, HousingDecorInfoEntry entry, uint quantity)
@@ -341,7 +374,7 @@ namespace NexusForever.WorldServer.Game.Map
             if (entry == null)
                 throw new InvalidPacketValueException();
 
-            if (entry.CostCurrencyTypeId != 0u && entry.Cost != 0u)
+            if (entry.CostCurrencyTypeId != 0u)
             {
                 /*if (!player.CurrencyManager.CanAfford((byte)entry.CostCurrencyTypeId, entry.Cost))
                 {
@@ -375,9 +408,14 @@ namespace NexusForever.WorldServer.Game.Map
                 // new decor is being placed directly in the world
                 decor.Position = update.Position;
                 decor.Rotation = update.Rotation;
-                decor.Scale    = update.Scale;
+                decor.Scale = update.Scale;
             }
 
+            SendDecorUpdate(decor);
+        }
+
+        private void SendDecorUpdate(Decor decor)
+        {
             EnqueueToAll(new ServerHousingResidenceDecor
             {
                 Operation = 0,

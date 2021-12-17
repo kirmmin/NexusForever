@@ -289,7 +289,7 @@ namespace NexusForever.WorldServer.Game.Housing
             foreach (ResidenceDecor decorModel in model.Decor)
             {
                 HousingDecorInfoEntry entry = GameTableManager.Instance.HousingDecorInfo.GetEntry(decorModel.DecorInfoId);
-                if (entry == null)
+                if (entry == null && (DecorType)decorModel.DecorType != DecorType.InteriorDecoration)
                     throw new DatabaseDataException($"Decor {decorModel.Id} has invalid decor entry {decorModel.DecorInfoId}!");
 
                 var decor = new Decor(this, decorModel, entry);
@@ -686,6 +686,7 @@ namespace NexusForever.WorldServer.Game.Housing
             return decor;
         }
 
+        /// <summary>
         /// Return <see cref="Decor"/> with the supplied id.
         /// </summary>
         public Decor GetInteriorDecor(uint hookIndex)
@@ -694,17 +695,16 @@ namespace NexusForever.WorldServer.Game.Housing
             return decor;
         }
 
-        public Decor DecorCreate(DecorUpdate decorUpdate)
+        /// <summary>
+        /// Create a new <see cref="Decor"/> that is hooked to an element in the map. Used for Interior Remodelling among other things.
+        /// </summary>
+        public Decor DecorCreateHooked(DecorInfo decorUpdate)
         {
             HousingWallpaperInfoEntry wallpaperInfoEntry = GameTableManager.Instance.HousingWallpaperInfo.GetEntry(decorUpdate.DecorInfoId);
             if (wallpaperInfoEntry == null)
                 throw new InvalidOperationException();
-
-            ulong decorId = GlobalResidenceManager.Instance.NextDecorId;
-            if (decorId == Id)
-                decorId = GlobalResidenceManager.Instance.NextDecorId;
-
-            var decor = new Decor(this, decorId, wallpaperInfoEntry, decorUpdate.HookBagIndex, decorUpdate.HookIndex);
+            
+            var decor = new Decor(this, GlobalResidenceManager.Instance.NextDecorId, wallpaperInfoEntry, decorUpdate.HookBagIndex, decorUpdate.HookIndex);
             decors.Add(decor.DecorId, decor);
             return decor;
         }
