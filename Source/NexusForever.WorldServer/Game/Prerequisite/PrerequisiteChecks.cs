@@ -589,6 +589,19 @@ namespace NexusForever.WorldServer.Game.Prerequisite
             }
         }
 
+        [PrerequisiteCheck(PrerequisiteType.Amp)]
+        private static bool PrerequisiteCheckAmp(Player player, PrerequisiteComparison comparison, uint value, uint objectId)
+        {
+            switch (comparison)
+            {
+                case PrerequisiteComparison.Equal:
+                    return player.SpellManager.IsAmpEnabled((ushort)objectId);
+                default:
+                    log.Warn($"Unhandled {comparison} for {PrerequisiteType.Vital}!");
+                    return false;
+            }
+        }
+
         [PrerequisiteCheck(PrerequisiteType.PurchasedTitle)]
         private static bool PrerequisiteCheckPurchasedTitle(Player player, PrerequisiteComparison comparison, uint value, uint objectId, UnitEntity target)
         {
