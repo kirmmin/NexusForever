@@ -30,6 +30,7 @@ namespace NexusForever.WorldServer.Game.Entity
         public UnitAI GetAI() => AI;
 
         private UpdateTimer regenTimer = new UpdateTimer(0.5d);
+        private UpdateTimer expireTimer = null;
 
         public ThreatManager ThreatManager { get; private set; }
         protected uint currentTargetUnitId;
@@ -84,6 +85,11 @@ namespace NexusForever.WorldServer.Game.Entity
                 AI = new UnitAI(this);
         }
 
+        public void SetExpirationTimer(double duration)
+        {
+            expireTimer = new UpdateTimer(duration);
+        }
+
         public override void Update(double lastTick)
         {
             base.Update(lastTick);
@@ -112,6 +118,13 @@ namespace NexusForever.WorldServer.Game.Entity
 
             foreach (ProcInfo proc in procs.Values.SelectMany(p => p).ToList())
                 proc.Update(lastTick);
+
+            if (expireTimer != null)
+            {
+                expireTimer.Update(lastTick);
+                if (IsAlive && expireTimer.HasElapsed)
+                    ModifyHealth(-Health);
+            }
         }
 
         /// <summary>
