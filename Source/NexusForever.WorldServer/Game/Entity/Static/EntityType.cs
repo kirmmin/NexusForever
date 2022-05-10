@@ -16,7 +16,7 @@
         Platform = 11,
         MailBox = 12,
         AiTurret = 13,
-        InstancePortal,
+        InstancePortal = 14,
         Plug,
         Residence,
         StructuredPlug,
