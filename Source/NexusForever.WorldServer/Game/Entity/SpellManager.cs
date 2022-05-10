@@ -87,16 +87,9 @@ namespace NexusForever.WorldServer.Game.Entity
             for (uint i = 0; i <= maxGlobalSpellCooldownEnum; i++)
                 globalSpellCooldowns.Add(i, 0d);
 
-            GrantSpells();
-
             for (byte i = 0; i < ActionSet.MaxActionSets; i++)
             {
                 actionSets[i] = new ActionSet(i, player);
-
-                foreach (CharacterActionSetShortcutModel shortcutModel in model.ActionSetShortcut
-                    .Where(c => c.SpecIndex == i))
-                    actionSets[i].AddShortcut(shortcutModel);
-
                 foreach (CharacterActionSetAmpModel ampModel in model.ActionSetAmp
                     .Where(c => c.SpecIndex == i))
                     actionSets[i].AddAmp(ampModel);
@@ -104,6 +97,15 @@ namespace NexusForever.WorldServer.Game.Entity
 
             activeActionSet = model.ActiveSpec;
             innateIndex = model.InnateIndex;
+
+            GrantSpells();
+
+            for (byte i = 0; i < ActionSet.MaxActionSets; i++)
+            {
+                foreach (CharacterActionSetShortcutModel shortcutModel in model.ActionSetShortcut
+                    .Where(c => c.SpecIndex == i))
+                    actionSets[i].AddShortcut(shortcutModel);
+            }
         }
 
         public void GrantSpells()
@@ -113,9 +115,18 @@ namespace NexusForever.WorldServer.Game.Entity
                 .Where(s => s.ClassId == (byte)player.Class && s.CharacterLevel <= player.Level)
                 .OrderBy(s => s.CharacterLevel))
             {
-                //FIXME
                 if (spellLevel.PrerequisiteId > 0)
-                    continue;
+                {
+                    PrerequisiteEntry entry = GameTableManager.Instance.Prerequisite.GetEntry(spellLevel.PrerequisiteId);
+                    // Override PrerequisiteManager as it relies on SpellManager, which we are still initializing
+                    if (entry.PrerequisiteTypeId[0] == 227)
+                    {
+                        if (!IsAmpEnabled((ushort)entry.ObjectId[0]))
+                            continue;
+                    }
+                    else if (!PrerequisiteManager.Instance.Meets(player, spellLevel.PrerequisiteId))
+                        continue;
+                }
 
                 Spell4Entry spell4Entry = GameTableManager.Instance.Spell4.GetEntry(spellLevel.Spell4Id);
                 if (spell4Entry == null)
@@ -323,6 +334,11 @@ namespace NexusForever.WorldServer.Game.Entity
             ActionSet actionSet = GetActionSet(ActiveActionSet);
             ActionSetShortcut shortcut = actionSet.GetShortcut(ShortcutType.Spell, spell4BaseId);
             return shortcut?.Tier ?? spell.Tier;
+        }
+
+        public bool IsAmpEnabled(ushort ampId)
+        {
+            return GetActionSet(ActiveActionSet).GetAmp(ampId) != null;
         }
 
         public List<CharacterSpell> GetPets()
