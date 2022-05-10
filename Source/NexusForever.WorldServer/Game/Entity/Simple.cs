@@ -133,8 +133,10 @@ namespace NexusForever.WorldServer.Game.Entity
 
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateEntity, CreatureId, 1u);
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.SucceedCSI, CreatureId, 1u);
+            activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.Unknown28, CreatureId, 1u);
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateTargetGroupChecklist, CreatureId, QuestChecklistIdx);
-            
+            activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateTargetGroup, CreatureId, 1u);
+
             ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnActivateSuccess(this, activator);
         }
     }
