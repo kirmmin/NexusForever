@@ -390,9 +390,16 @@ namespace NexusForever.WorldServer.Game
                     (QuestObjectiveType)o.Type == QuestObjectiveType.KillTargetGroup ||
                     (QuestObjectiveType)o.Type == QuestObjectiveType.KillTargetGroups ||
                     (QuestObjectiveType)o.Type == QuestObjectiveType.TalkToTargetGroup ||
-                    (QuestObjectiveType)o.Type == QuestObjectiveType.Unknown10))
+                    (QuestObjectiveType)o.Type == QuestObjectiveType.Unknown10 ||
+                    (QuestObjectiveType)o.Type == QuestObjectiveType.Unknown28 ||
+                    (QuestObjectiveType)o.Type == QuestObjectiveType.VirtualCollect))
             {
-                uint targetGroupId = questObjectiveEntry.Data > 0 ? questObjectiveEntry.Data : questObjectiveEntry.TargetGroupIdRewardPane;
+                uint targetGroupId = 0u;
+                if ((QuestObjectiveType)questObjectiveEntry.Type == QuestObjectiveType.VirtualCollect ||
+                    (QuestObjectiveType)questObjectiveEntry.Type == QuestObjectiveType.Unknown28)
+                    targetGroupId = questObjectiveEntry.TargetGroupIdRewardPane;
+                else
+                    targetGroupId = questObjectiveEntry.Data > 0 ? questObjectiveEntry.Data : questObjectiveEntry.TargetGroupIdRewardPane;
                 if (targetGroupId == 0u)
                     continue;
 

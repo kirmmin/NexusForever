@@ -88,9 +88,15 @@ namespace NexusForever.WorldServer.Game.Entity
                         }
                     }
 
-                    // Reward Virtual Item
-                    if (virtualItemId > 0u)
-                        GlobalLootManager.Instance.GiveLoot(player.Session, GameTableManager.Instance.VirtualItem.GetEntry(virtualItemId), 1u, Guid);
+                    if (virtualItemId == 0u) // Try finding active objectives that can drop it
+                        foreach (Quest.Quest quest in player.QuestManager.GetActiveQuests())
+                            foreach (Quest.QuestObjective objective in quest.GetActiveObjectives())
+                                if (objective.IsTarget(CreatureId))
+                                    virtualItemId = objective.ObjectiveInfo.Entry.Data;
+
+                        // Reward Virtual Item
+                        if (virtualItemId > 0u)
+                            GlobalLootManager.Instance.GiveLoot(player.Session, GameTableManager.Instance.VirtualItem.GetEntry(virtualItemId), 1u, Guid);
                     break;
                 case DeathState.Corpse:
                     Map.EnqueueRespawn(this, DateTime.UtcNow.AddSeconds(30d));

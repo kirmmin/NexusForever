@@ -86,6 +86,7 @@ namespace NexusForever.WorldServer.Game.Quest
 
         private readonly Player player;
         private readonly List<QuestObjective> objectives = new();
+        private List<QuestObjective> activeObjectives = new();
 
         private UpdateTimer questTimer;
         private bool checkState = false;
@@ -107,7 +108,7 @@ namespace NexusForever.WorldServer.Game.Quest
 
             foreach (CharacterQuestObjectiveModel objectiveModel in model.QuestObjective.OrderBy(o => o.Index))
                 objectives.Add(new QuestObjective(info, info.Objectives[objectiveModel.Index], objectiveModel));
-
+            UpdateActiveObjectives();
             checkState = true;
         }
 
@@ -122,6 +123,7 @@ namespace NexusForever.WorldServer.Game.Quest
 
             for (byte i = 0; i < info.Objectives.Count; i++)
                 objectives.Add(new QuestObjective(info, info.Objectives[i], i));
+            UpdateActiveObjectives();
 
             saveMask = QuestSaveMask.Create;
 
@@ -317,6 +319,7 @@ namespace NexusForever.WorldServer.Game.Quest
 
             if (objectives.All(o => o.IsComplete()))
                 State = QuestState.Achieved;
+            UpdateActiveObjectives();
         }
 
         /// <summary>
@@ -350,6 +353,7 @@ namespace NexusForever.WorldServer.Game.Quest
 
             if (objectives.All(o => o.IsComplete()))
                 State = QuestState.Achieved;
+            UpdateActiveObjectives();
         }
 
         private bool CanUpdateObjective(QuestObjective objective, uint progress)
@@ -394,6 +398,7 @@ namespace NexusForever.WorldServer.Game.Quest
                 if ((objective.ObjectiveInfo.Entry.Flags & 0x02) == 0 && !objective.IsComplete())
                     objective.Complete();
             }
+            UpdateActiveObjectives();
         }
 
         private void ObjectiveUpdate(QuestObjective objective, uint progress)
@@ -412,6 +417,28 @@ namespace NexusForever.WorldServer.Game.Quest
 
             if (AreAllRequiredObjectivesCompleted())
                 CompleteAllOptionalObjectives();
+            UpdateActiveObjectives();
+        }
+
+        private void UpdateActiveObjectives()
+        {
+            activeObjectives = new();
+            foreach (QuestObjective objective in objectives)
+            {
+                var active = true;
+                if (objective.IsComplete())
+                    continue;
+                if (objective.ObjectiveInfo.IsSequential())
+                    for (int i = 0; i < objective.Index; i++)
+                        if ((objectives[i].ObjectiveInfo.Entry.Flags & 0x02) != 0) // Ensure each previous step wasn't optional.
+                            if (!objectives[i].IsComplete())
+                            {
+                                active = false;
+                                break;
+                            }
+                if (active)
+                    activeObjectives.Add(objective);
+            }
         }
 
         private void SendQuestObjectiveUpdate(QuestObjective objective)
@@ -447,9 +474,18 @@ namespace NexusForever.WorldServer.Game.Quest
             ScriptManager.Instance.GetScript<QuestScript>(Id)?.OnQuestStateChange(player, this, State);
         }
 
+        public uint GetObjectiveProgress(int index)
+        {
+            return objectives[index].Progress;
+        }
+
         public IEnumerator<QuestObjective> GetEnumerator()
         {
             return objectives.GetEnumerator();
+        }
+        public IEnumerable<QuestObjective> GetActiveObjectives()
+        {
+            return activeObjectives.AsEnumerable();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
