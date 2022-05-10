@@ -57,6 +57,8 @@ namespace NexusForever.WorldServer.Game.Entity
 
             UpdateStats(owner);
             ModifyHealth(MaxHealth);
+            if (effectsEntry.DurationTime > 0)
+                SetExpirationTimer((double)effectsEntry.DurationTime / 1000);
             SetupAI(spellInfo, effectsEntry);
         }
 
