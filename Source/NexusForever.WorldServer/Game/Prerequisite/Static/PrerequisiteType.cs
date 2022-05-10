@@ -21,6 +21,7 @@
         /// </summary>
         InCombat            = 28,
         TargetIsPlayer      = 39,
+        QuestObjective      = 43,
         /// <summary>
         /// Checks for whether or not the Player has an AMP.
         /// </summary>
