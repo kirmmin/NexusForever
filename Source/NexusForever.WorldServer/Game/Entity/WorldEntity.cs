@@ -296,6 +296,19 @@ namespace NexusForever.WorldServer.Game.Entity
         }
 
         /// <summary>
+        /// Initialise <see cref="WorldEntity"/> from a <see cref="Creature2Entry"/>.
+        /// </summary>
+        public virtual void Initialise(Creature2Entry entry)
+        {
+            CreatureId = entry.Id;
+
+            BuildBaseProperties();
+
+            CreateFlags |= EntityCreateFlag.SpawnAnimation;
+        }
+
+
+        /// <summary>
         /// Invoked each world tick with the delta since the previous tick occurred.
         /// </summary>
         public override void Update(double lastTick)

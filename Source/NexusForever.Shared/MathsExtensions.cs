@@ -85,6 +85,15 @@ namespace NexusForever.Shared
         }
 
         /// <summary>
+        /// Returns a <see cref="Vector3"/> which has been offset by a random angle and distance between supplied min and max ranges.
+        /// </summary>
+        public static Vector3 GetRandomPoint2DRangeDirection(this Vector3 v, float minRange, float maxRange, float maxRotation, float direction)
+        {
+            var random = new Random();
+            return GetPoint2D(v, ((float)random.NextDouble() - 0.5f) * PI2 * (maxRotation / 360) - direction - (MathF.PI / 2), (float)random.NextDouble() * (maxRange - minRange) + minRange);
+        }
+
+        /// <summary>
         /// Returns a <see cref="Vector3"/> which has been offset by supplied angle and distance. Only for use in Telegraphs.
         /// </summary>
         public static Vector3 GetPointForTelegraph(this Vector3 v, float angle, float distance)
