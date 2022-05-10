@@ -39,6 +39,7 @@ namespace NexusForever.WorldServer.Game.Entity
             WorldSocketId = plugId;
             Faction1 = (Faction)entry.FactionId;
             Faction2 = (Faction)entry.FactionId;
+            QuestChecklistIdx = 255;
 
             Creature2DisplayGroupEntryEntry displayGroupEntry = GameTableManager.Instance.Creature2DisplayGroupEntry.Entries.FirstOrDefault(i => i.Creature2DisplayGroupId == entry.Creature2DisplayGroupId);
             if (displayGroupEntry != null)
@@ -64,6 +65,7 @@ namespace NexusForever.WorldServer.Game.Entity
                 CreateFlags |= EntityCreateFlag.Vendor;
                 VendorInfo = new VendorInfo(model);
             }
+            QuestChecklistIdx = model.QuestChecklistIdx;
 
             BuildProperties(CalculateProperties());
 
@@ -98,6 +100,7 @@ namespace NexusForever.WorldServer.Game.Entity
         {
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateEntity, CreatureId, 1u);
             activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.SucceedCSI, CreatureId, 1u);
+            activator.QuestManager.ObjectiveUpdate(QuestObjectiveType.ActivateTargetGroupChecklist, CreatureId, QuestChecklistIdx);
 
             ScriptManager.Instance.GetScript<CreatureScript>(CreatureId)?.OnActivateSuccess(this, activator);
         }
