@@ -57,6 +57,7 @@ namespace NexusForever.Shared.Network.Message
         ClientMailTakeCash              = 0x0127,
         ServerUnlockMount               = 0x0129,
         ClientItemMoveToSupplySatchel   = 0x012A,
+        ClientEnterWorldStarted         = 0x012B,
         ServerPetCustomizationList      = 0x012E,
         ServerPetCustomisation          = 0x012F,
         ClientRapidTransport            = 0x0141,

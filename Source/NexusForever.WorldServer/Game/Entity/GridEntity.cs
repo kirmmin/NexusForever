@@ -207,7 +207,7 @@ namespace NexusForever.WorldServer.Game.Entity
         /// <summary>
         /// Update all <see cref="MapGrid"/>'s in vision range.
         /// </summary>
-        private void UpdateGridVision()
+        protected void UpdateGridVision()
         {
             Map.GridSearch(Position, Map.VisionRange, out List<MapGrid> intersectedGrids);
             List<(uint X, uint Z)> visibleGridCoords = intersectedGrids

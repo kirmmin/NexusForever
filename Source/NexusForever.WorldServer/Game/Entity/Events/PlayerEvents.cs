@@ -25,6 +25,9 @@ namespace NexusForever.WorldServer.Game.Entity
         private float esperResetTimer;
         private float engineerResetTimer;
 
+        private bool ClientReadyToEnter = false;
+        private bool ServerReadyToEnter = false;
+
         private void OnLogin()
         {
             string motd = WorldServer.RealmMotd;
@@ -47,6 +50,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public override void OnEnqueueAddToMap(MapPosition mapPosition)
         {
+            ServerReadyToEnter = false;
             IsLoading = true;
 
             CreateFlags &= ~EntityCreateFlag.NoSpawnAnimation;
@@ -64,10 +68,28 @@ namespace NexusForever.WorldServer.Game.Entity
 
         public override void OnAddToMap(BaseMap map, uint guid, Vector3 vector)
         {
+            ServerReadyToEnter = true;
+
             Guid     = guid;
             Map      = map;
             Position = vector;
             MovementManager = new Movement.MovementManager(this, vector, Rotation);
+
+            if (!ClientReadyToEnter)
+                return;
+            // If PreviousMap is null, we need to wait for client started loading packet before sending data.
+            
+            HandleEnteringWorld();
+        }
+
+        public void HandleEnteringWorld()
+        {
+            log.Info("Calling HandleEnteringWorld");
+
+            ClientReadyToEnter = true;
+
+            if (!ServerReadyToEnter)
+                return;
 
             // TODO: If player is logging in to this character for first time, we should wait for confirmation from client that it's in loading screen before dumping all packets to it.
             // Currently, dumping the packets to the client works fine, but seems to have a higher chance of crashing or bugging up.
@@ -77,7 +99,7 @@ namespace NexusForever.WorldServer.Game.Entity
 
             // TODO: May be better not calling the base Classes on this, especially when logging into character from character select, when we should wait for client confirmation that it's ready for data.
             // Send all Map Entities
-            base.OnAddToMap(map, guid, vector);
+            UpdateEntities();
 
             // Send all Packets that wrap up Entities and inform client about any final Map Settings
             SendPacketsAfterEntities();
@@ -91,6 +113,12 @@ namespace NexusForever.WorldServer.Game.Entity
 
             if (PreviousMap == null)
                 OnLogin();
+        }
+
+        private void UpdateEntities()
+        {
+            UpdateVision();
+            UpdateGridVision();
         }
 
         /// <summary>

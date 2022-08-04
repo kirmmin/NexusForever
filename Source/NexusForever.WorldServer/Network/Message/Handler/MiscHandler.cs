@@ -100,6 +100,18 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         {
         }
 
+        [MessageHandler(GameMessageOpcode.ClientEnterWorldStarted)]
+        public static void HandleClientEnterWorldStarted(WorldSession session, ClientEnterWorldStarted enterWorldStarted)
+        {
+            if (session.Player.PreviousMap != null)
+            {
+                // Uh oh. Should not have happened?
+                return;
+            }
+
+            session.Player.HandleEnteringWorld();
+        }
+
         /// <summary>
         /// Client sends this when it has received everything it needs to leave the loading screen.
         /// For housing maps, this also includes things such as residences and plots.
