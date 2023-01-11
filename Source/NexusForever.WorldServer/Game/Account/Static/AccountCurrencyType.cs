@@ -6,7 +6,10 @@ namespace NexusForever.WorldServer.Game.Account.Static
         Credd                   = 1,
         RealmTransfer           = 2,
         CharacterRename         = 3,
-        /* 4 UNUSED */
+        /// <summary>
+        /// This is displayed in the Madame Fay Fortune window as the Carrot Progress
+        /// </summary>
+        FortuneCharge           = 4,
         FortuneCoin             = 5,
         Omnibit                 = 6,
         NCoin                   = 7,
