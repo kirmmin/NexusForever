@@ -3,8 +3,8 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ClientFortuneOpen)]
-    public class ClientFortuneOpen : IReadable
+    [Message(GameMessageOpcode.ClientGachaOpen)]
+    public class ClientGachaOpen : IReadable
     {
         public void Read(GamePacketReader reader)
         {

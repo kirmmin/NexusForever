@@ -4,8 +4,8 @@ using NexusForever.Shared.Network.Message;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.ServerFortuneInit)]
-    public class ServerFortuneInit : IWritable
+    [Message(GameMessageOpcode.ServerGachaInit)]
+    public class ServerGachaInit : IWritable
     {
         public class UnknownStruct0 : IWritable
         {
