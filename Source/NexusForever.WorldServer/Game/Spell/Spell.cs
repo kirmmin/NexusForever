@@ -851,8 +851,8 @@ namespace NexusForever.WorldServer.Game.Spell
                     });
             }
 
-
-            caster.EnqueueToVisible(spellStart, true);
+            // We only send this to the client if this is not a ClientSideInteraction event
+            caster.EnqueueToVisible(spellStart, parameters.ClientSideInteraction == null);
         }
 
         private void SendSpellFinish()
@@ -1034,8 +1034,19 @@ namespace NexusForever.WorldServer.Game.Spell
 
         protected virtual void OnStatusChange(SpellStatus previousStatus, SpellStatus status)
         {
-            if (status == SpellStatus.Casting && CastMethod != CastMethod.ClientSideInteraction)
+            if (status == SpellStatus.Casting)
+            {
+                if (caster is Player player && parameters.ClientSideInteraction != null)
+                        player.Session.EnqueueMessageEncrypted(new ServerSpellStartClientInteraction
+                        {
+                            ClientUniqueId = parameters.ClientSideInteraction.ClientUniqueId,
+                            CastingId = CastingId,
+                            CasterId = GetPrimaryTargetId(),
+                            Position = new Position(player.Map.GetEntity<WorldEntity>(GetPrimaryTargetId())?.Position ?? new Vector3())
+                        });
+                    
                 SendSpellStart();
+            }
         }
 
         protected virtual bool CanFinish()

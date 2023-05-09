@@ -1,4 +1,5 @@
 ﻿using NexusForever.WorldServer.Game.Entity;
+using NexusForever.WorldServer.Game.Spell;
 
 namespace NexusForever.WorldServer.Script.Creature.City
 {
@@ -9,11 +10,11 @@ namespace NexusForever.WorldServer.Script.Creature.City
             22919, // Recall - House
             25520  // Escape House
         };
+        readonly uint SPELL_HOUSING_DIALOG = 39111u;
+
         public override void OnCreate(WorldEntity me)
         {
             base.OnCreate(me);
-
-            me.ActivateSpell4Id = 39111u;
         }
 
         public override void OnActivateSuccess(WorldEntity me, WorldEntity activator)
@@ -26,6 +27,11 @@ namespace NexusForever.WorldServer.Script.Creature.City
             foreach (uint spellBaseId in CONST_SPELL_TRAINING)
                 if (player.SpellManager.GetSpell(spellBaseId) == null)
                     player.SpellManager.AddSpell(spellBaseId);
+
+            player.CastSpell(SPELL_HOUSING_DIALOG, new SpellParameters
+            {
+                PrimaryTargetId = activator.Guid
+            });
         }
     }
 }

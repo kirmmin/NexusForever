@@ -37,29 +37,20 @@ namespace NexusForever.WorldServer.Game.Spell
             return base._IsCasting() && status == SpellStatus.Casting;
         }
 
-        private void SendSpellStartClientInteraction()
-        {
-            // Shoule we actually emit client interaction events to everyone? - Logs suggest that we only see this packet firing when the client interacts with -something- and is likely only sent to them
-            if (caster is Player player)
-            {
-                player.Session.EnqueueMessageEncrypted(new ServerSpellStartClientInteraction
-                {
-                    ClientUniqueId = parameters.ClientSideInteraction.ClientUniqueId,
-                    CastingId      = CastingId,
-                    CasterId       = GetPrimaryTargetId()
-                });
-            }
-        }
-
         /// <summary>
         /// Used when a <see cref="CSI.ClientSideInteraction"/> succeeds
         /// </summary>
+        /// <remarks>
+        /// Some spells offer a CSI "Event" in the client - a dialog box, a mini-game, etc. - but, do not have a ClientUniqueId as not triggered by player directly doing something.
+        /// In this case they are spells cast by something else that require player interaction, e.g. when you get rooted but can break the root by holding down a key.
+        /// We only generated a <see cref="CSI.ClientSideInteraction"/> instance in the cases where the client delivers a ClientUniqueId.
+        /// </remarks>
         public void SucceedClientInteraction()
         {
             Execute();
 
             if (parameters.SpellInfo.Effects.FirstOrDefault(x => (SpellEffectType)x.EffectType == SpellEffectType.Activate) == null)
-                parameters.ClientSideInteraction.TriggerSuccess();
+                parameters.ClientSideInteraction?.TriggerSuccess();
         }
 
         /// <summary>
@@ -67,27 +58,14 @@ namespace NexusForever.WorldServer.Game.Spell
         /// </summary>
         public void FailClientInteraction()
         {
-            parameters.ClientSideInteraction.TriggerFail();
+            parameters.ClientSideInteraction?.TriggerFail();
 
             CancelCast(CastResult.ClientSideInteractionFail);
         }
 
-        protected override void OnStatusChange(SpellStatus previousStatus, SpellStatus status)
-        {
-            switch (status)
-            {
-                case SpellStatus.Casting:
-                    if (parameters.ClientSideInteraction.Entry != null)
-                        SendSpellStart();
-                    else
-                        SendSpellStartClientInteraction();
-                    break;
-            }
-        }
-
         protected override uint GetPrimaryTargetId()
         {
-            return parameters.ClientSideInteraction.Entry != null ? caster.Guid : parameters.PrimaryTargetId;
+            return parameters.ClientSideInteraction?.Entry != null ? caster.Guid : parameters.PrimaryTargetId;
         }
     }
 }

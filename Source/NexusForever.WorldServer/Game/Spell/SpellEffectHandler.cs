@@ -436,6 +436,9 @@ namespace NexusForever.WorldServer.Game.Spell
         [SpellEffectHandler(SpellEffectType.Activate)]
         private void HandleEffectActivate(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
+            if (parameters.ClientSideInteraction == null)
+                log.Error($"No CSI present for spell {Spell4Id} cast by {caster.Type}");
+
             parameters.ClientSideInteraction?.HandleSuccess(parameters);
         }
 

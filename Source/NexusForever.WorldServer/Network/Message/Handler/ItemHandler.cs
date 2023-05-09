@@ -72,7 +72,8 @@ namespace NexusForever.WorldServer.Network.Message.Handler
                     session.Player.CastSpell(itemSpecial.Spell4IdOnActivate, new SpellParameters
                     {
                         PrimaryTargetId = itemUse.TargetUnitId,
-                        TargetPosition  = itemUse.Position
+                        TargetPosition  = itemUse.Position,
+                        ClientSideInteraction = new Game.CSI.ClientSideInteraction(session.Player, null, itemUse.CastingId)
                     });
                 }
             }
