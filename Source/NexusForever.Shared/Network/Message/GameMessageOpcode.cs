@@ -390,7 +390,7 @@ namespace NexusForever.Shared.Network.Message
         ServerEntityCCStateSet          = 0x087F,
         ServerEntityDeath               = 0x088C,
         ServerUnitEnteredCombat         = 0x089A,
-        Server089B                      = 0x089B, // mount related
+        ServerVehiclePassengerSet       = 0x089B,
         ServerLootGrant                 = 0x08A5,
         Server08B3                      = 0x08B3,
         ServerUnitSetPathType           = 0x08B8,

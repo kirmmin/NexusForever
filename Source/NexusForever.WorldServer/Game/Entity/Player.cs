@@ -865,6 +865,19 @@ namespace NexusForever.WorldServer.Game.Entity
                     Guid = playerEntity.Guid,
                     Path = playerEntity.Path
                 });
+
+                if (playerEntity.GetVehicle(out Vehicle vehicle))
+                {
+                    VehiclePassenger passenger = vehicle.ToList().First(p => p.Guid == playerEntity.Guid);
+                    if (passenger != null)
+                        Session.EnqueueMessageEncrypted(new ServerVehiclePassengerSet
+                        {
+                            Self         = passenger.Guid,
+                            Vehicle      = vehicle.Guid,
+                            SeatType     = passenger.SeatType,
+                            SeatPosition = passenger.SeatPosition
+                        });
+                }
             }
             else
                 Session.EnqueueMessageEncrypted(new Server08B3

@@ -4,8 +4,14 @@ using NexusForever.WorldServer.Game.Entity.Static;
 
 namespace NexusForever.WorldServer.Network.Message.Model
 {
-    [Message(GameMessageOpcode.Server089B)]
-    public class Server089B : IWritable
+    /// <summary>
+    /// Should only be used during <see cref="GridEntity"/> AddVisible() method. It is used to "connect" an entity to their vehicle.
+    /// </summary>
+    /// <remarks>
+    /// Packets indicate this was only used when an entity and their vehicle were created at the same time, e.g. Player logs in and another Player nearby is already mounted.
+    /// </remarks>
+    [Message(GameMessageOpcode.ServerVehiclePassengerSet)]
+    public class ServerVehiclePassengerSet : IWritable
     {
         public uint Self { get; set; }
         public uint Vehicle { get; set; }
