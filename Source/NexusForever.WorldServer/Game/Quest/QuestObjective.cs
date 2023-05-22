@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using NexusForever.Database.Character;
 using NexusForever.Database.Character.Model;
 using NexusForever.Shared;
-using NexusForever.Shared.GameTable;
 using NexusForever.Shared.GameTable.Model;
 using NexusForever.WorldServer.Game.Quest.Static;
 using NLog;
@@ -164,6 +164,10 @@ namespace NexusForever.WorldServer.Game.Quest
         /// <summary>
         /// Return if this <see cref="QuestObjective"/> is a checklist type.
         /// </summary>
+        /// <remarks>
+        /// Checklist progress is calculated using the QuestChecklistIdx of the entity, and applying that to a bitmask.
+        /// Completion is calculated by the number of bits in a bitmask. e.g. 0b01010111 would have a progress of 5 towards the objective count.
+        /// </remarks>
         public bool IsChecklist()
         {
             // TODO: Determine other Types that are also Checklists
@@ -191,6 +195,9 @@ namespace NexusForever.WorldServer.Game.Quest
         /// </summary>
         public bool IsComplete()
         {
+            if (IsChecklist())
+                return BitOperations.PopCount(progress) >= GetMaxValue();
+
             return progress >= GetMaxValue();
         }
 
@@ -204,9 +211,6 @@ namespace NexusForever.WorldServer.Game.Quest
 
         private uint GetMaxValue()
         {
-            if (IsChecklist())
-                return (uint)(1 << (int)ObjectiveInfo.Entry.Count) - 1;
-
             if (IsDynamic())
                 return 1000u;
 
@@ -218,9 +222,16 @@ namespace NexusForever.WorldServer.Game.Quest
         /// </summary>
         public void ObjectiveUpdate(uint update)
         {
+            if (IsChecklist() && IsDynamic())
+                throw new QuestException("Unhandled objective update. Objective is Checklist and Dynamic.");
+
             if (IsChecklist())
-                update = (uint)(1 << (int)update);
-            else if (IsDynamic())
+            {
+                Progress = progress + (uint)(1 << (int)update);
+                return;
+            }
+
+            if (IsDynamic())
                 update = (uint)(((float)update / ObjectiveInfo.Entry.Count) * 1000f);
 
             Progress = Math.Min(progress + update, GetMaxValue());
@@ -231,6 +242,16 @@ namespace NexusForever.WorldServer.Game.Quest
         /// </summary>
         public void Complete()
         {
+            if (IsChecklist())
+            {
+                uint update = 0;
+                for (int i = 0; i < GetMaxValue(); i++)
+                    update += (uint)(1 << i);
+
+                Progress = update;
+                return;
+            }
+
             Progress = GetMaxValue();
         }
     }
