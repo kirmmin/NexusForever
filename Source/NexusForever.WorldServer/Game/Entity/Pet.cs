@@ -57,6 +57,8 @@ namespace NexusForever.WorldServer.Game.Entity
 
             UpdateStats(owner);
             ModifyHealth(MaxHealth);
+            if (effectsEntry.DurationTime > 0)
+                SetExpirationTimer((double)effectsEntry.DurationTime / 1000);
             SetupAI(spellInfo, effectsEntry);
         }
 
@@ -128,7 +130,8 @@ namespace NexusForever.WorldServer.Game.Entity
                 return;
             }
 
-            owner.SpellManager.GetSpell(Spell4Entry.Spell4BaseIdBaseSpell).SetPetUnitId(Guid);
+            if (Spell4Entry.Spell4IdPetSwitch > 0)
+                owner.SpellManager.GetSpell(Spell4Entry.Spell4BaseIdBaseSpell).SetPetUnitId(Guid);
             owner.PetManager.AddPetGuid(PetType.CombatPet, guid);
 
             // TODO: Move ActionBars to Actionbar Manager
@@ -244,7 +247,8 @@ namespace NexusForever.WorldServer.Game.Entity
             });
 
             owner.PetManager.RemovePetGuid(PetType.CombatPet, this);
-            owner.SpellManager.GetSpell(Spell4Entry.Spell4BaseIdBaseSpell).SetPetUnitId(0u);
+            if (Spell4Entry.Spell4IdPetSwitch > 0)
+                owner.SpellManager.GetSpell(Spell4Entry.Spell4BaseIdBaseSpell).SetPetUnitId(0u);
 
             if (owner.HasSpell(x => !x.IsFinished && !x.IsFinishing && x.Spell4Id == 56487, out Spell.Spell limiterDebuff))
                 limiterDebuff.Finish(); // End Limiter Debuff

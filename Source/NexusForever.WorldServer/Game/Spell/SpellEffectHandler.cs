@@ -216,6 +216,35 @@ namespace NexusForever.WorldServer.Game.Spell
             });
         }
 
+
+        [SpellEffectHandler(SpellEffectType.SummonCreature)]
+        private void HandleEffectSummonCreature(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
+        {
+            // TODO: Investigate flags in dataBits01
+
+            var creatureEntry = GameTableManager.Instance.Creature2.GetEntry(info.Entry.DataBits00);
+
+            for (int i = 0; i < info.Entry.DataBits02; i++)
+            {
+                WorldEntity entity;
+                if ((EntityType)creatureEntry.CreationTypeEnum == EntityType.Simple)
+                    entity = new Simple(creatureEntry, 0, 0);
+                else if ((EntityType)creatureEntry.CreationTypeEnum == EntityType.NonPlayer)
+                    entity = new NonPlayer(creatureEntry, 0, 0);
+                else
+                    entity = EntityManager.Instance.NewEntity((EntityType)creatureEntry.CreationTypeEnum) ?? EntityManager.Instance.NewEntity(EntityType.Simple);
+                entity.Initialise(creatureEntry);
+
+                var position = new MapPosition
+                {
+                    Position = new Vector3(target.Position.X, target.Position.Y, target.Position.Z).GetRandomPoint2DRangeDirection(info.Entry.DataBits03, info.Entry.DataBits04, info.Entry.DataBits05, target.Rotation.X)
+                };
+
+                if (target.Map.CanEnter(entity, position))
+                    target.Map.EnqueueAdd(entity, position);
+            }
+        }
+
         [SpellEffectHandler(SpellEffectType.Teleport)]
         private void HandleEffectTeleport(UnitEntity target, SpellTargetInfo.SpellTargetEffectInfo info)
         {
