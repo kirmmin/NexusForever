@@ -5,8 +5,10 @@ using NexusForever.Shared.Network;
 using NexusForever.Shared.Network.Message;
 using NexusForever.WorldServer.Game.CharacterCache;
 using NexusForever.WorldServer.Game.Contact.Static;
+using NexusForever.WorldServer.Game.Quest.Static;
 using NexusForever.WorldServer.Network.Message.Model;
 using NexusForever.WorldServer.Network.Message.Model.Shared;
+using NexusForever.WorldServer.Script;
 
 namespace NexusForever.WorldServer.Network.Message.Handler
 {
@@ -98,6 +100,13 @@ namespace NexusForever.WorldServer.Network.Message.Handler
         [MessageHandler(GameMessageOpcode.ClientZoneChange)]
         public static void HandleClientZoneChange(WorldSession session, ClientZoneChange zoneChange)
         {
+            WorldZoneEntry entry = GameTableManager.Instance.WorldZone.GetEntry(zoneChange.NewZoneId);
+            if (entry != null)
+            {
+                uint id = entry.AllowAccess || entry.ParentZoneId == 0 ? entry.Id : entry.ParentZoneId;
+                session.Player.QuestManager.ObjectiveUpdate(QuestObjectiveType.EnterZone, id, 1);
+                ScriptManager.Instance.GetScript<MapScript>(session.Player.Map.Entry.Id)?.OnEnterZone(session.Player, zoneChange.NewZoneId);
+            }
         }
 
         /// <summary>
