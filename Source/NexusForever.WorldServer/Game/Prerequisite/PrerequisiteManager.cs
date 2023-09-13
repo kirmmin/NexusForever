@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -28,12 +29,12 @@ namespace NexusForever.WorldServer.Game.Prerequisite
             foreach (MethodInfo method in Assembly.GetExecutingAssembly().GetTypes()
                 .SelectMany(t => t.GetMethods(BindingFlags.NonPublic | BindingFlags.Static)))
             {
-                PrerequisiteCheckAttribute attribute = method.GetCustomAttribute<PrerequisiteCheckAttribute>();
-                if (attribute == null)
-                    continue;
-
-                PrerequisiteCheckDelegate handler = (PrerequisiteCheckDelegate)Delegate.CreateDelegate(typeof(PrerequisiteCheckDelegate), method);
-                builder.Add(attribute.Type, handler);
+                IEnumerable<PrerequisiteCheckAttribute> attributes = method.GetCustomAttributes<PrerequisiteCheckAttribute>();
+                foreach (PrerequisiteCheckAttribute attribute in attributes)
+                {
+                    PrerequisiteCheckDelegate handler = (PrerequisiteCheckDelegate)Delegate.CreateDelegate(typeof(PrerequisiteCheckDelegate), method);
+                    builder.Add(attribute.Type, handler);
+                }
             }
 
             prerequisiteCheckHandlers = builder.ToImmutable();
