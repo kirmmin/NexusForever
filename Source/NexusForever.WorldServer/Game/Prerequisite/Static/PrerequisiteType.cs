@@ -60,6 +60,7 @@
         /// </summary>
         Unknown195          = 195,
         SpellBaseId         = 214,
+        Amp                 = 227,
         Plane               = 232,
         Faction2            = 243,
         AccountItemClaimed  = 246,
